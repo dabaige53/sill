@@ -4,6 +4,8 @@
 
 桌面测试用内存中的模拟工作区，不读写真实数据，不打开窗口。`npm run test:macos` 在测试后校验 `dist/macos/Sill.app` 的签名，需要先运行 `npm run build:macos`。真实窗口中的视觉、动效与 iOS 设备检查不包含在自动测试中，见 [Apple 说明](../../apps/apple/README.md)。
 
+`build:macos` 在签名前复制应用到 `/private/tmp`，将副本的入口替换为无窗口资源检查程序。检查程序与产品编译同一份 `AppResources` 和 SwiftPM 生成的资源访问器，确认资源来自应用的 `Contents/Resources`，并解码全部打包 PNG。检查不读取账号数据；失败会阻止构建成功。此检查由 GitHub Actions 的 Mac 构建执行，不代替真实窗口启动验收。
+
 ## 性能
 
 `npm run perf:macos` 默认执行后台基准，等同于 `npm run perf:macos -- benchmark`。使用 Xcode 工具链的 XCTest 运行 Release 非 UI 基准。`npm run perf:macos -- ui` 使用独立的 [PerformanceHarness.xcodeproj](PerformanceHarness.xcodeproj/project.pbxproj) 与 [PerformanceUITests.swift](PerformanceUITests.swift) 进行真实原生 UI 操作，并附加官方 Instruments。需要当前任务授权和系统 Developer Tools 权限；不纳入默认测试。输出位于新建的 `/private/tmp` 目录。

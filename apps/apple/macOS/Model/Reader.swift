@@ -88,7 +88,7 @@ import SwiftUI
     if interrupted, layers.last?.card != id { releaseHeld() }
     hold(id)
     workspace.recorder.opened(id)
-    if card.kind == .photo, !full { markPhotoRead(id) }
+    if card.kind.readable { markOpenedRead(id) }
     if layers.isEmpty || (!shown && !showPending) {
       // A fresh overlay, or reopening while the previous one is still leaving.
       let fresh = layers.last?.card != id || layers.count != 1
@@ -242,10 +242,15 @@ import SwiftUI
     if !sent { completion?(false) }
   }
 
-  private func markPhotoRead(_ id: String) {
+  /// Opening a card reads it (tasks excepted). Reading progress stays as it was, so the reader
+  /// still resumes at its place; the write waits for the opening motion.
+  private func markOpenedRead(_ id: String) {
     Task { [weak self] in
       try? await Task.sleep(for: .seconds(AppleMetrics.motionDetailOpen))
-      self?.reachedEnd(id)
+      guard let self, self.sessionActive, !self.workspace.state(id).effectiveRead else { return }
+      self.hold(id)
+      _ = self.workspace.change(
+        id, ["read": .bool(true), "readAt": .number(Format.milliseconds())], lock: false)
     }
   }
 

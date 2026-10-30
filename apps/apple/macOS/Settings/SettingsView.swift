@@ -9,7 +9,7 @@ import SwiftUI
 /// @design settings-sheet
 struct SettingsView: View {
   enum Group: String, CaseIterable {
-    case desk, look, keys, data, backup
+    case desk, look, keys, data, backup, about
     var title: String {
       switch self {
       case .desk: Copy.text("web.common.desk")
@@ -17,6 +17,7 @@ struct SettingsView: View {
       case .keys: Copy.text("web.settings.shortcuts")
       case .data: Copy.text("web.cloudentry.ebdc835e8f87")
       case .backup: Copy.text("web.backup.navigation")
+      case .about: Copy.text("web.about.title")
       }
     }
   }
@@ -47,8 +48,9 @@ struct SettingsView: View {
             .padding(.vertical, AppleMetrics.space28)
             .padding(.horizontal, AppleMetrics.space32)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .disabled(workspace.phase != .ready)
-            .opacity(workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
+            .disabled(group != .about && workspace.phase != .ready)
+            .opacity(
+              group == .about || workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
           }
           .scrollIndicators(.hidden)
         }
@@ -127,6 +129,7 @@ struct SettingsView: View {
     case .keys: keys
     case .data: DataPage()
     case .backup: BackupSettingsView().id(account.owner)
+    case .about: AboutSettingsView()
     }
   }
 

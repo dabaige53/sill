@@ -112,7 +112,7 @@ enum Cover {
 
   @MainActor static func image(_ name: String) -> NSImage? {
     if let image = cache[name] { return image }
-    guard let url = Bundle.module.url(forResource: name, withExtension: "png"),
+    guard let url = AppResources.bundle.url(forResource: name, withExtension: "png"),
       let image = NSImage(contentsOf: url)
     else { return nil }
     cache[name] = image

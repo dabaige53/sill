@@ -10,6 +10,7 @@
 | `design-system/tokens/`、`copy/zh-Hans/` | 设计变量与文案源文件；同名汇总 JSON 由脚本生成 |
 | `design-system/components/` | 组件说明和从产品代码生成的预览、渲染包 |
 | `design-system/assets/Icons/` | 共用图标 SVG |
+| `design-system/product-links.json` | Web 与 Mac 关于页共用的项目链接和图标名；Apple 构建时生成 `ProductInfo`，产品版本仍只维护在根 `package.json` |
 | `design-system/boards/` | 现行画板、canvas.json 和目录页 |
 | `design-system/history/` | 设计探索与被替代画板，仅供历史查阅 |
 | `design-system/marks.json` | 设计编号对应的规则、变量、ADR、画板与实现 |

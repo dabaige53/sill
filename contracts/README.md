@@ -46,7 +46,7 @@ PR 必填字段为 `repository`（owner/repo）、`number`（正安全整数）�
 
 `pullRequest.reviewers` 最多 100 个 `{login,url?,decision}`，decision 为 pending/approved/changesRequested/commented/dismissed。`checks` 最多 1000 个 `{name,status,conclusion?,url?}`，status 为 queued/inProgress/completed；只有 completed 可带 conclusion，其值为 success/failure/neutral/cancelled/skipped/timedOut/actionRequired/stale。嵌套 URL 均为 HTTP(S)。
 
-关闭媒体详情时停止播放并保存位置。只有实际播放结束才标记已读；拖动到结尾不算完成。该规则由播放器控制，数据层不会按位置或比例自动写入已读。视频使用卡片原有 `url`，客户端只对支持的平台生成官方嵌入地址。
+关闭媒体详情时停止播放并保存位置。除待办外，客户端打开详情即写入已读；播放器只保存位置，数据层不会按位置或比例自动写入已读。视频使用卡片原有 `url`，客户端只对支持的平台生成官方嵌入地址。
 
 阅读时长不存入卡片。文章、笔记、邮件、摘要、建议和文件由客户端按 `body` 计算：中文每分钟 400 字，英文每分钟 200 词，向上取整，显示为「约 N 分钟阅读」。正文为空时不显示。
 

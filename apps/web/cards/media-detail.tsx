@@ -30,7 +30,7 @@ function VideoDetail({ card, app }: { card: Card; app?: PlaybackApp; full?: bool
 	};
 	const scope = useRef(currentScope());
 	const initial = useRef(Store.item(card.id).playbackPosition || 0);
-	const save = (position: number, ended: boolean) => {
+	const save = (position: number) => {
 		if (
 			!scope.current ||
 			currentScope() !== scope.current ||
@@ -38,10 +38,7 @@ function VideoDetail({ card, app }: { card: Card; app?: PlaybackApp; full?: bool
 			!Number.isFinite(position)
 		)
 			return;
-		Store.patch(card.id, {
-			playbackPosition: position,
-			...(ended ? { read: true, readAt: Date.now() } : {}),
-		});
+		Store.patch(card.id, { playbackPosition: position });
 		app?.refreshCard?.(card.id);
 	};
 	const video = youtubeID(card.url);

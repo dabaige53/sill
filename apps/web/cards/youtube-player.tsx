@@ -105,7 +105,7 @@ export function YouTubePlayer({
 	initialPosition: number;
 	cover?: string;
 	knownDuration?: number;
-	onSave: (position: number, ended: boolean) => void;
+	onSave: (position: number) => void;
 }) {
 	const host = useRef<HTMLDivElement>(null),
 		callbacks = useRef({ onSave });
@@ -129,7 +129,6 @@ export function YouTubePlayer({
 			player: Player | undefined,
 			timer: ReturnType<typeof setInterval> | undefined,
 			previous = resume.current,
-			advanced = false,
 			started = false,
 			ready = false,
 			failed = false;
@@ -149,9 +148,6 @@ export function YouTubePlayer({
 			const playing = player.getPlayerState() === 1;
 			if (!started && !playing && position === 0) return;
 			if (playing) started = true;
-			const delta = position - previous;
-			if (delta < 0 || delta > 2) advanced = false;
-			else if (playing && delta > 0.01) advanced = true;
 			previous = position;
 			resume.current = position;
 		};
@@ -183,10 +179,8 @@ export function YouTubePlayer({
 						},
 						onStateChange: (event: { data: number }) => {
 							if (disposed) return;
-							if ([2, 3, 5].includes(event.data)) advanced = false;
 							sample();
-							if (event.data === 0 || event.data === 2)
-								callbacks.current.onSave(previous, event.data === 0 && advanced);
+							if (event.data === 0 || event.data === 2) callbacks.current.onSave(previous);
 						},
 						onError: fail,
 					},
@@ -201,7 +195,7 @@ export function YouTubePlayer({
 				const position = started && !failed ? player.getCurrentTime() : previous;
 				resume.current = position;
 				player.pauseVideo();
-				callbacks.current.onSave(position, false);
+				callbacks.current.onSave(position);
 			}
 			player?.destroy();
 			host.current?.replaceChildren();

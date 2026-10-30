@@ -18,20 +18,20 @@ const articleBody = [
 const paragraphs = (parts: string[]) => parts.join("\n\n");
 const HOUR = 3600000,
 	MIN = 60000;
-/** Eleven card types. `readable` types carry read state as card color. */
+/** Card types. `readable` types become read once opened and carry read state as card color. */
 const CardTypes: Record<string, any> = Object.assign(Object.create(null), {
 	article: { label: copy("card.type.article"), icon: "book", readable: true },
 	mail: { label: copy("card.type.mail"), icon: "mail", readable: true },
 	note: { label: copy("card.type.note"), icon: "note", readable: true },
 	task: { label: copy("card.type.task"), icon: "check-circle" },
-	event: { label: copy("card.type.event"), icon: "calendar" },
-	reminder: { label: copy("card.type.reminder"), icon: "bell" },
+	event: { label: copy("card.type.event"), icon: "calendar", readable: true },
+	reminder: { label: copy("card.type.reminder"), icon: "bell", readable: true },
 	media: { label: copy("card.type.media"), icon: "video", readable: true },
-	digest: { label: copy("card.type.digest"), icon: "chart" },
+	digest: { label: copy("card.type.digest"), icon: "chart", readable: true },
 	suggestion: { label: copy("card.type.suggestion"), icon: "sparkles", readable: true },
 	photo: { label: copy("card.type.photo"), icon: "image", readable: true },
-	file: { label: copy("card.type.file"), icon: "folder" },
-	pr: { label: copy("card.type.pr"), icon: "pull" },
+	file: { label: copy("card.type.file"), icon: "folder", readable: true },
+	pr: { label: copy("card.type.pr"), icon: "pull", readable: true },
 });
 /** Where content comes from. Icons repeat in the source row, the source list and import. */
 const SourceKinds: Record<string, any> = Object.assign(Object.create(null), {

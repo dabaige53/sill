@@ -471,8 +471,8 @@ struct DesktopView: View {
       case .dismiss: reminder(id, .dismiss)
       case .open, .reply:
         guard let card = workspace.model(id), let url = card.url else { return }
-        // Web `external`: an opened mail counts as read.
-        if ExternalLink.open(url, workspace: workspace), card.kind == .mail,
+        // Web `external`: an opened source counts as read.
+        if ExternalLink.open(url, workspace: workspace), card.kind.readable,
           !workspace.state(id).read
         {
           workspace.setRead(id, true)

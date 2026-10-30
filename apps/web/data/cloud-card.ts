@@ -2,14 +2,14 @@ import type { Card } from "../../../contracts/card.ts";
 import { markdownBlocks } from "../atoms/markdown.ts";
 
 /** A cloud record: card facts plus server metadata and personal state. */
-type CloudRecord = Card & { updated_at?: string; state?: unknown };
+type CloudRecord = Card & { created_at?: string; updated_at?: string; state?: unknown };
 
 /** Project cloud records into cards; nested values are copied, not shared. */
 export function cloudCard(record: CloudRecord) {
 	const card = structuredClone(record);
 	card.summary ??= markdownBlocks(card.body || "")[0] || "";
-	if (card.time === undefined && typeof card.updated_at === "string") {
-		const time = Date.parse(card.updated_at);
+	if (card.time === undefined && typeof card.created_at === "string") {
+		const time = Date.parse(card.created_at);
 		if (Number.isFinite(time)) card.time = time;
 	}
 	return card;

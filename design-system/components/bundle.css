@@ -103,16 +103,12 @@ body {
 #workspace-background.is-page-frozen > main {
 	overflow: clip;
 }
-/* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
-   page differently, and the card shadows and the dock's glass changed in one frame as the drawer
-   finished closing. phone-drawer.tsx measures the visible part. All four corners round, so cards
-   under a tucked top bar never stick out past the page's top corners. */
+/* Freeze the existing feed in a viewport, not a translated, full-page compositing layer.
+   The wrapper clips the scaled page; main retains its reading position with native scrollTop. */
 #workspace-background.is-drawer-background > main {
-	--phone-drawer-roundness: inherit;
-	clip-path: inset(
-		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round
-			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
-	);
+	height: 100dvh;
+	min-height: 0;
+	overflow: hidden;
 }
 button,
 input,
@@ -4300,7 +4296,7 @@ button.list-row:active {
 	opacity: 0;
 }
 
-/* Settings: five groups, one screen each. */
+/* Settings groups share one fixed-size sheet. */
 .settings-layout {
 	display: grid;
 	grid-template-columns: 200px minmax(0, 1fr);
@@ -4397,6 +4393,158 @@ button.list-row:active {
 }
 .setting-row .text-link {
 	padding: 0;
+}
+.settings-product {
+	display: flex;
+	align-items: center;
+	gap: var(--space-16);
+	margin-bottom: var(--space-24);
+}
+.settings-product-name {
+	font-size: var(--text-panel-title);
+	color: var(--ink);
+}
+.settings-product .panel-sub {
+	margin: var(--space-6) 0 0;
+}
+.settings-link {
+	text-decoration: none;
+	color: var(--ink);
+}
+.settings-link-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	min-width: 0;
+}
+.settings-link > .icon,
+.settings-link-label > .icon {
+	flex: none;
+	color: var(--muted);
+}
+.settings-link:active {
+	background: var(--faint);
+}
+@media (hover: hover) and (pointer: fine) {
+	.settings-link:hover {
+		color: var(--accent);
+	}
+}
+.settings-section-head {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-12);
+	margin: var(--space-24) 0 var(--space-12);
+}
+.settings-section-icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--space-36);
+	height: var(--space-36);
+	border-radius: var(--control-radius);
+	background: var(--surface);
+	color: var(--muted);
+}
+.settings-section-head h3 {
+	font-size: var(--text-control);
+	font-weight: 600;
+}
+.settings-section-head p {
+	margin-top: var(--space-4);
+	font-size: var(--text-meta);
+	line-height: 1.5;
+	color: var(--muted);
+}
+.backup-settings .setting-row > :is(input, select) {
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	padding: var(--space-8) var(--space-10);
+	border: 1px solid var(--line);
+	border-radius: var(--control-radius);
+	background: var(--canvas);
+	color: var(--ink);
+	font-size: var(--text-meta);
+}
+.backup-settings .setting-row > span:first-child {
+	overflow-wrap: anywhere;
+}
+.backup-provider {
+	flex-wrap: wrap;
+}
+.backup-provider fieldset {
+	border: 0;
+	margin: 0;
+	min-width: 0;
+}
+.settings-actions {
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	column-gap: var(--space-16);
+	row-gap: var(--space-8);
+}
+.settings-actions > button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	min-height: var(--space-36);
+}
+.settings-actions > button.solid-button {
+	margin-left: auto;
+	order: 1;
+}
+.settings-feedback {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-8);
+	margin-top: var(--space-12);
+	font-size: var(--text-meta);
+	overflow-wrap: anywhere;
+}
+.settings-feedback .icon {
+	flex: none;
+}
+.settings-empty {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-20) var(--space-16);
+	color: var(--muted);
+	font-size: var(--text-meta);
+	line-height: 1.5;
+}
+.backup-status {
+	flex: none;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.backup-record time {
+	overflow-wrap: anywhere;
+}
+.backup-restore {
+	margin-top: var(--space-24);
+	padding-block: var(--space-16);
+}
+.backup-restore .settings-section-head {
+	margin-top: 0;
+}
+@media (max-width: 650px) {
+	.backup-settings .setting-row:has(> input, > select) {
+		align-items: stretch;
+		flex-direction: column;
+		gap: var(--space-8);
+		padding-block: var(--space-12);
+	}
+	.backup-settings .setting-row > :is(input, select) {
+		width: 100%;
+		min-height: var(--space-44);
+		font-size: var(--text-card-title);
+	}
+	.settings-actions > button {
+		min-height: var(--space-44);
+	}
 }
 kbd {
 	display: inline-flex;

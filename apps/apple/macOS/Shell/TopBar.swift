@@ -118,7 +118,7 @@ struct AccountButton: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Image("account-avatar", bundle: .module)
+      Image("account-avatar", bundle: AppResources.bundle)
         .resizable()
         .scaledToFill()
         .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)

@@ -1,0 +1,22 @@
+[
+	{
+		"key": "web.about.repository",
+		"icon": "code-xml",
+		"url": "https://github.com/dabaige53/sill"
+	},
+	{
+		"key": "web.about.releases",
+		"icon": "download",
+		"url": "https://github.com/dabaige53/sill/releases"
+	},
+	{
+		"key": "web.about.guide",
+		"icon": "book",
+		"url": "https://github.com/dabaige53/sill/blob/main/README.md"
+	},
+	{
+		"key": "web.about.feedback",
+		"icon": "message",
+		"url": "https://github.com/dabaige53/sill/issues"
+	}
+]

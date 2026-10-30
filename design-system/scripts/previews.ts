@@ -2,6 +2,7 @@
 // the app draws. Run: node --import tsx design-system/scripts/previews.ts [--check]
 import "./fixed-clock.ts";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { registerHooks } from "node:module";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { createElement } from "react";
@@ -20,15 +21,38 @@ import { copy } from "../../apps/web/copy.ts";
 import { previewSessions } from "../../apps/web/data/ai-preview.ts";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
+import { BackupSettings } from "../../apps/web/interactions/backup-settings.tsx";
 import { pushRingHTML } from "../../apps/web/interactions/gesture-preview.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { AIDockSessionButton, AIDockThread } from "../../apps/web/views/ai-dock.tsx";
 import { HomeHashList, homeCardOptions } from "../../apps/web/views/home-search.tsx";
-import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
 import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
 import { consentSummary } from "../../server/cloud/consent-policy.ts";
 import { loginPage } from "../../server/cloud/login-page.ts";
 import { preparePreviewArtwork } from "./preview-artwork.ts";
+
+const settingsDom = new JSDOM("", { url: "https://sill.invalid" });
+Object.assign(globalThis, {
+	window: settingsDom.window,
+	localStorage: settingsDom.window.localStorage,
+});
+
+// Product image imports need the same embedded bytes when rendered outside Vite.
+const imageHooks = registerHooks({
+	load(url, context, nextLoad) {
+		if (url.startsWith("file:") && url.endsWith(".png")) {
+			const data = `data:image/png;base64,${readFileSync(new URL(url)).toString("base64")}`;
+			return {
+				format: "module",
+				source: `export default ${JSON.stringify(data)}`,
+				shortCircuit: true,
+			};
+		}
+		return nextLoad(url, context);
+	},
+});
+const { AIDock, HomeTop, Navigation } = await import("../../apps/web/views/shell.tsx");
+imageHooks.deregister();
 
 const check = process.argv.includes("--check");
 const previewArtwork = preparePreviewArtwork(check);
@@ -278,13 +302,18 @@ const settingsCss = (
 )
 	.map((file) => readFileSync(resolve(root, "../../", file), "utf8"))
 	.join("\n");
-const settingsDom = new JSDOM("", { url: "https://sill.invalid" });
-Object.assign(globalThis, {
-	window: settingsDom.window,
-	localStorage: settingsDom.window.localStorage,
-});
+const settingsPreviewApp = {
+	cloudBackupSettingsContent: createElement(BackupSettings, {
+		api: async () => ({ targets: [], backups: [] }),
+		owner: "design-preview",
+		host: false,
+	}),
+};
 const settingsPages = Object.fromEntries(
-	Panels.settingsGroups.map(([key]) => [key, Panels.settings({}, key)]),
+	[...Panels.settingsGroups.map(([key]) => key), "backup"].map((key) => [
+		key,
+		Panels.settings(settingsPreviewApp, key),
+	]),
 );
 settingsDom.window.close();
 const settingsHtml = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>设置</title><style>${settingsCss}

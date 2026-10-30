@@ -80,10 +80,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/release/tag/* --verify-tag --title "Sill $GITHUB_REF_NAME" --notes-file dist/release/tag/release-notes.md --prerelease
+          gh release create "$GITHUB_REF_NAME" dist/release/tag/*-internal.dmg --verify-tag --title "Sill $GITHUB_REF_NAME" --notes-file dist/release/tag/release-notes.md --prerelease
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: release-receipt
-          path: dist/release/tag/deployment.json
+          path: |
+            dist/release/tag/deployment.json
+            dist/release/tag/release-notes.md
           if-no-files-found: ignore

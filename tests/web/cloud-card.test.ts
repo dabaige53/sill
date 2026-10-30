@@ -50,10 +50,40 @@ test("cloud projection fills only the summary and timeline time when missing", (
 		id: "missing",
 		type: "note",
 		title: "Missing",
+		created_at: "2026-10-01T00:00:00Z",
 		updated_at: rich.updated_at,
 	});
 	assert.equal(missing.sources, undefined);
-	assert.equal(missing.time, Date.parse(rich.updated_at));
+	assert.equal(missing.time, Date.parse("2026-10-01T00:00:00Z"));
+});
+
+test("cloud timeline fallback stays at creation time after saves and preserves explicit time", () => {
+	const record = {
+		id: "stable-time",
+		type: "note",
+		title: "Stable timeline",
+		created_at: "2026-10-01T08:00:00+08:00",
+		updated_at: "2026-10-02T00:00:00Z",
+	};
+	const before = cloudCard(record);
+	const after = cloudCard({ ...record, updated_at: "2026-10-30T00:00:00Z" });
+	assert.equal(before.time, Date.parse(record.created_at));
+	assert.equal(after.time, before.time);
+	assert.equal(cloudCard({ ...record, time: 42 }).time, 42);
+	assert.equal("time" in record, false);
+});
+
+test("cloud timeline does not turn update or source publication time into creation time", () => {
+	const record = {
+		id: "unknown-creation",
+		type: "article",
+		title: "Unknown creation",
+		publishedAt: "2020-01-01",
+		updated_at: "2026-10-30T00:00:00Z",
+	};
+	assert.equal(cloudCard(record).time, undefined);
+	assert.equal(cloudCard({ ...record, created_at: "invalid" }).time, undefined);
+	assert.equal(cloudCard(record).publishedAt, record.publishedAt);
 });
 
 test("cloud done state presents recorded task and reminder state without changing tasks", () => {

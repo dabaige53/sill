@@ -130,15 +130,17 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		pushPhonePreview(this);
 	}
 	this.currentId = id;
-	if (!Store.item(id).seen) {
-		Store.patch(id, { seen: true });
+	// Opening a card reads it; tasks stay unread until done.
+	const opened = Store.item(id);
+	const readable = (CardTypes[c.type] || CardTypes.note).readable;
+	if (!opened.seen || (readable && !opened.read)) {
+		Store.patch(id, readable ? { seen: true, read: true } : { seen: true });
 		deferReadingRefresh(this, id);
 	}
 	if (c.type === "photo" && !reading) {
 		this.photoIndex = restore?.photoIndex || 0;
 		this.openModal(Panels.lightbox(c, this.photoIndex, this), "lightbox", null, "lightbox", linked);
 		settle();
-		Store.patch(id, { read: true, progress: 1 });
 		this.refreshCard(id);
 		return;
 	}

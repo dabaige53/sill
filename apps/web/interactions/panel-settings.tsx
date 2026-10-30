@@ -4,8 +4,9 @@ import { copy } from "../copy.ts";
 import type { Preferences } from "../data/store.ts";
 import { Store } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
+import { AboutSettings } from "./about-settings.tsx";
 import type { PanelRenderers } from "./panel-contract.ts";
-import { icon, keyed, segmented, toggle } from "./panel-primitives.tsx";
+import { keyed, segmented, toggle } from "./panel-primitives.tsx";
 import { formatBytes } from "./panels-components.tsx";
 import { SettingRow } from "./setting-row.tsx";
 import { SystemReminderSettings } from "./system-reminder-settings.tsx";
@@ -16,6 +17,7 @@ export const panelSettings = {
 		["look", copy("web.settings.appearance"), "eye"],
 		["keys", copy("web.settings.shortcuts"), "keyboard"],
 		["data", copy("web.cloudentry.ebdc835e8f87"), "lock"],
+		["about", copy("web.about.title"), "info"],
 	],
 	settings(
 		this: PanelRenderers,
@@ -49,6 +51,7 @@ export const panelSettings = {
 				),
 			);
 		const pages: Record<string, () => ReactNode> = {
+			about: () => <AboutSettings />,
 			desk: () => (
 				<>
 					<h2>{copy("web.common.desk")}</h2>
@@ -229,11 +232,12 @@ export const panelSettings = {
 						<nav className={"settings-nav"} aria-label={copy("web.settings.groupsLabel")}>
 							{keyed(
 								[
-									...this.settingsGroups,
+									...this.settingsGroups.filter(([key]) => key !== "about"),
 									...(app?.cloudBackupSettingsContent !== undefined
 										? [["backup", copy("web.backup.navigation"), "archive"]]
 										: []),
-								].map(([k, v, ic]) => (
+									this.settingsGroups.find(([key]) => key === "about"),
+								].map(([k, v]) => (
 									<>
 										<button
 											type={"button"}

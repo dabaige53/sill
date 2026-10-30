@@ -4,7 +4,9 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-30 | 设置画板生成 | ERR_UNKNOWN_FILE_EXTENSION、avatar.png、window is not defined、AIDock、previews.ts | [设置画板生成修正](2026-10-30-settings-about-backup/README.md#检查) |
 | 2026-10-30 | MCP 写入与信息流排序 | 导入缺时间、提醒没有 due、秒级时间、1970、正文被精简、广告没删、新卡在底部、没有新内容提示、排序乱 | [导入缺时间与新卡沉底](2026-10-30-import-time-feed-order/diagnosis.md) |
+| 2026-10-30 | Mac 启动与资源包 | 打开即崩溃、EXC_BREAKPOINT、NSBundle.module、Cover.image、Sill_Sill.bundle、头像体积 | [Mac 资源包定位与头像压缩](2026-10-30-macos-resource-bundle/README.md) |
 | 2026-10-30 | 手机搜索 | 点分类白闪、分类网格消失、关闭卡片后空白页、只剩搜索框和取消、分类网格截断只显示一行、--kb 残留、切换搜索一帧空白 | [手机搜索闪屏与空白页](2026-10-30-phone-search-flash/diagnosis.md) |
 | 2026-10-30 | Codex 插件技能列表 | Dev 长前缀、dev mode、display_name、技能详情与输入框名称不一致 | [技能显示名称](2026-10-30-plugin-skill-names/diagnosis.md) |
 | 2026-10-30 | 手机 AI 输入框与搜索抽屉 | 输入框第二次点击底部上移、键盘收起露出主页、正文截断与底部留白、下滑关闭失效、导航胶囊出现、search-background | [手机页面状态交接排查](2026-10-30-phone-page-lifecycle/README.md) |

@@ -1,6 +1,30 @@
 import SillKit
 import SwiftUI
 
+struct SettingsSectionHeading: View {
+  let icon: String
+  let title: String
+  let hint: String
+
+  var body: some View {
+    HStack(alignment: .top, spacing: AppleMetrics.space12) {
+      Icon(icon, size: AppleMetrics.font20)
+        .foregroundStyle(AppleColors.secondary)
+        .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
+        .background(
+          RoundedRectangle(cornerRadius: AppleMetrics.controlRadius).fill(AppleColors.surface))
+      VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+        Text(title).font(.sans(AppleMetrics.font14, .semibold))
+          .foregroundStyle(AppleColors.primary).accessibilityAddTraits(.isHeader)
+        Text(hint).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.top, AppleMetrics.space12)
+  }
+}
+
 /// Web `.settings-card`: white, a 0.5px ring, 14 corners; rows inside are 16 from the sides.
 struct SettingsCard<Content: View>: View {
   @ViewBuilder var content: Content

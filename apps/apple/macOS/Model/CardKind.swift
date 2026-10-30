@@ -1,6 +1,7 @@
 import SillKit
 
-/// Eleven card types (Web `CardTypes`). `readable` types carry read state as card color.
+/// Card types (Web `CardTypes`). `readable` types become read once opened and carry read state
+/// as card color.
 enum CardKind: String, CaseIterable, Sendable {
   case article, mail, note, task, event, reminder, media, digest, suggestion, photo, file, pr
 
@@ -25,12 +26,7 @@ enum CardKind: String, CaseIterable, Sendable {
     }
   }
 
-  var readable: Bool {
-    switch self {
-    case .article, .mail, .note, .media, .suggestion, .photo: true
-    default: false
-    }
-  }
+  var readable: Bool { self != .task }
 
   /// Things to do show what they are; content shows where it came from.
   var headIconByType: Bool {

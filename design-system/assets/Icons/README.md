@@ -1,4 +1,4 @@
-Mono24 图标，71 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
+Mono24 图标从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
 
 导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `Sill.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/generate.ts design-system .` 并在下表补充用途。
 
@@ -79,6 +79,8 @@ Mono24 图标，71 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出
 | `headphones.svg` | 收听 | 播客详情的收听记录。 |
 
 `paperclip`、`audio-lines` 和 `headphones` 路径来自 [Lucide](https://github.com/lucide-icons/lucide)，使用 ISC 许可；原始许可见 [lucide-license.txt](lucide-license.txt)。导出沿用 Mono24 的线宽与颜色。
+
+设置页的 `cloud-upload`（创建备份）、`shield-check`（检查连接与备份）、`history`（备份记录与恢复）和 `code-xml`（项目仓库）同样来自 Lucide，使用上述 ISC 许可。`history` 采用 Lucide 0.468.0 的公开路径，其余采用上游同名 SVG。
 
 ## 尚未写明用途
 

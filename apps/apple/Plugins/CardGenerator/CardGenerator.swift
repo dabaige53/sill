@@ -2,6 +2,14 @@ import Foundation
 import PackagePlugin
 
 @main struct CardGenerator: BuildToolPlugin {
+  struct ProductLink: Decodable {
+    let key: String
+    let icon: String
+    let url: String
+  }
+  struct ProductMetadata: Decodable {
+    let version: String
+  }
   func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
     let root = context.package.directoryURL.deletingLastPathComponent().deletingLastPathComponent()
     let input = root.appending(path: "contracts/apple-openapi.json")
@@ -15,6 +23,21 @@ import PackagePlugin
       to: embedded, atomically: true, encoding: .utf8)
     let copyURL = root.appending(path: "design-system/copy/zh-Hans.json")
     let copy = try JSONDecoder().decode([String: String].self, from: Data(contentsOf: copyURL))
+    let productLinksURL = root.appending(path: "design-system/product-links.json")
+    let productLinks = try JSONDecoder().decode(
+      [ProductLink].self, from: Data(contentsOf: productLinksURL))
+    let packageURL = root.appending(path: "package.json")
+    let package = try JSONDecoder().decode(ProductMetadata.self, from: Data(contentsOf: packageURL))
+    let linkValues = productLinks.map { link in
+      "(key: \(String(reflecting: link.key)), icon: \(String(reflecting: link.icon)), url: \(String(reflecting: link.url)))"
+    }.joined(separator: ",\n")
+    let productOutput = output.appending(path: "ProductInfo.swift")
+    try """
+    public enum ProductInfo {
+      public static let version = \(String(reflecting: package.version))
+      public static let links: [(key: String, icon: String, url: String)] = [\(linkValues)]
+    }
+    """.write(to: productOutput, atomically: true, encoding: .utf8)
     // Reject stale literal references before they can surface as raw keys in the native UI.
     let sourceDirectory = context.package.directoryURL.appending(path: "macOS")
     let copyPattern = try NSRegularExpression(pattern: #""(web\.[A-Za-z0-9_.]+)""#)
@@ -128,11 +151,14 @@ import PackagePlugin
         arguments: [
           "generate", input.path, "--config", config.path, "--output-directory", output.path,
         ],
-        inputFiles: [input, config, schema, copyURL, tokensURL, sourceMarksURL, recipesURL]
+        inputFiles: [
+          input, config, schema, copyURL, tokensURL, sourceMarksURL, recipesURL,
+          productLinksURL, packageURL,
+        ]
           + iconFiles,
         outputFiles: [
           output.appending(path: "Types.swift"), embedded, copyOutput, metricsOutput, colorsOutput,
-          iconOutput, sourceMarksOutput, recipesOutput,
+          iconOutput, sourceMarksOutput, recipesOutput, productOutput,
         ])
     ]
   }

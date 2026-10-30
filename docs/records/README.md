@@ -8,7 +8,11 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [设置关于与备份页面完善](2026-10-30-settings-about-backup/README.md)
+
+- [Mac 启动崩溃与共享头像压缩](2026-10-30-macos-resource-bundle/README.md)
 - [导入缺时间与新卡沉底](2026-10-30-import-time-feed-order/README.md)
+
 - [手机搜索闪屏与空白页](2026-10-30-phone-search-flash/README.md)
 - [插件技能显示名称排查](2026-10-30-plugin-skill-names/README.md)
 - [手机抽屉绘制修复与 1.2.19 发布](2026-10-30-phone-drawer-release/README.md)

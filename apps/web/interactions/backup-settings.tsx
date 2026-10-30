@@ -1,7 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { copy } from "../copy.ts";
+import { icon } from "./panel-primitives.tsx";
 export type BackupApi = (path: string, options?: any) => Promise<any>;
 const text = (key: string) => copy(("web.backup." + key) as any);
+function BackupHeading({ glyph, title, hint }: { glyph: string; title: string; hint: string }) {
+	return (
+		<div className="settings-section-head">
+			<span className="settings-section-icon">{icon(glyph, 20)}</span>
+			<div>
+				<h3>{text(title)}</h3>
+				<p>{text(hint)}</p>
+			</div>
+		</div>
+	);
+}
 export function BackupSettings({
 	api,
 	owner,
@@ -121,7 +133,7 @@ export function BackupSettings({
 	}
 	const field = (name: string, secret = false) => (
 		<label className="setting-row">
-			{text(name)}
+			<span>{text(name)}</span>
 			<input
 				name={name}
 				type={secret ? "password" : "text"}
@@ -134,17 +146,29 @@ export function BackupSettings({
 	);
 	return (
 		<section className="backup-settings" aria-label={text("title")} aria-busy={busy}>
-			<h3>{text("title")}</h3>
+			<h2>{text("title")}</h2>
 			<p className="panel-sub">{text("hint")}</p>
+			<BackupHeading glyph="folder" title="configure" hint="configureHint" />
 			{!host ? (
 				<form onSubmit={save} className="settings-card">
-					<label className="setting-row">
-						{text("provider")}
-						<select value={provider} onChange={(e) => setProvider(e.target.value)} disabled={busy}>
-							<option value="webdav">{text("webdav")}</option>
-							<option value="r2">{text("r2")}</option>
-						</select>
-					</label>
+					<div className="setting-row backup-provider">
+						<span>{text("provider")}</span>
+						<fieldset className="segmented">
+							<legend className="sr-only">{text("provider")}</legend>
+							{["webdav", "r2"].map((value) => (
+								<button
+									key={value}
+									type="button"
+									className={provider === value ? "on" : ""}
+									aria-pressed={provider === value}
+									disabled={busy}
+									onClick={() => setProvider(value)}
+								>
+									{text(value)}
+								</button>
+							))}
+						</fieldset>
+					</div>
 					{provider === "webdav" ? (
 						<>
 							{field("endpoint")}
@@ -159,8 +183,9 @@ export function BackupSettings({
 							{field("secretAccessKey", true)}
 						</>
 					)}
-					<div className="setting-row">
+					<div className="setting-row settings-actions">
 						<button type="submit" className="text-link" disabled={busy}>
+							{icon("plus", 16)}
 							{text("save")}
 						</button>
 						<button
@@ -169,6 +194,7 @@ export function BackupSettings({
 							className="text-link"
 							disabled={busy || !target}
 						>
+							{icon("lock", 16)}
 							{text("updateSecret")}
 						</button>
 					</div>
@@ -176,9 +202,10 @@ export function BackupSettings({
 			) : (
 				<p className="panel-sub">{text("hostSetup")}</p>
 			)}
+			<BackupHeading glyph="cloud-upload" title="manual" hint="manualHint" />
 			<div className="settings-card">
 				<label className="setting-row">
-					{text("target")}
+					<span>{text("target")}</span>
 					<select
 						value={target}
 						disabled={busy || !!creation.current}
@@ -192,7 +219,7 @@ export function BackupSettings({
 						))}
 					</select>
 				</label>
-				<div className="setting-row">
+				<div className="setting-row settings-actions">
 					<button
 						type="button"
 						className="text-link"
@@ -204,86 +231,108 @@ export function BackupSettings({
 							})
 						}
 					>
+						{icon("shield-check", 16)}
 						{text("check")}
 					</button>
 					<button
 						type="button"
-						className="text-link"
+						className="solid-button"
 						disabled={busy || !target || !!pending}
 						onClick={create}
 					>
+						{icon("cloud-upload", 16)}
 						{creation.current ? text("retry") : text("create")}
 					</button>
 					<button type="button" className="text-link" disabled={busy} onClick={() => run(refresh)}>
+						{icon("refresh", 16)}
 						{text("refresh")}
 					</button>
 				</div>
 			</div>
-			{message && <p role="status">{message}</p>}
-			<h3>{text("history")}</h3>
-			{!data.backups.length && <p className="panel-sub">{text("empty")}</p>}
+			{message && (
+				<p className="settings-feedback" role="status">
+					{icon("info", 16)}
+					{message}
+				</p>
+			)}
+			<BackupHeading glyph="history" title="history" hint="historyHint" />
+			{!data.backups.length && (
+				<div className="settings-card settings-empty">
+					<span className="muted">{icon("history", 20)}</span>
+					<p>{text("empty")}</p>
+				</div>
+			)}
 			{data.backups.map((b: any) => (
-				<div className="setting-row" key={b.id}>
-					<span>
-						{new Date(b.createdAt).toLocaleString()} · {text(b.status)}
-					</span>
-					<button
-						type="button"
-						className="text-link"
-						disabled={busy || !!pending}
-						onClick={() =>
-							run(async () => {
-								setPreview(await get(`/${b.id}/preview`));
-							})
-						}
-					>
-						{text("preview")}
-					</button>
-					<button
-						type="button"
-						className="text-link"
-						disabled={busy}
-						onClick={() =>
-							run(async () => {
-								await get(`/${b.id}/check`);
-								await refresh();
-								setMessage(text("verified"));
-							})
-						}
-					>
-						{text("verify")}
-					</button>
-					<button
-						type="button"
-						className="text-link"
-						disabled={busy}
-						onClick={() =>
-							run(async () => {
-								const snapshot = await get(`/${b.id}/download`);
-								if (!active.current) return;
-								const url = URL.createObjectURL(
-									new Blob([JSON.stringify(snapshot)], { type: "application/json" }),
-								);
-								const a = document.createElement("a");
-								a.href = url;
-								a.download = `sill-${b.id}.json`;
-								a.click();
-								URL.revokeObjectURL(url);
-							})
-						}
-					>
-						{text("download")}
-					</button>
+				<div className="settings-card backup-record" key={b.id}>
+					<div className="setting-row">
+						<span className="settings-link-label">
+							{icon("file", 18)}
+							<time dateTime={b.createdAt}>{new Date(b.createdAt).toLocaleString()}</time>
+						</span>
+						<span className="backup-status">{text(b.status)}</span>
+					</div>
+					<div className="setting-row settings-actions">
+						<button
+							type="button"
+							className="text-link"
+							disabled={busy || !!pending}
+							onClick={() =>
+								run(async () => {
+									setPreview(await get(`/${b.id}/preview`));
+								})
+							}
+						>
+							{icon("eye", 16)}
+							{text("preview")}
+						</button>
+						<button
+							type="button"
+							className="text-link"
+							disabled={busy}
+							onClick={() =>
+								run(async () => {
+									await get(`/${b.id}/check`);
+									await refresh();
+									setMessage(text("verified"));
+								})
+							}
+						>
+							{icon("shield-check", 16)}
+							{text("verify")}
+						</button>
+						<button
+							type="button"
+							className="text-link"
+							disabled={busy}
+							onClick={() =>
+								run(async () => {
+									const snapshot = await get(`/${b.id}/download`);
+									if (!active.current) return;
+									const url = URL.createObjectURL(
+										new Blob([JSON.stringify(snapshot)], { type: "application/json" }),
+									);
+									const a = document.createElement("a");
+									a.href = url;
+									a.download = `sill-${b.id}.json`;
+									a.click();
+									URL.revokeObjectURL(url);
+								})
+							}
+						>
+							{icon("download", 16)}
+							{text("download")}
+						</button>
+					</div>
 				</div>
 			))}
 			{preview && (
-				<div className="settings-card">
-					<p>{text("replaceWarning")}</p>
+				<div className="settings-card backup-restore">
+					<BackupHeading glyph="history" title="restoreTitle" hint="replaceWarning" />
 					<p>
 						{text("cards")}: {preview.cards} · {text("added")}: {preview.added} · {text("removed")}:{" "}
 						{preview.removed}
 					</p>
-					<div className="setting-row">
+					<div className="setting-row settings-actions">
 						{pending ? (
 							<>
 								<button type="button" className="text-link" disabled={busy} onClick={verifyRestore}>

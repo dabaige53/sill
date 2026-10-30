@@ -114,14 +114,10 @@ struct MediaDetail: View {
       }
     }
   }
-  private func save(_ position: Double, _ ended: Bool) {
+  /// Opening already marked the card read, so the end of playback only saves its position.
+  private func save(_ position: Double, _: Bool) {
     guard position.isFinite, workspace.model(card.id) != nil, workspace.state(card.id) === state
     else { return }
-    var values: [String: JSONValue] = ["playbackPosition": .number(position)]
-    if ended {
-      values["read"] = .bool(true)
-      values["readAt"] = .number(Format.milliseconds())
-    }
-    workspace.write([.itemPatch(id: card.id, values: values)])
+    workspace.write([.itemPatch(id: card.id, values: ["playbackPosition": .number(position)])])
   }
 }

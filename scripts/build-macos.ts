@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -117,6 +117,32 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
 </dict></plist>
 `;
 await writeFile(resolve(contents, "Info.plist"), plist);
+// Exercise the generated accessor in a relocated, headless app before signing the real app.
+const resourceCheck = await mkdtemp("/private/tmp/sill-resource-check-");
+try {
+	const checkApp = resolve(resourceCheck, "Sill.app");
+	await cp(app, checkApp, { recursive: true });
+	const executable = resolve(checkApp, "Contents/MacOS/Sill");
+	execFileSync(
+		"swiftc",
+		[
+			"-parse-as-library",
+			"-O",
+			resolve(binaryDirectory, "Sill.build/DerivedSources/resource_bundle_accessor.swift"),
+			resolve(apple, "macOS/App/AppResources.swift"),
+			resolve(root, "scripts/CheckMacResources.swift"),
+			"-o",
+			executable,
+		],
+		{ env: environment, stdio: "inherit" },
+	);
+	const images = (await readdir(resolve(apple, "macOS/Resources"))).filter((name) =>
+		name.endsWith(".png"),
+	);
+	execFileSync(executable, images, { stdio: "inherit" });
+} finally {
+	await rm(resourceCheck, { recursive: true, force: true });
+}
 execFileSync("codesign", ["--force", "--deep", "--sign", "-", app], { stdio: "inherit" });
 execFileSync("codesign", ["--verify", "--deep", "--strict", app], { stdio: "inherit" });
 console.log(app);

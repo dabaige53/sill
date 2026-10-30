@@ -38,8 +38,8 @@ struct BackupSettingsView: View {
   var body: some View {
     if request != nil {
       VStack(alignment: .leading, spacing: AppleMetrics.space12) {
-        Text(text("title")).font(.sans(AppleMetrics.font16, .semibold))
         Text(text("hint")).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        heading("folder", "configure", "configureHint")
         SettingsCard {
           SettingRow(label: text("provider"), first: true) {
             SettingSegmented(
@@ -58,13 +58,28 @@ struct BackupSettingsView: View {
             secret("secretAccessKey", $secretKey)
           }
           SettingLine {
-            Button(text("save")) { Task { await model.run { try await save(false) } } }
-              .buttonStyle(TextLinkStyle(padded: false)).disabled(!valid)
-            Button(text("updateSecret")) { Task { await model.run { try await save(true) } } }
-              .buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty || !valid)
+            Button {
+              Task { await model.run { try await save(false) } }
+            } label: {
+              actionLabel("save", "plus")
+            }
+            .buttonStyle(TextLinkStyle(padded: false)).disabled(!valid)
+            Button {
+              Task { await model.run { try await save(true) } }
+            } label: {
+              actionLabel("updateSecret", "lock")
+            }
+            .buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty || !valid)
           }
         }
+        heading("cloud-upload", "manual", "manualHint")
         SettingsCard {
+          if model.targets.isEmpty {
+            SettingLine(first: true) {
+              Icon("folder", size: AppleMetrics.font18).foregroundStyle(AppleColors.secondary)
+              Text(text("choose")).foregroundStyle(AppleColors.secondary)
+            }
+          }
           ForEach(model.targets.indices, id: \.self) { index in
             let target = model.targets[index]
             let id = target["id"]?.string ?? ""
@@ -72,55 +87,97 @@ struct BackupSettingsView: View {
               Button {
                 model.selected = id
               } label: {
-                HStack {
+                HStack(spacing: AppleMetrics.space12) {
+                  Icon("folder", size: AppleMetrics.font18)
                   Text(
                     target["config"]?["endpoint"]?.string ?? "R2 · "
-                      + (target["config"]?["bucket"]?.string ?? ""))
+                      + (target["config"]?["bucket"]?.string ?? "")
+                  )
+                  .lineLimit(2)
+                  .frame(maxWidth: .infinity, alignment: .leading)
                   if model.selected == id { Icon("check", size: AppleMetrics.font14) }
                 }
               }.buttonStyle(TextLinkStyle(padded: false)).disabled(model.hasPendingCreation)
             }
           }
           SettingLine {
-            Button(text("check")) {
+            Button {
               Task {
                 await model.run {
                   _ = try await model.call("/targets/\(model.selected)/check", "POST", .object([:]))
                   model.message = text("connected")
                 }
               }
-            }.buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty)
-            Button(text(model.hasPendingCreation ? "retry" : "create")) {
-              Task { await model.run { try await model.create() } }
+            } label: {
+              actionLabel("check", "shield-check")
             }
-            .buttonStyle(TextLinkStyle(padded: false)).disabled(
+            .buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty)
+            Spacer(minLength: 0)
+            Button {
+              Task { await model.run { try await model.create() } }
+            } label: {
+              actionLabel(model.hasPendingCreation ? "retry" : "create", "cloud-upload")
+                .padding(.horizontal, AppleMetrics.space12)
+                .padding(.vertical, AppleMetrics.space8)
+                .foregroundStyle(AppleColors.fixedWhite)
+                .background(
+                  RoundedRectangle(cornerRadius: AppleMetrics.controlRadius)
+                    .fill(AppleColors.accentFill))
+            }
+            .buttonStyle(PrimaryPillStyle()).disabled(
               model.selected.isEmpty || model.restore != nil)
-            Button(text("refresh")) { Task { await model.run { try await model.refresh() } } }
-              .buttonStyle(TextLinkStyle(padded: false))
+          }
+          SettingLine {
+            Button {
+              Task { await model.run { try await model.refresh() } }
+            } label: {
+              actionLabel("refresh", "refresh")
+            }
+            .buttonStyle(TextLinkStyle(padded: false))
           }
         }
         if !model.message.isEmpty {
-          Text(model.message).font(.sans(AppleMetrics.font13)).accessibilityAddTraits(
-            .updatesFrequently)
+          HStack(alignment: .top, spacing: AppleMetrics.space8) {
+            Icon("info", size: AppleMetrics.font16).foregroundStyle(AppleColors.secondary)
+            Text(model.message).font(.sans(AppleMetrics.font13)).accessibilityAddTraits(
+              .updatesFrequently)
+          }
         }
-        Text(text("history")).font(.sans(AppleMetrics.font14, .semibold))
-        if model.backups.isEmpty { Text(text("empty")).font(.sans(AppleMetrics.font13)) }
+        heading("history", "history", "historyHint")
+        if model.backups.isEmpty {
+          SettingsCard {
+            HStack(spacing: AppleMetrics.space12) {
+              Icon("history", size: AppleMetrics.font20)
+              Text(text("empty")).font(.sans(AppleMetrics.font13))
+            }
+            .foregroundStyle(AppleColors.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, AppleMetrics.space20)
+          }
+        }
         ForEach(model.backups.indices, id: \.self) { index in
           let backup = model.backups[index]
           let id = backup["id"]?.string ?? ""
           SettingsCard {
-            SettingRow(label: backup["createdAt"]?.string ?? "", first: true) {
+            SettingLine(first: true) {
+              Icon("file", size: AppleMetrics.font18).foregroundStyle(AppleColors.secondary)
+              Text(backupDate(backup["createdAt"]?.string ?? ""))
+                .frame(maxWidth: .infinity, alignment: .leading)
               Text(text(backup["status"]?.string ?? "pending"))
+                .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
             }
             SettingLine {
-              Button(text("preview")) {
+              Button {
                 Task {
                   await model.run {
                     model.preview = try await model.call("/\(id)/preview")
                   }
                 }
-              }.buttonStyle(TextLinkStyle(padded: false)).disabled(model.restore != nil)
-              Button(text("verify")) {
+              } label: {
+                actionLabel("preview", "eye")
+              }
+              .buttonStyle(TextLinkStyle(padded: false)).disabled(model.restore != nil)
+              Button {
                 Task {
                   await model.run {
                     _ = try await model.call("/\(id)/check")
@@ -128,14 +185,21 @@ struct BackupSettingsView: View {
                     model.message = text("verified")
                   }
                 }
-              }.buttonStyle(TextLinkStyle(padded: false))
-              Button(text("download")) { Task { await model.run { try await download(id) } } }
-                .buttonStyle(TextLinkStyle(padded: false))
+              } label: {
+                actionLabel("verify", "shield-check")
+              }
+              .buttonStyle(TextLinkStyle(padded: false))
+              Button {
+                Task { await model.run { try await download(id) } }
+              } label: {
+                actionLabel("download", "download")
+              }
+              .buttonStyle(TextLinkStyle(padded: false))
             }
           }
         }
         if let preview = model.preview {
-          Text(text("replaceWarning")).font(.sans(AppleMetrics.font13))
+          heading("history", "restoreTitle", "replaceWarning")
           Text(
             "\(text("cards")): \(Int(preview["cards"]?.number ?? 0)) · \(text("added")): \(Int(preview["added"]?.number ?? 0)) · \(text("removed")): \(Int(preview["removed"]?.number ?? 0))"
           )
@@ -171,6 +235,22 @@ struct BackupSettingsView: View {
       }
     }
   }
+  private func heading(_ glyph: String, _ title: String, _ hint: String) -> some View {
+    SettingsSectionHeading(icon: glyph, title: text(title), hint: text(hint))
+  }
+
+  private func actionLabel(_ key: String, _ glyph: String) -> some View {
+    HStack(spacing: AppleMetrics.space6) {
+      Icon(glyph, size: AppleMetrics.font16)
+      Text(text(key)).fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  private func backupDate(_ value: String) -> String {
+    guard let date = Format.parseDate(value) else { return value }
+    return date.formatted(date: .numeric, time: .shortened)
+  }
+
   private var valid: Bool {
     let fields =
       provider == "webdav"

@@ -1,4 +1,5 @@
 import { copy } from "../../copy.ts";
+import { CardTypes } from "../../data/cards.ts";
 import { Store } from "../../data/store.ts";
 import { agentKey } from "../../services/agent-handoff.ts";
 import type { AppController } from "../app.ts";
@@ -27,7 +28,8 @@ function external(this: AppController, { id }: ActionContext) {
 		try {
 			current = scope === agentKey(id, this.agentScope());
 		} catch {}
-		if (opened && current && Store.card(id)?.type === "mail" && !Store.item(id).read) {
+		const type = Store.card(id)?.type;
+		if (opened && current && type && CardTypes[type]?.readable && !Store.item(id).read) {
 			Store.patch(id, { read: true });
 			this.refreshCard(id);
 		}
