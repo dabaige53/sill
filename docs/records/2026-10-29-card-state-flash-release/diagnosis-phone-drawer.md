@@ -102,4 +102,4 @@ iPhone 主屏幕 Web App，本地服务（局域网地址），工作区含未�
 
 最终程序检查（`c421f56c`）：[Sill integration](https://github.com/dabaige53/sill/actions/runs/41010190863)、[Sill authenticated data](https://github.com/dabaige53/sill/actions/runs/41010190806) 与 [Offline MCP consent policy](https://github.com/dabaige53/sill/actions/runs/41010190727) 全部通过。覆盖 Web/云端构建、类型检查、契约与核心测试、插件构建、本地服务集成浏览器及云端浏览器检查。本地文件管理、差异与格式错误检查通过；Impeccable 对修改的 TSX 未返回问题。
 
-新增的 `drawer-browser-rail-material.ts` 场景由 Verify Sill 流程接入，该流程不在此分支 push 时运行，因此本次未执行该场景。尚未进行 iPhone/PWA 逐帧复录，不将 CI 的 Chromium 检查当作 WebKit 图层问题已验收。修复仅推送至 `codex/fix-phone-drawer-paint`，未合并或上线。
+新增的 `drawer-browser-rail-material.ts` 场景由 Verify Sill 流程接入，最初未在分支 push 时运行；其后 PR #82 的[Web 检查 41015411025](https://github.com/dabaige53/sill/actions/runs/41015411025)已通过该场景，同轮 PWA 关闭用例的计时失败与处理见[1.2.19 发布记录](../2026-10-30-phone-drawer-release/README.md)。尚未进行 iPhone/PWA 逐帧复录，不将 CI 的 Chromium 检查当作 WebKit 图层问题已验收；合并与上线状态以发布记录为准。

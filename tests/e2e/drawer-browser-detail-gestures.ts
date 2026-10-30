@@ -50,15 +50,27 @@ export async function runDetailGestures({
 		"PWA has no maximize button and opens and closes its preview",
 		async (page) => {
 			await page.evaluate(() => Object.defineProperty(navigator, "standalone", { value: true }));
-			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.waitForTimeout(100);
-			assert.equal(await page.locator('.sheet-head [data-action="reader"]').count(), 0);
-			await page.evaluate(() => window.__app.closeNative());
-			await page.waitForFunction(
-				() => !(document.getElementById("modal") as HTMLDialogElement).open,
-				null,
-				{ timeout: 1000 },
-			);
+			const opening = await page.evaluate(async () => {
+				window.__app.openCard("motion-0");
+				await new Promise(requestAnimationFrame);
+				const drawer = document.querySelector<HTMLElement>(".phone-drawer");
+				const entry = drawer
+					.getAnimations()
+					.find((animation) => (animation as CSSAnimation).animationName === "slideFromBottom");
+				const result = {
+					maximize: drawer.querySelectorAll('.sheet-head [data-action="reader"]').length,
+					playing: entry?.playState,
+					time: Number(entry?.currentTime),
+					duration: Number(entry?.effect.getTiming().duration),
+				};
+				// Close during the real entry, rather than guessing its progress from a host-side sleep.
+				window.__app.closeNative();
+				return result;
+			});
+			assert.equal(opening.maximize, 0);
+			assert.equal(opening.playing, "running");
+			assert.ok(opening.time < opening.duration, JSON.stringify(opening));
+			await page.locator("#modal[open]").waitFor({ state: "hidden" });
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), false);
 		},
 		phone,
