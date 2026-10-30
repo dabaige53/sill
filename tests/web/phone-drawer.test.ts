@@ -25,9 +25,9 @@ const bundle = buildSync({
 	},
 }).outputFiles[0].text;
 
-function fixture() {
+function fixture(scroll = 180) {
 	const dom = new JSDOM(
-		'<div id="workspace-background"><main></main></div><dialog id="modal" class="preview" open></dialog>',
+		'<div id="workspace-background"><main><div id="feed-grid"><article id="feed-card">Synthetic feed card</article></div></main></div><dialog id="modal" class="preview" open></dialog>',
 		{ url: "http://drawer.test", runScripts: "outside-only", pretendToBeVisual: true },
 	);
 	const w = dom.window as any;
@@ -35,7 +35,7 @@ function fixture() {
 	w.scrollTo = (options: { top?: number }) => {
 		w.document.documentElement.scrollTop = options.top || 0;
 	};
-	w.document.documentElement.scrollTop = 180;
+	w.document.documentElement.scrollTop = scroll;
 	Object.defineProperty(w, "scrollY", {
 		get: () => w.document.documentElement.scrollTop,
 	});
@@ -164,9 +164,12 @@ test("the scale target includes the page chrome and restores page geometry on un
 	const f = fixture();
 	try {
 		const background = f.w.document.querySelector("#workspace-background");
+		const main = background.querySelector("main");
+		const card = main.querySelector("#feed-card");
 		assert.equal(f.w.document.querySelector("[data-vaul-drawer-wrapper]"), background);
 		assert.equal(background.classList.contains("is-drawer-background"), true);
-		assert.equal(background.querySelector("main").style.translate, "0 -180px");
+		assert.equal(main.scrollTop, 180, "the visible feed position stays inside its viewport");
+		assert.equal(main.style.translate, "", "the long feed is not moved into negative paint bounds");
 		assert.equal(f.w.scrollY, 0, "the frozen document cannot block Vaul's downward drag");
 		assert.equal(f.w.document.body.style.minHeight, `${f.w.innerHeight}px`);
 		f.api.releaseView(f.dialog);
@@ -177,6 +180,34 @@ test("the scale target includes the page chrome and restores page geometry on un
 		assert.equal(background.hasAttribute("data-vaul-drawer-wrapper"), false);
 		assert.equal(f.w.document.body.style.minHeight, "");
 		assert.equal(f.w.document.documentElement.scrollTop, 180);
+		assert.equal(main.scrollTop, 0);
+		assert.equal(main.querySelector("#feed-card"), card, "restoring the page retains its card DOM");
+	} finally {
+		f.dispose();
+	}
+});
+
+test("a deep feed retains its native reading offset for the whole drawer close", () => {
+	const f = fixture(2500);
+	try {
+		const main = f.w.document.querySelector("#workspace-background > main");
+		const card = main.querySelector("#feed-card");
+		let closed = 0;
+		f.api.flushSync(() => f.api.closePhoneDrawer(f.dialog, () => closed++));
+		f.api.flushSync(() => f.clock.advance(250));
+		assert.equal(closed, 0);
+		assert.equal(
+			main.scrollTop,
+			2500,
+			"closing does not reset the frozen feed to its first screen",
+		);
+		assert.equal(main.querySelector("#feed-card"), card);
+		f.api.flushSync(() => f.clock.advance(300));
+		assert.equal(closed, 1);
+		f.api.releaseView(f.dialog);
+		assert.equal(f.w.scrollY, 2500);
+		assert.equal(main.scrollTop, 0);
+		assert.equal(main.querySelector("#feed-card"), card);
 	} finally {
 		f.dispose();
 	}

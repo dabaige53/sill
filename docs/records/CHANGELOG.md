@@ -4,7 +4,9 @@
 
 ## Unreleased
 
-暂无条目。
+### Fixed
+
+- 调整手机卡片抽屉的背景冻结与恢复，移除整张长列表的平移裁切，保留滚动位置和已有卡片节点；背景圆角与缩放同步收回，详情正文保持独立绘制。真机验证见[抽屉排查记录](2026-10-29-card-state-flash-release/diagnosis-phone-drawer.md)，发布进度见[1.2.19 发布记录](2026-10-30-phone-drawer-release/README.md)。
 
 ## 1.2.18 — 2026-10-30
 
