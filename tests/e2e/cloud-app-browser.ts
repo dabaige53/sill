@@ -189,8 +189,17 @@ try {
 		await frame.locator("#modal .preview-full").innerText(),
 		"Stored through the real MCP and SQL boundary",
 	);
-	const detail = await frame.locator(".preview-full").boundingBox(),
-		sheet = await frame.locator(".preview-sheet").boundingBox();
+	// Measure the settled entry in one frame, not two protocol reads while the sheet is moving.
+	await frame.locator("#modal").evaluate(async (node) => {
+		await Promise.all(node.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})));
+	});
+	const { detail, sheet } = await frame.evaluate(() => {
+		const measure = (selector: string) => {
+			const box = document.querySelector(selector).getBoundingClientRect();
+			return { y: box.y, height: box.height };
+		};
+		return { detail: measure(".preview-full"), sheet: measure(".preview-sheet") };
+	});
 	assert.ok(
 		detail.y >= sheet.y && detail.y + detail.height <= sheet.y + sheet.height,
 		"short note body stays inside its sheet",

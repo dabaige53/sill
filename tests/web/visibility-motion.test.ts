@@ -118,7 +118,7 @@ test("notice fades before hiding and disables clicks from the first frame", asyn
 	}
 });
 
-test("Web styles use Motion except the documented material and outline CSS transitions", () => {
+test("Web styles use Motion except documented material, outline and Vaul-owned transitions", () => {
 	const directory = path.resolve(import.meta.dirname, "../../apps/web/styles");
 	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
 		let css = fs.readFileSync(path.join(directory, name), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -133,6 +133,15 @@ test("Web styles use Motion except the documented material and outline CSS trans
 			// These two material layers own their transitions (handbook/motion.md).
 			css = css.replace(materialRule, (rule) =>
 				rule.replace(/transition:\s*opacity var\(--dur-hover\) var\(--ease\);/, ""),
+			);
+		}
+		if (name === "phone-overrides.css") {
+			// Only extend Vaul's property list; duration/easing and drag timing stay library-owned.
+			css = css.replace(/\[data-vaul-drawer-wrapper\]\s*\{[^}]*\}/g, (rule) =>
+				rule.replace(
+					/transition-property:\s*transform,\s*--phone-drawer-roundness\s*!important;/,
+					"",
+				),
 			);
 		}
 		assert.doesNotMatch(
