@@ -6,7 +6,7 @@
 
 | 能力 | 当前入口 |
 | --- | --- |
-| 卡片查询与读写 | `sill_listContents`、`sill_getContent`、`sill_createContent`、`sill_updateContent`、`sill_deleteContent` |
+| 卡片查询与读写 | `sill_searchContents`（关键词，返回不含正文的精简结果）、`sill_listContents`、`sill_getContent`、`sill_createContent`、`sill_updateContent`、`sill_deleteContent` |
 | 工作区与原子批量 | `sill_getWorkspace`、`sill_applyOperations` |
 | 事件记录与结果查询 | `sill_submitEvent`、`sill_getEvent`；受限结果回写由内容更新处理 |
 | 备份与恢复 | 按权限及服务配置开放；工具定义见[备份约定](../../contracts/backup.ts) |

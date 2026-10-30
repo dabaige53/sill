@@ -27,6 +27,7 @@ const scopes = {
 	sill_getWorkspace: "content:read",
 	sill_applyOperations: "content:read",
 	sill_listContents: "content:read",
+	sill_searchContents: "content:read",
 	sill_getContent: "content:read",
 	sill_createContent: "content:write",
 	sill_updateContent: "content:write",
@@ -38,6 +39,7 @@ const safeError = (error?: any) => errorResult(error).body;
 const readOnlyTools = [
 	"sill_getWorkspace",
 	"sill_listContents",
+	"sill_searchContents",
 	"sill_getContent",
 	"sill_getEvent",
 ];
@@ -148,7 +150,12 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 							access.scopes.includes("content:delete"))));
 			const allowed = (name?: any) =>
 				access.scopes.includes(scopes[name]) &&
-				(!["sill_listContents", "sill_getWorkspace", "sill_applyOperations"].includes(name) ||
+				(![
+					"sill_listContents",
+					"sill_searchContents",
+					"sill_getWorkspace",
+					"sill_applyOperations",
+				].includes(name) ||
 					access.workspaceRead) &&
 				(name !== "sill_createContent" || access.workspaceWrite) &&
 				(name !== "sill_applyOperations" || access.scopes.includes("content:write"));
@@ -289,6 +296,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					else if (name === "sill_applyOperations")
 						value = await repo.applyOperations(a.body, a.idempotency_key);
 					else if (name === "sill_listContents") value = await repo.list(a);
+					else if (name === "sill_searchContents") value = await repo.search(a.query, a.limit);
 					else if (name === "sill_getContent") value = await repo.get(a.id);
 					else if (name === "sill_getEvent") value = await repo.getEvent(a.id);
 					else

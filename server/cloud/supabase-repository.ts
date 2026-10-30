@@ -1,3 +1,5 @@
+import { searchCards } from "./content-search.ts";
+
 const errors = {
 	unauthenticated: 401,
 	forbidden: 403,
@@ -35,6 +37,10 @@ export class SupabaseRepository {
 	}
 	workspace() {
 		return this.rpc("sill_get_workspace", {});
+	}
+	/** Keyword search reads the authorized workspace, so it needs whole-workspace access. */
+	async search(query: string, limit?: number) {
+		return searchCards(await this.workspace(), query, limit);
 	}
 	workspaceSince(revision: number) {
 		return this.rpc("sill_get_workspace_since", { known_revision: revision });

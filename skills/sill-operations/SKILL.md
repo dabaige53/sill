@@ -13,7 +13,7 @@ description: 操作 Sill（窗台）工作区、改设置、管理备份或排�
 | --- | --- |
 | 打开窗台 / 工作台 | `sill_open_workspace` |
 | 在当前聊天里看卡片 | `sill_open_cards` |
-| 找一张卡片 | 有 ID 用 `sill_getContent`；只有标题时用 `sill_listContents` 分页查找（没有关键词参数） |
+| 找一张卡片 | 有 ID 用 `sill_getContent`；只知道标题、链接或内容里的词时用 `sill_searchContents`，再按返回的 ID 读取 |
 | 筛选、统计、导出 | `sill_getWorkspace` 读取完整快照后自己筛选 |
 | 改一张卡的状态或内容 | 先读取，再用 `sill_updateContent` |
 | 批量改状态、标签、备注、偏好 | `sill_applyOperations`，整批成功或整批回滚 |
@@ -28,7 +28,7 @@ description: 操作 Sill（窗台）工作区、改设置、管理备份或排�
 
 ## 读写规则
 
-- 有 ID 直接读取。`sill_listContents` 只能按 `cursor / since / limit` 分页；没读完相关分页，不能说「没有」或「全部处理完」。
+- 有 ID 直接读取；按词查找用 `sill_searchContents`，结果不含正文，引用或修改前按 ID 读取全文。`sill_listContents` 只能按 `cursor / since / limit` 分页；没读完相关分页，不能说「没有」或「全部处理完」。
 - 写之前先读，并保留读到的版本：单卡用 `body:{expectedRevision, changes}`，批量用原始 `before` 或工作区 `expectedRevision`。冲突时重新读取并合并，不拿新版本号硬覆盖。
 - `changes` 只放要改的字段。`state` 按子字段合并；`body` 和数组整体替换，要先合并需要保留的内容。
 - 每个新写入用新的 UUID 作幂等键。回执不明时先读取核对；需要重试时，原键、目标和参数都保持不变。

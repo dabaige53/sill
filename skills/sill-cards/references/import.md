@@ -54,13 +54,13 @@ Sill 不订阅、不同步、不抓取，也不接收文件导入。所谓导入
 | Markdown 笔记 | `note` | `markdown` | 正文保留原 Markdown 层级 |
 | 助手在对话中整理的结论 | `digest` / `suggestion` / `note` | `agent` | `related` 填已有卡片 ID |
 
-`sources.name` 写用户认得出的名字，例如「工作邮箱」「example/project」「庭院电台」，不写 URL。字段细节见[字段字典](fields.md)，各类型的必需资料见[类型配方](types.md)。
+`sources.name` 写用户认得出的名字，例如「工作邮箱」「example/project」「庭院电台」，不写 URL。字段细节见[字段字典](fields.md)，各类型的必需资料见[类型索引](types.md)里对应的模板。
 
 不能导入的东西：本机照片、文件二进制和 base64 都不能上传，只能记录 HTTPS 链接和元信息。需要登录才能打开的私有链接，或带令牌的地址，不要写进卡片。
 
 ## 去重与合并
 
-导入前先读取已有卡片：有整个工作区权限就用 `sill_getWorkspace`，否则把 `sill_listContents` 的相关分页读完。比对顺序：
+导入前先查已有卡片：少量导入时，用 `sill_searchContents` 按原文链接或标题搜索；成批导入时用 `sill_getWorkspace` 读一次完整快照再本地比对。比对顺序：
 
 1. `url` 相同，或 PR 的 `repository` 加 `number` 相同，就是同一内容。
 2. 没有 URL 时，比较标题、发布日期、作者和正文开头。只有标题相同不算重复。

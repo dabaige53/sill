@@ -1,5 +1,12 @@
 import { z } from "zod/v4";
-import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
+import {
+	create,
+	event,
+	revision,
+	toolInputs,
+	update,
+	workspaceBatch,
+} from "../../contracts/cloud.ts";
 import { body, json } from "./http-response.ts";
 import { type SupabaseRepository, serviceError } from "./supabase-repository.ts";
 
@@ -40,6 +47,21 @@ export async function contentHttp(
 				.strict()
 				.parse(Object.fromEntries(url.searchParams));
 			return json(200, await repository.list(query));
+		}
+		if (path === "/api/v1/search") {
+			const params = z
+				.object({
+					query: z.string(),
+					limit: z
+						.string()
+						.regex(/^(?:[1-9]|[1-4][0-9]|50)$/)
+						.transform(Number)
+						.optional(),
+				})
+				.strict()
+				.parse(Object.fromEntries(url.searchParams));
+			const { query, limit } = toolInputs.sill_searchContents.parse(params);
+			return json(200, await repository.search(query, limit));
 		}
 		if (url.search) throw serviceError("invalid_request");
 		if (content) return json(200, await repository.get(content[1]));

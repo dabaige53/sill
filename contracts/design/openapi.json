@@ -363,6 +363,68 @@
         }
       }
     },
+    "/search": {
+      "get": {
+        "operationId": "searchContents",
+        "x-required-scope": "content:read",
+        "responses": {
+          "200": {
+            "description": "Matching cards without bodies, newest first after title matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "X-Sill-Owner",
+            "in": "header",
+            "required": false,
+            "description": "Reject if the authenticated account differs; this condition grants no permissions.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ]
+      }
+    },
     "/events": {
       "post": {
         "operationId": "submitEvent",
@@ -6141,6 +6203,168 @@
           "created_at",
           "updated_at",
           "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "SearchPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                },
+                "type": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000,
+                  "description": "Specific plain-text title; do not place the full body here."
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "snippet": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "url": {
+                  "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
+                },
+                "sources": {
+                  "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
+                  "maxItems": 11,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                      },
+                      "kind": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "tags": {
+                  "description": "Content tags. Editing tags edits the card.",
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                },
+                "publishedAt": {
+                  "type": "string"
+                },
+                "start": {
+                  "description": "Event start as Unix milliseconds, greater than zero; pair with end.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8640000000000000
+                },
+                "end": {
+                  "description": "Event end as Unix milliseconds, strictly later than start.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8640000000000000
+                },
+                "due": {
+                  "description": "Known task/reminder due time as Unix milliseconds; recording it does not schedule an external notification.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8640000000000000
+                },
+                "archived": {
+                  "type": "boolean"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "title",
+                "summary",
+                "archived",
+                "revision",
+                "created_at",
+                "updated_at"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "additionalProperties": false
+      },
+      "SearchContents": {
+        "type": "object",
+        "properties": {
+          "expected_owner": {
+            "description": "Optional account guard from an authenticated host; grants no permissions. Keep it unchanged when retrying a request.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Plain keywords separated by spaces; every keyword must appear, ignoring case. Searches title, summary, body, tags, sources, authors, URL and personal note."
+          },
+          "limit": {
+            "description": "Results to return, default 20.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "query"
         ],
         "additionalProperties": false
       },

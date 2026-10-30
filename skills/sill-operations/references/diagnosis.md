@@ -9,7 +9,7 @@
    | 看到的工具 | 说明 |
    | --- | --- |
    | `sill_open_workspace`、`sill_open_cards` | 能读取整个工作区，且服务端提供页面 |
-   | `sill_getWorkspace`、`sill_listContents` | 能读取整个工作区（`content:read`） |
+   | `sill_getWorkspace`、`sill_listContents`、`sill_searchContents` | 能读取整个工作区（`content:read`） |
    | 只有 `sill_getContent` | 授权只覆盖指定的几张卡片 |
    | `sill_createContent`、`sill_updateContent` | 有写入权限；创建还需要整个工作区的写入权限 |
    | `sill_applyOperations` | 能读取整个工作区，并且有写入权限 |
@@ -32,7 +32,7 @@
 | `forbidden` | 权限不够、卡片不在授权范围内，或 `expected_owner` 与当前账号不符 | 停下并报告缺少的权限。不要换账号或换接口绕过 |
 | 列表为空，或「卡片不见了」 | 连的是别的账号；`sill_listContents` 没读完所有分页；卡片已归档（主页不显示，但仍在工作区快照里）；卡片已删除；授权只覆盖部分卡片 | 先确认 `userId`，读完全部分页或读取整个工作区，再查 `items[id].archived`。确认之前不要下结论，也不要重建卡片 |
 | 内嵌页面显示「未能显示 Sill」或 Resource unavailable | 宿主请求的是旧版本页面，或页面资源没加载成功 | 请用户在插件设置里「刷新工具」，再重新打开；仍不行就强制刷新宿主页面。工具成功不代表页面能打开 |
-| 卡片写进去了，卡面却没显示某个字段 | 这类卡片不在卡面显示这个字段，或字段不适用于这个类型 | 对照 sill-cards 的[类型配方](../../sill-cards/references/types.md)。字段仍保存着，详情或搜索里可能用得上 |
+| 卡片写进去了，卡面却没显示某个字段 | 这类卡片不在卡面显示这个字段，或字段不适用于这个类型 | 对照 sill-cards 的[类型索引](../../sill-cards/references/types.md)里对应的模板。字段仍保存着，详情或搜索里可能用得上 |
 | 图片不显示 | 不是 HTTPS 地址、地址带了凭据、图片写在正文 Markdown 里（正文图片不加载），或内嵌页面在新增图片域名前就已打开 | 用 `images` 字段传 HTTPS 地址或内置素材 ID；新增域名后请用户重新打开内嵌页面 |
 | 视频在内嵌页面里放不了 | 宿主不允许嵌入视频框架 | 请用户点开原链接观看，这不是数据问题 |
 | 很多卡叠成一摞 | 同一来源一小时内超过 5 张未读的文章或媒体卡，且开启了 `stack` | 这是设计行为。用户不想要时，把偏好 `stack` 设为 `false` |

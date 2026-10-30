@@ -13,11 +13,10 @@ import { createSillRuntime } from "../../server/cloud/http.ts";
 import { A, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
+import { skillExamples } from "./helpers/skill-examples.ts";
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
-const examples = [
-	...read("../../skills/sill-cards/references/types.md").matchAll(/```json\n([\s\S]*?)\n```/g),
-].map((match) => JSON.parse(match[1]));
+const examples = skillExamples;
 const catalog = JSON.parse(read("../../contracts/design/mcp-tools.json"));
 
 test("skill recipes cover current card kinds and every writable field", () => {
@@ -31,6 +30,7 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	);
 	for (const card of examples) {
 		assert.deepEqual(create.parse(card), card);
+		assert.ok(card.summary, card.type + ": every template example writes a summary");
 		const { state: _, ...fields } = card;
 		assert.deepEqual(Card.parse({ id: "recipe", ...fields }), { id: "recipe", ...fields });
 	}

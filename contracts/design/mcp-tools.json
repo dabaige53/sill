@@ -3,7 +3,7 @@
   "tools": [
     {
       "name": "sill_listContents",
-      "description": "Read cards page by page with limit 1–100. No keyword or type filter. Follow next_cursor; use only a returned sync_cursor as since. Card contract 5.0.0: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
+      "description": "Read full cards page by page with limit 1–100. To find cards by words, use sill_searchContents instead. Follow next_cursor; use only a returned sync_cursor as since. Card contract 5.0.0: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -666,6 +666,181 @@
         }
       },
       "x-operationId": "listContents",
+      "x-required-scope": "content:read"
+    },
+    {
+      "name": "sill_searchContents",
+      "description": "Find cards by plain keywords: every space-separated keyword must appear in the title, summary, body, tags, sources, authors, URL or personal note, ignoring case. Includes archived cards. Returns total and up to limit (default 20, max 50) compact results: ID, type, title, summary, a body snippet around the match, URL, sources, tags, dates and revision, without the body. Title, summary and tag matches come first, then the newest card. Read a result with sill_getContent before quoting or editing it. Before importing, search the source URL or title to avoid duplicates. Requires whole-workspace read access.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "expected_owner": {
+            "description": "Optional account guard from an authenticated host; grants no permissions. Keep it unchanged when retrying a request.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Plain keywords separated by spaces; every keyword must appear, ignoring case. Searches title, summary, body, tags, sources, authors, URL and personal note."
+          },
+          "limit": {
+            "description": "Results to return, default 20.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "$ref": "#/$defs/SearchPage",
+        "$defs": {
+          "SearchPage": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000,
+                      "description": "Specific plain-text title; do not place the full body here."
+                    },
+                    "summary": {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "snippet": {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "url": {
+                      "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
+                      "type": "string",
+                      "pattern": "^https?:\\/\\/"
+                    },
+                    "sources": {
+                      "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
+                      "maxItems": 11,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "kind": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "kind"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "tags": {
+                      "description": "Content tags. Editing tags edits the card.",
+                      "maxItems": 100,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 100
+                      }
+                    },
+                    "publishedAt": {
+                      "type": "string"
+                    },
+                    "start": {
+                      "description": "Event start as Unix milliseconds, greater than zero; pair with end.",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8640000000000000
+                    },
+                    "end": {
+                      "description": "Event end as Unix milliseconds, strictly later than start.",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8640000000000000
+                    },
+                    "due": {
+                      "description": "Known task/reminder due time as Unix milliseconds; recording it does not schedule an external notification.",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8640000000000000
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "title",
+                    "summary",
+                    "archived",
+                    "revision",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "items",
+              "total"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "x-operationId": "searchContents",
       "x-required-scope": "content:read"
     },
     {

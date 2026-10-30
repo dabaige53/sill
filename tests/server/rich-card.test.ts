@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { changes, create } from "../../contracts/cloud.ts";
 import { applyCardMigrations, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
+import { skillExamples } from "./helpers/skill-examples.ts";
 
 test("HTTPS image migration preserves remote photos through cloud writes and reads", async () => {
 	const db = new PGlite();
@@ -168,12 +168,7 @@ test("all eleven card fixtures round-trip through cloud storage and skill exampl
 			for (const [key, value] of Object.entries(body))
 				assert.deepEqual(result.body[key], value, sample.name + ":" + key);
 		}
-		const guide = await readFile(
-			new URL("../../skills/sill-cards/references/types.md", import.meta.url),
-			"utf8",
-		);
-		for (const [index, match] of [...guide.matchAll(/```json\n([\s\S]*?)\n```/g)].entries()) {
-			const body = JSON.parse(match[1]);
+		for (const [index, body] of skillExamples.entries()) {
 			assert.deepEqual(create.parse(body), body);
 			const result = await rpc(db, "sill_write_v1", [
 				"create",

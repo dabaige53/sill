@@ -11,6 +11,7 @@
 | 读取完整工作区 | `sill_getWorkspace` |
 | 原子批量操作 | `sill_applyOperations` |
 | 查询卡片列表 | `sill_listContents` |
+| 按关键词搜索卡片 | `sill_searchContents` |
 | 读取卡片详情 | `sill_getContent` |
 | 创建卡片 | `sill_createContent` |
 | 修改卡片 | `sill_updateContent` |

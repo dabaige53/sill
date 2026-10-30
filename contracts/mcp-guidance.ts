@@ -6,8 +6,10 @@ const writeRules =
 
 export const toolDescriptions = {
 	sill_listContents:
-		"Read cards page by page with limit 1–100. No keyword or type filter. Follow next_cursor; use only a returned sync_cursor as since. " +
+		"Read full cards page by page with limit 1–100. To find cards by words, use sill_searchContents instead. Follow next_cursor; use only a returned sync_cursor as since. " +
 		cardFormat,
+	sill_searchContents:
+		"Find cards by plain keywords: every space-separated keyword must appear in the title, summary, body, tags, sources, authors, URL or personal note, ignoring case. Includes archived cards. Returns total and up to limit (default 20, max 50) compact results: ID, type, title, summary, a body snippet around the match, URL, sources, tags, dates and revision, without the body. Title, summary and tag matches come first, then the newest card. Read a result with sill_getContent before quoting or editing it. Before importing, search the source URL or title to avoid duplicates. Requires whole-workspace read access.",
 	sill_getContent:
 		"Read one authorized card by its real ID before editing. Preserve its revision, structured facts and personal state. " +
 		cardFormat,

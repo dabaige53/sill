@@ -189,6 +189,20 @@ export const toolInputs = {
 			limit: z.number().int().min(1).max(100).optional(),
 		})
 		.strict(),
+	sill_searchContents: z
+		.object({
+			expected_owner,
+			query: z
+				.string()
+				.trim()
+				.min(1)
+				.max(200)
+				.describe(
+					"Plain keywords separated by spaces; every keyword must appear, ignoring case. Searches title, summary, body, tags, sources, authors, URL and personal note.",
+				),
+			limit: z.number().int().min(1).max(50).optional().describe("Results to return, default 20."),
+		})
+		.strict(),
 	sill_getContent: z.object({ id, expected_owner }).strict(),
 	sill_getEvent: z.object({ id, expected_owner }).strict(),
 	sill_createContent: z.object({ expected_owner, idempotency_key: key, body: create }).strict(),
@@ -220,6 +234,30 @@ export const cloudCard = z
 		deleted: z.boolean(),
 	})
 	.strict();
+/** A compact search result: enough to choose a card, without its body. */
+export const searchHit = z
+	.object({
+		id,
+		type: z.string().min(1).max(100),
+		title: Card.shape.title,
+		summary: z.string().max(300),
+		snippet: z.string().max(300).optional(),
+		url: Card.shape.url,
+		sources: Card.shape.sources,
+		tags: Card.shape.tags,
+		publishedAt: z.string().optional(),
+		start: Card.shape.start,
+		end: Card.shape.end,
+		due: Card.shape.due,
+		archived: z.boolean(),
+		revision,
+		created_at: dateTime,
+		updated_at: dateTime,
+	})
+	.strict();
+export const searchPage = z
+	.object({ items: z.array(searchHit), total: z.number().int().nonnegative() })
+	.strict();
 export const workspaceSnapshot = z
 	.object({
 		revision: z.number().int().nonnegative(),
@@ -244,6 +282,8 @@ export const cloudSchemas = {
 	UpdateCard: update,
 	DeleteCard: z.object({ expectedRevision: revision }).strict(),
 	Card: cloudCard,
+	SearchPage: searchPage,
+	SearchContents: toolInputs.sill_searchContents,
 	CardPage: z
 		.object({
 			items: z.array(cloudCard),

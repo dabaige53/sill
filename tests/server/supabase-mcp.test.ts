@@ -7,7 +7,7 @@ import { A, B, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
-test("official MCP client discovers/calls nine contracts over authenticated stateless HTTP", async () => {
+test("official MCP client discovers/calls ten contracts over authenticated stateless HTTP", async () => {
 	const f = await cloudFixture();
 	let client: any;
 	try {
@@ -52,9 +52,10 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 		client = new Client({ name: "synthetic-codex-test", version: "1.0.0" });
 		await client.connect(transport);
 		const list = await client.listTools();
-		assert.equal(list.tools.length, 9);
+		assert.equal(list.tools.length, 10);
 		const hints = Object.fromEntries(list.tools.map((t?: any) => [t.name, t.annotations]));
 		assert.equal(hints.sill_getContent.readOnlyHint, true);
+		assert.equal(hints.sill_searchContents.readOnlyHint, true);
 		assert.equal(hints.sill_createContent.destructiveHint, false);
 		assert.equal(hints.sill_submitEvent.destructiveHint, false);
 		assert.equal(hints.sill_updateContent.destructiveHint, true);
@@ -90,6 +91,19 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 				.items[0].id,
 			one.id,
 		);
+		const found = (
+			await client.callTool({ name: "sill_searchContents", arguments: { query: "same DATABASE" } })
+		).structuredContent;
+		assert.equal(found.total, 1);
+		assert.equal(found.items[0].id, one.id);
+		assert.equal(found.items[0].summary, "Rich preview");
+		assert.equal("body" in found.items[0], false);
+		const httpFound = await runtime(
+			new Request(f.config.appOrigin + "/api/v1/search?query=same&limit=5", {
+				headers: { Cookie: "__Host-sill-access=" + token() },
+			}),
+		);
+		assert.deepEqual(await httpFound.json(), found);
 		const snapshot = await client.callTool({ name: "sill_getWorkspace", arguments: {} });
 		assert.equal(snapshot.structuredContent.state.cards[0].id, one.id);
 		const applied = await client.callTool({
@@ -114,6 +128,7 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 		for (const [name, args] of [
 			["sill_getWorkspace", {}],
 			["sill_listContents", {}],
+			["sill_searchContents", { query: "MCP" }],
 			["sill_getContent", { id: one.id }],
 			["sill_getEvent", { id: "not-created" }],
 		] as Array<[string, Record<string, any>]>) {

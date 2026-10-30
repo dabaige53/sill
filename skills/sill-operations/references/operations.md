@@ -6,7 +6,16 @@
 
 ## 查询、筛选与导出
 
-有 ID 时调用 `sill_getContent({"id":"实际ID"})`。按标题查找时，可分页调用 `sill_listContents`；它只有 `cursor / since / limit`，limit 为 1–100，没有关键词、类型或归档筛选参数。按 `next_cursor` 读完相关分页，再判断是否存在或全部完成。`since` 只能使用服务端返回的 `sync_cursor`；游标过期后重做全量。
+有 ID 时调用 `sill_getContent({"id":"实际ID"})`。
+
+按标题、链接或内容里的词查找时，调用 `sill_searchContents({"query":"雨水 储水","limit":20})`：
+
+- 空格分开的每个词都要出现，不分大小写；查标题、摘要、正文、标签、来源、作者、链接和个人备注，包括已归档的卡片。
+- 返回 `total` 和最多 `limit`（默认 20，最多 50）条精简结果：ID、类型、标题、摘要、命中处的正文片段、链接、来源、标签、日期、`archived` 和 `revision`，不含正文。
+- 标题、摘要、标签命中的排前面，其余按写入时间从新到旧。`total` 大于返回条数时，换更具体的词再搜。
+- 结果为空只说明这些词都不在卡片里；换同义词或更短的词再搜一次，再下「没有」的结论。
+
+需要逐张遍历时分页调用 `sill_listContents`；它只有 `cursor / since / limit`，limit 为 1–100，没有关键词、类型或归档筛选参数。按 `next_cursor` 读完相关分页，再判断是否存在或全部完成。`since` 只能使用服务端返回的 `sync_cursor`；游标过期后重做全量。
 
 有整个工作区读取权限时，调用 `sill_getWorkspace({})`，返回：
 

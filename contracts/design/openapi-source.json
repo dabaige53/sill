@@ -363,6 +363,57 @@
 				}
 			}
 		},
+		"/search": {
+			"get": {
+				"operationId": "searchContents",
+				"x-required-scope": "content:read",
+				"responses": {
+					"200": {
+						"description": "Matching cards without bodies, newest first after title matches",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SearchPage"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "query",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 200
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 50,
+							"default": 20
+						}
+					}
+				]
+			}
+		},
 		"/events": {
 			"post": {
 				"operationId": "submitEvent",
