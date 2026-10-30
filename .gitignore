@@ -23,3 +23,21 @@ supabase/.temp/
 # Impeccable local runtime; keep shared workflow configuration.
 .impeccable/*
 !.impeccable/config.json
+
+# >>> magpie: library skills placed here (magpie adds and removes these lines) >>>
+/.agents/skills/animate
+/.agents/skills/animate-expo
+/.agents/skills/animation-performance
+/.agents/skills/animation-vocabulary
+/.agents/skills/apple-design
+/.agents/skills/ask-sonner
+/.agents/skills/break-ui
+/.agents/skills/emil-design-eng
+/.agents/skills/find-animation-opportunities
+/.agents/skills/improve-animations
+/.agents/skills/mobile-native
+/.agents/skills/pick-ui-library
+/.agents/skills/prototype
+/.agents/skills/review-animations
+/.agents/skills/write-swift
+# <<< magpie <<<

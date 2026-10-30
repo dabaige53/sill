@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-30 | Codex 插件技能列表 | Dev 长前缀、dev mode、display_name、技能详情与输入框名称不一致 | [技能显示名称](2026-10-30-plugin-skill-names/diagnosis.md) |
 | 2026-10-30 | 手机 AI 输入框与搜索抽屉 | 输入框第二次点击底部上移、键盘收起露出主页、正文截断与底部留白、下滑关闭失效、导航胶囊出现、search-background | [手机页面状态交接排查](2026-10-30-phone-page-lifecycle/README.md) |
 | 2026-10-29 | Web/PWA 手机下拉刷新 | 惯性后下拉失灵、断触、要松手重拉、touchmove cancelable、scrollY | [手机下拉刷新惯性后失灵](2026-10-29-pull-refresh-handover/README.md) |
 | 2026-10-29 | Web 多选操作栏 | 稍后读无法取消、按钮不生效、AI 输入框遮挡、服务器保存 | [多选操作与保存验证](2026-10-29-interface-hardening/README.md#多选稍后读按钮2026-10-29) |
