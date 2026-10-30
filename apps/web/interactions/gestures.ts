@@ -39,14 +39,11 @@ class Gestures {
 		return !!e.target.closest?.('input,textarea,[contenteditable="true"]');
 	}
 	/** Native controls and horizontal scrollers own their entire touch sequence. */
-	fromHorizontalContent(event: TouchEvent) {
+	fromHorizontalContent(event: TouchEvent, taps = true) {
 		const target = event.target as Element;
-		if (
-			target.closest(
-				'button,a,input,textarea,select,audio,video,iframe,[role="slider"],[contenteditable="true"]',
-			)
-		)
-			return true;
+		const controls =
+			'input,textarea,select,audio,video,iframe,[role="slider"],[contenteditable="true"]';
+		if (target.closest(taps ? `button,a,${controls}` : controls)) return true;
 		for (let node = target; node && node !== this.app.dialog; node = node.parentElement) {
 			if (node.scrollWidth <= node.clientWidth + 1) continue;
 			if (/^(auto|scroll)$/.test(getComputedStyle(node).overflowX)) return true;

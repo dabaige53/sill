@@ -7,7 +7,7 @@
 | 2026-10-30 | 手机搜索 | 点分类白闪、分类网格消失、关闭卡片后空白页、只剩搜索框和取消、分类网格截断只显示一行、--kb 残留、切换搜索一帧空白 | [手机搜索闪屏与空白页](2026-10-30-phone-search-flash/diagnosis.md) |
 | 2026-10-30 | Codex 插件技能列表 | Dev 长前缀、dev mode、display_name、技能详情与输入框名称不一致 | [技能显示名称](2026-10-30-plugin-skill-names/diagnosis.md) |
 | 2026-10-30 | 手机 AI 输入框与搜索抽屉 | 输入框第二次点击底部上移、键盘收起露出主页、正文截断与底部留白、下滑关闭失效、导航胶囊出现、search-background | [手机页面状态交接排查](2026-10-30-phone-page-lifecycle/README.md) |
-| 2026-10-29 | Web/PWA 手机下拉刷新 | 惯性后下拉失灵、断触、要松手重拉、touchmove cancelable、scrollY | [手机下拉刷新惯性后失灵](2026-10-29-pull-refresh-handover/README.md) |
+| 2026-10-29 | Web/PWA 手机下拉刷新 | 惯性后下拉失灵、断触、要松手重拉、滑回顶部刷新异常、斜向起手、按钮上下拉无效、touchmove cancelable、scrollY | [手机下拉刷新惯性后失灵](2026-10-29-pull-refresh-handover/README.md) |
 | 2026-10-29 | Web 多选操作栏 | 稍后读无法取消、按钮不生效、AI 输入框遮挡、服务器保存 | [多选操作与保存验证](2026-10-29-interface-hardening/README.md#多选稍后读按钮2026-10-29) |
 | 2026-10-29 | Web 桌面分栏 | 两个 Sill、重复字标、菜单字标偏小 | [重复字标诊断](2026-10-29-interface-hardening/README.md#web-桌面重复字标2026-10-29) |
 | 2026-10-29 | Web 搜索画板 | html-validate、helmet、Inline style、label、fieldset | [搜索画板诊断](2026-10-29-interface-hardening/README.md#web-搜索画板诊断2026-10-29) |

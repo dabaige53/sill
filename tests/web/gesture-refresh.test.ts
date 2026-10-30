@@ -268,6 +268,44 @@ test("a phone touch that stopped momentum mid-page takes over at the top without
 	}
 });
 
+test("a phone pull that eases in slightly sideways keeps the same touch", async () => {
+	const f = fixture({ kind: "desk", phone: true });
+	try {
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart", 120, 200);
+		// A thumb's first moves are a pixel or two and rarely straight down.
+		f.fire(target, "touchmove", 122, 201);
+		f.fire(target, "touchmove", 123, 203);
+		f.fire(target, "touchmove", 124, 600);
+		f.flush(f.frames);
+		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
+		f.fire(target, "touchend", 124, 600);
+		assert.equal(f.app.refreshes, 1);
+		await finishFeedback(f);
+		f.fire(target, "touchstart", 120, 200);
+		f.fire(target, "touchmove", 140, 205);
+		f.fire(target, "touchmove", 160, 600);
+		f.fire(target, "touchend", 160, 600);
+		assert.equal(f.app.refreshes, 1, "a move that is clearly sideways still leaves the page alone");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("a phone pull may start on a card's button", () => {
+	const f = fixture({ kind: "desk", phone: true });
+	try {
+		const button = f.document.createElement("button");
+		f.document.querySelector("main").append(button);
+		f.fire(button, "touchstart", 120, 200);
+		f.fire(button, "touchmove", 120, 600);
+		f.fire(button, "touchend", 120, 600);
+		assert.equal(f.app.refreshes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a 64px visible threshold commits on release and long travel keeps yielding smoothly", async () => {
 	const f = fixture({ kind: "desk" });
 	try {

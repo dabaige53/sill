@@ -262,10 +262,11 @@ export function bindRefresh(this: Gestures) {
 		(event: TouchEvent) => {
 			cancel();
 			// A touch may start mid-page or while momentum settles; the top is checked as it moves.
+			// It may also start on a card's button or link: pulling past the slop ends their tap.
 			if (
 				blocked() ||
 				event.touches.length !== 1 ||
-				this.fromHorizontalContent(event) ||
+				this.fromHorizontalContent(event, false) ||
 				(event.target as Element).closest?.("#dock,#toast,#pull-ring,.deck")
 			)
 				return;
@@ -292,9 +293,15 @@ export function bindRefresh(this: Gestures) {
 					start = point;
 					return;
 				}
-				if (dx > dy) return cancel();
+				// Judge direction over the slop like the mouse: one tiny diagonal move used to drop
+				// the whole touch, so a pull that eased in at the top needed lifting and retrying.
+				if (dx > Math.max(refreshConfig.dragSlop, dy)) return cancel();
 				// Wider layouts keep the browser's own top edge (base.css); it must not run twice.
 				if (!event.cancelable && !this.phone.matches) return cancel();
+				if (dy <= refreshConfig.dragSlop) {
+					if (event.cancelable) event.preventDefault();
+					return;
+				}
 				begin();
 			}
 			// A touch that stopped momentum stays uncancelable, but at the top nothing scrolls under it.
