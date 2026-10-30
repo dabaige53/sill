@@ -33,6 +33,7 @@ export const cardMigrations = [
 	"20261027132655_workspace_save_consistency.sql",
 	"20261028120000_sill_card_fields_v5.sql",
 	"20261029160000_workspace_conditional_read.sql",
+	"20261030120000_sill_keyword_search.sql",
 ];
 export async function applyCardMigrations(db?: any) {
 	for (const file of cardMigrations)
@@ -63,6 +64,7 @@ export const rpc = async (db?: any, name?: any, args: any = []) => {
 		sill_get_content: "$1",
 		sill_get_event: "$1",
 		sill_list_contents: "$1,$2,$3",
+		sill_search_contents: "$1,$2::integer",
 	};
 	if (!Object.hasOwn(functions, name)) throw Error("Unsupported fixture RPC");
 	return (await db.query(`select public.${name}(${functions[name]}) as value`, args)).rows[0].value;

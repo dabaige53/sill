@@ -227,18 +227,21 @@ struct DesktopView: View {
     }
   }
 
-  /// Web `showNew`: back to the top, the due reminders return to the desk.
+  /// Web `showNew`: back to the top, waiting cards and due reminders return to the desk.
   private func showNew() {
-    guard !drag.active, !newContent.reminders.isEmpty else { return }
     let ids = newContent.reminders
-    feed.scrollToTop()
-    workspace.showReminders(ids) { [feed, newContent, workspace] in
-      feed.refreshMembership()
-      newContent.check(workspace)
+    let cards = feed.waiting.count
+    guard !drag.active, !ids.isEmpty || cards > 0 else { return }
+    feed.showWaiting()
+    if !ids.isEmpty {
+      workspace.showReminders(ids) { [feed, newContent, workspace] in
+        feed.refreshMembership()
+        newContent.check(workspace)
+      }
     }
     AccessibilityNotification.Announcement(
-      Copy.text("web.app.fa2c54768fda") + "0" + Copy.text("web.app.f9c6ab19b7d4") + "\(ids.count)"
-        + Copy.text("web.app.904aa82438d8")
+      Copy.text("web.app.fa2c54768fda") + "\(cards)" + Copy.text("web.app.f9c6ab19b7d4")
+        + "\(ids.count)" + Copy.text("web.app.904aa82438d8")
     ).post()
   }
 

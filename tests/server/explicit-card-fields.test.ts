@@ -12,6 +12,7 @@ import { token } from "./helpers/signed-auth.ts";
 const article = {
 	type: "article",
 	title: "Explicit facts",
+	summary: "Synthetic facts kept as fields.",
 	body: "Full synthetic text",
 	authors: [{ name: "Writer", url: "https://example.com/author" }],
 	publishedAt: "2026-10-20",

@@ -31,6 +31,12 @@ actor FakeBackend: WorkspaceBackend {
   func failNextWrite(_ error: any Error) { failNext = error }
   func slowWrites(_ value: Duration) { delay = value }
 
+  /// A card written elsewhere, for example by an assistant over MCP.
+  func externalCard(_ card: JSONValue) {
+    cards.append(card)
+    revision += 1
+  }
+
   /// A change made elsewhere: the revision moves without this window knowing.
   func externalChange(_ id: String, _ values: [String: JSONValue]) {
     merge(id, values)

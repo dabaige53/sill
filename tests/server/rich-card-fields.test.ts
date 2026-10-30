@@ -135,7 +135,9 @@ test("HTTP and MCP expose PR snapshots and playback fields", async () => {
 		assert.match(JSON.stringify(discovery.tools), /playbackPosition/);
 		assert.match(JSON.stringify(discovery.tools), /pullRequest/);
 		for (const sample of fixtures.valid.filter((v: any) => rich(v.card))) {
-			const { id: _, ...body } = sample.card;
+			const { id: _, ...card } = sample.card;
+			// Agent-created cards always carry a card-face summary.
+			const body = { summary: "Synthetic summary", ...card };
 			const result = await client.callTool({
 				name: "sill_createContent",
 				arguments: { idempotency_key: crypto.randomUUID(), body },

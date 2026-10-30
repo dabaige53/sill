@@ -1,4 +1,4 @@
-import { searchCards } from "./content-search.ts";
+import { searchResult } from "./content-search.ts";
 
 const errors = {
 	unauthenticated: 401,
@@ -38,9 +38,14 @@ export class SupabaseRepository {
 	workspace() {
 		return this.rpc("sill_get_workspace", {});
 	}
-	/** Keyword search reads the authorized workspace, so it needs whole-workspace access. */
+	/** Keyword search runs in the database under whole-workspace read access. */
 	async search(query: string, limit?: number) {
-		return searchCards(await this.workspace(), query, limit);
+		return searchResult(
+			await this.rpc("sill_search_contents", {
+				search_query: query,
+				requested_limit: limit ?? null,
+			}),
+		);
 	}
 	workspaceSince(revision: number) {
 		return this.rpc("sill_get_workspace_since", { known_revision: revision });

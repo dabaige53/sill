@@ -1,7 +1,8 @@
 import SillKit
 import SwiftUI
 
-/// Due reminders waiting to come back to the desk (Web `pendingReminders`). Checked every
+/// Due reminders waiting to come back to the desk (Web `pendingReminders`); waiting cards live on
+/// `Feed.waiting`. Checked every
 /// second, like Web `tick`; it changes only when the list does.
 @MainActor @Observable final class NewContent {
   private(set) var reminders: [String] = []
@@ -21,17 +22,18 @@ import SwiftUI
 }
 
 /// Web `#new-count` on the desktop: a glass capsule centered under the top bar, a bell for due
-/// reminders, then ↑, the count and 「项新内容」. It stays while the top bar is tucked and steps
+/// reminders, then ↑, the count of waiting cards and reminders and 「项新内容」. It stays while the top bar is tucked and steps
 /// aside for a selection, a panel or the reader. It appears in 220ms and leaves in 180ms.
 struct NewHint: View {
   let show: () -> Void
   @Environment(NewContent.self) private var content
+  @Environment(Feed.self) private var feed
   @Environment(Selection.self) private var selection
   @Environment(Panels.self) private var panels
   @Environment(Reader.self) private var reader
 
   var body: some View {
-    let count = content.reminders.count
+    let count = content.reminders.count + feed.waiting.count
     let visible = count > 0 && !selection.active && panels.kind == nil && !reader.presented
     ZStack {
       if visible {
@@ -57,7 +59,8 @@ struct NewHint: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
-          Copy.text("web.app.9ae8f7e3040d") + "0" + Copy.text("web.app.5b2f6ba24e42") + "\(count)"
+          Copy.text("web.app.9ae8f7e3040d") + "\(feed.waiting.count)"
+            + Copy.text("web.app.5b2f6ba24e42") + "\(content.reminders.count)"
             + Copy.text("web.app.099a1047b74a")
         )
         .transition(

@@ -60,7 +60,7 @@ Sill 不订阅、不同步、不抓取，也不接收文件导入。所谓导入
 
 ## 去重与合并
 
-导入前先查已有卡片：少量导入时，用 `sill_searchContents` 按原文链接或标题搜索；成批导入时用 `sill_getWorkspace` 读一次完整快照再本地比对。比对顺序：
+导入前先查已有卡片：少量导入时，用 `sill_searchContents` 按原文链接或标题搜索；成批导入时用 `sill_getWorkspace({"compact":true})` 读一次精简快照再本地比对，需要比较正文时再按 ID 读取。比对顺序：
 
 1. `url` 相同，或 PR 的 `repository` 加 `number` 相同，就是同一内容。
 2. 没有 URL 时，比较标题、发布日期、作者和正文开头。只有标题相同不算重复。

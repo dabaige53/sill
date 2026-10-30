@@ -123,6 +123,7 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 					sill_get_content: ["resource_id"],
 					sill_get_event: ["event_id"],
 					sill_list_contents: ["cursor_token", "since_token", "requested_limit"],
+					sill_search_contents: ["search_query", "requested_limit"],
 				};
 			if (!order[name]) return Response.json({ message: "not_found" }, { status: 404 });
 			// PGlite has one session; serialize fixture role changes. Production RPCs are independent transactions.

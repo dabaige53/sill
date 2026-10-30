@@ -27,7 +27,7 @@ export const toolDescriptions = {
 		"Delete only the requested, previously read card using body:{expectedRevision}. Archive via state.archived instead when requested. Confirm the deletion receipt. " +
 		writeRules,
 	sill_getWorkspace:
-		"Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Requires whole-workspace read access. " +
+		"Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Large workspaces can exceed what you can receive: pass compact:true to get every card without body, chapters and transcript (with bodyChars), then read full cards by ID. Compact cards are read-only: never use one as card or before in sill_applyOperations. Requires whole-workspace read access. " +
 		cardFormat,
 	sill_applyOperations:
 		"Apply an atomic batch: card.upsert, card.delete, item.patch, preferences.patch, reading.add. Up to 5000 operations and 512 KiB UTF-8 request body. Requires whole-workspace read access plus permission for each write. Use original before or workspace expectedRevision; new card.upsert requires before:null and a new card.id. card is a full replacement: preserve existing facts, remove server metadata and state; put state in item.patch. Inspect the returned snapshot; no event metadata in a batch. " +

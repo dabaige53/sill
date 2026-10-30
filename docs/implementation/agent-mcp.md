@@ -1,12 +1,12 @@
 # MCP 接口说明
 
-更新：2026-10-29。依据当前服务端与共享定义整理。本文描述源码能力；部署版本和当次宿主发现以实际回执为准。
+更新：2026-10-30。依据当前服务端与共享定义整理。本文描述源码能力；部署版本和当次宿主发现以实际回执为准。
 
 ## 能力入口
 
 | 能力 | 当前入口 |
 | --- | --- |
-| 卡片查询与读写 | `sill_searchContents`（关键词，返回不含正文的精简结果）、`sill_listContents`、`sill_getContent`、`sill_createContent`、`sill_updateContent`、`sill_deleteContent` |
+| 卡片查询与读写 | `sill_searchContents`（关键词，在数据库内匹配，返回不含正文的精简结果）、`sill_listContents`、`sill_getContent`、`sill_createContent`、`sill_updateContent`、`sill_deleteContent` |
 | 工作区与原子批量 | `sill_getWorkspace`、`sill_applyOperations` |
 | 事件记录与结果查询 | `sill_submitEvent`、`sill_getEvent`；受限结果回写由内容更新处理 |
 | 备份与恢复 | 按权限及服务配置开放；工具定义见[备份约定](../../contracts/backup.ts) |
@@ -16,7 +16,9 @@
 
 ## 读写约定
 
-完整工作区读取要求全工作区的 `content:read` 范围。批量返回完整快照，因此也要求该读取范围，并分别校验各操作的写入或删除权限。
+完整工作区读取与关键词搜索要求全工作区的 `content:read` 范围。`sill_getWorkspace` 传 `compact:true` 时返回不含正文、章节和转录的精简快照（附 `bodyChars`），只供读取，精简卡片作为批量写入的 `card` 或 `before` 会被拒绝。
+
+经 MCP 新建的卡片必须带 `summary`（`missing_summary`），Web 自带编辑器不受此限。新建成功后，工具结果另附一段纯文本，列出该类型通常应有但缺失的字段（规则见 [cloud.ts](../../contracts/cloud.ts) 的 `missingFields`），只作提示，不影响写入。批量返回完整快照，因此也要求该读取范围，并分别校验各操作的写入或删除权限。
 
 批量支持卡片更新与删除、个人状态、偏好、阅读时长累加，整批成功或回滚。保存带读取时的卡片版本、原始字段或工作区版本；重试使用相同幂等键和请求内容。
 

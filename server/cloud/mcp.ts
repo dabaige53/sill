@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod/v4";
 import { backupToolInputs } from "../../contracts/backup.ts";
-import { toolInputs as inputs } from "../../contracts/cloud.ts";
+import { agentCardIssues, toolInputs as inputs, missingFields } from "../../contracts/cloud.ts";
 import contract from "../../contracts/design/mcp-tools.json" with { type: "json" };
 import {
 	backupToolDescriptions,
@@ -18,6 +18,7 @@ import {
 import { copy } from "../../design-system/copy.ts";
 import product from "../../package.json" with { type: "json" };
 import { BackupRuntime } from "./backup-runtime.ts";
+import { compactWorkspace } from "./content-search.ts";
 import { errorResult } from "./http-error.ts";
 import { mediaFrameDomains, mediaResourceDomains, restrictMediaScripts } from "./media-policy.ts";
 import { authenticateSupabase } from "./supabase-auth.ts";
@@ -45,10 +46,33 @@ const readOnlyTools = [
 ];
 // Creating a card or queuing an event only adds records; it never replaces or removes data.
 const additiveTools = ["sill_createContent", "sill_submitEvent"];
-const result = (value?: any) => ({
-	content: [{ type: "text", text: JSON.stringify(value) }],
+const result = (value?: any, hint = "") => ({
+	content: [
+		{ type: "text", text: JSON.stringify(value) },
+		...(hint ? [{ type: "text", text: hint }] : []),
+	],
 	structuredContent: value,
 });
+/** New cards in a create or batch call, with the argument path of each. */
+function newCards(name: string, args: any): [any, (string | number)[]][] {
+	if (name === "sill_createContent") return [[args.body, ["body"]]];
+	if (name !== "sill_applyOperations") return [];
+	return args.body.operations.flatMap((operation: any, index: number) =>
+		operation.op === "card.upsert" && !operation.before
+			? [[operation.card, ["body", "operations", index, "card"]]]
+			: [],
+	);
+}
+/** A plain-text nudge about usual facts the agent left out; the write already succeeded. */
+function missingHint(cards: any[]) {
+	const lines = cards
+		.map((card) => [card, missingFields(card)] as const)
+		.filter(([, missing]) => missing.length)
+		.map(([card, missing]) => `${card.id || "new card"} (${card.type}): ${missing.join(", ")}`);
+	return lines.length
+		? `Saved. These fields are usually present but were left out:\n${lines.join("\n")}\nIf the source has these facts, read the card and update it; otherwise leave them out.`
+		: "";
+}
 export const workspaceUri = `ui://sill/cloud-workspace-${product.version}.html`;
 // The version busts host caches, but installed hosts can still request older URLs.
 // All aliases resolve to the current app under the same per-request authorization.
@@ -291,8 +315,19 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					const a = inputs[name].parse(request.params.arguments || {});
 					if (a.expected_owner !== undefined && a.expected_owner !== access.userId)
 						throw Object.assign(new Error("forbidden"), { code: "forbidden" });
+					const created = newCards(name, a);
+					const issues = created.flatMap(([card, path]) =>
+						agentCardIssues(card).map((issue) => ({
+							code: "custom" as const,
+							message: issue.message,
+							path: [...path, ...issue.path],
+							input: card,
+						})),
+					);
+					if (issues.length) throw new z.ZodError(issues);
 					let value: any;
-					if (name === "sill_getWorkspace") value = await repo.workspace();
+					if (name === "sill_getWorkspace")
+						value = a.compact ? compactWorkspace(await repo.workspace()) : await repo.workspace();
 					else if (name === "sill_applyOperations")
 						value = await repo.applyOperations(a.body, a.idempotency_key);
 					else if (name === "sill_listContents") value = await repo.list(a);
@@ -313,6 +348,14 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 								a.idempotency_key,
 							)
 						).body;
+					if (name === "sill_createContent") return result(value, missingHint([value]));
+					if (name === "sill_applyOperations") {
+						const saved = new Map(value.state.cards.map((card: any) => [card.id, card]));
+						return result(
+							value,
+							missingHint(created.map(([card]) => saved.get(card.id)).filter(Boolean)),
+						);
+					}
 					return result(value);
 				} catch (error) {
 					return {

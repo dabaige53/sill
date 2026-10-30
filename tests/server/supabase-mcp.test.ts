@@ -74,6 +74,7 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 		const created = await client.callTool({ name: "sill_createContent", arguments: args });
 		assert.ok(!created.isError, JSON.stringify(created));
 		const one = created.structuredContent;
+		assert.equal(created.content.length, 1, "a complete note gets no missing-field hint");
 		assert.equal(one.summary, "Rich preview");
 		assert.equal(one.form, "quote");
 		assert.deepEqual(one.sources, args.body.sources);
@@ -104,6 +105,26 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 			}),
 		);
 		assert.deepEqual(await httpFound.json(), found);
+		const noSummary = await client.callTool({
+			name: "sill_createContent",
+			arguments: {
+				idempotency_key: "mcp_no_summary",
+				body: { type: "note", title: "No summary", body: "Text" },
+			},
+		});
+		assert.equal(noSummary.isError, true);
+		assert.deepEqual(JSON.parse(noSummary.content[0].text).error.issues, [
+			{ path: "body.summary", message: "missing_summary" },
+		]);
+		const bare = await client.callTool({
+			name: "sill_createContent",
+			arguments: {
+				idempotency_key: "mcp_bare_article",
+				body: { type: "article", title: "Bare article", summary: "Only a title.", body: "Text" },
+			},
+		});
+		assert.ok(!bare.isError);
+		assert.match(bare.content[1].text, /\(article\): url, authors, publishedAt, sources/);
 		const snapshot = await client.callTool({ name: "sill_getWorkspace", arguments: {} });
 		assert.equal(snapshot.structuredContent.state.cards[0].id, one.id);
 		const applied = await client.callTool({
@@ -123,6 +144,34 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 			}),
 		);
 		assert.deepEqual(await httpSnapshot.json(), applied.structuredContent);
+		const compact = (
+			await client.callTool({ name: "sill_getWorkspace", arguments: { compact: true } })
+		).structuredContent;
+		const full = (await client.callTool({ name: "sill_getWorkspace", arguments: {} }))
+			.structuredContent;
+		assert.equal(compact.compact, true);
+		assert.equal(compact.revision, full.revision);
+		assert.equal(compact.state.cards.length, full.state.cards.length);
+		const indexed = compact.state.cards.find((card: any) => card.id === one.id);
+		assert.equal("body" in indexed, false);
+		assert.equal(indexed.bodyChars, [...one.body].length);
+		const misuse = await client.callTool({
+			name: "sill_applyOperations",
+			arguments: {
+				idempotency_key: "mcp-compact-misuse",
+				body: {
+					operations: [
+						{
+							op: "card.upsert",
+							card: { id: one.id, type: "note", title: "Overwrite", summary: "x" },
+							before: indexed,
+						},
+					],
+				},
+			},
+		});
+		assert.equal(misuse.isError, true);
+		assert.equal(JSON.parse(misuse.content[0].text).error.code, "invalid_request");
 		const beforeOwnerCheck = (await client.callTool({ name: "sill_getWorkspace", arguments: {} }))
 			.structuredContent;
 		for (const [name, args] of [

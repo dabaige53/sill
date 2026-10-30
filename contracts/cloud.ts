@@ -49,6 +49,34 @@ const rawCard = Card.refine(
 		].some((key) => Object.hasOwn(value, key)),
 	"server_metadata_forbidden",
 );
+// Facts a source usually provides for each kind; a missing one is a hint, not an error.
+const expectedFields: Record<string, string[]> = {
+	article: ["body", "url", "authors", "publishedAt", "sources"],
+	mail: ["body", "authors", "publishedAt", "sources"],
+	media: ["url", "authors", "publishedAt", "duration", "sources"],
+	note: ["body", "sources"],
+	pr: ["url", "sources"],
+	photo: ["publishedAt", "sources"],
+	digest: ["body", "related", "sources"],
+	suggestion: ["body", "sources"],
+	task: ["sources"],
+	event: ["sources"],
+	reminder: ["sources"],
+	file: ["sources"],
+};
+/** Agent-created cards need a card-face summary; the app's own editor is not bound by this. */
+export function agentCardIssues(card: Record<string, unknown>) {
+	return typeof card.summary === "string" && card.summary.trim()
+		? []
+		: [{ path: ["summary"], message: "missing_summary" }];
+}
+/** Usually expected facts left out of a saved card. */
+export function missingFields(card: Record<string, unknown>) {
+	return (expectedFields[String(card.type)] || []).filter((field) => {
+		const value = card[field];
+		return value === undefined || value === "" || (Array.isArray(value) && !value.length);
+	});
+}
 export const workspaceBatch = z
 	.object({
 		operations: z
@@ -177,7 +205,17 @@ const key = z
 		"New UUID per logical write. Reuse the exact key and arguments only when retrying that same write after checking an unknown result.",
 	);
 export const toolInputs = {
-	sill_getWorkspace: z.object({ expected_owner }).strict(),
+	sill_getWorkspace: z
+		.object({
+			expected_owner,
+			compact: z
+				.boolean()
+				.optional()
+				.describe(
+					"true returns every card without body, chapters or transcript, adding bodyChars. Compact cards are for reading only: never send one as card or before in a write.",
+				),
+		})
+		.strict(),
 	sill_applyOperations: z
 		.object({ expected_owner, idempotency_key: key, body: workspaceBatch })
 		.strict(),
@@ -271,8 +309,27 @@ export const workspaceSnapshot = z
 			.strict(),
 	})
 	.strict();
+/** The whole workspace without long text, for agents that only need to find and count cards. */
+export const workspaceIndex = z
+	.object({
+		revision: workspaceSnapshot.shape.revision,
+		compact: z.literal(true),
+		state: z
+			.object({
+				...workspaceSnapshot.shape.state.shape,
+				cards: z.array(
+					cloudCard
+						.omit({ body: true, chapters: true, transcript: true })
+						.extend({ bodyChars: z.number().int().nonnegative() }),
+				),
+			})
+			.strict(),
+	})
+	.strict();
 export const cloudSchemas = {
 	Workspace: workspaceSnapshot,
+	WorkspaceIndex: workspaceIndex,
+	WorkspaceRead: z.union([workspaceSnapshot, workspaceIndex]),
 	WorkspaceBatch: workspaceBatch,
 	ID: id,
 	Revision: revision,

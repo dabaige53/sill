@@ -136,6 +136,9 @@ enum FeedEntry: Identifiable, Equatable {
   /// Cards put away, for the shelf row at the end of the desk.
   private(set) var shelfCount = 0
   private(set) var empty = Empty.none
+  /// Cards written elsewhere while the reader was away from the top; they wait behind the
+  /// new-content capsule (Web `pendingCards`).
+  private(set) var waiting: [String] = []
   struct ScrollRequest: Equatable {
     let id: Int
     let offset: CGFloat
@@ -162,6 +165,8 @@ enum FeedEntry: Identifiable, Equatable {
   @ObservationIgnored private var order: [String: Int] = [:]
 
   static let page = 40
+  /// Web keeps new cards behind the capsule once the page is 40pt from the top.
+  static let awayFromTop: CGFloat = 40
 
   init(workspace: Workspace) {
     self.workspace = workspace
@@ -358,6 +363,13 @@ enum FeedEntry: Identifiable, Equatable {
   /// Returning to the top keeps the user's scope, query and conditions intact.
   func scrollToTop() { requestScroll(to: 0) }
 
+  /// Web `showNew` for cards: back to the top with the waiting cards in place.
+  func showWaiting() {
+    waiting = []
+    scrollToTop()
+    rebuild()
+  }
+
   func recordScroll(_ offset: CGFloat) {
     // Shrinking the old document can send bounds changes before the new scope is laid out.
     guard scrollRequest == nil else { return }
@@ -435,12 +447,21 @@ enum FeedEntry: Identifiable, Equatable {
       workspace.cards, mode: workspace.preferences.feedSort, state: state, now: now)
     // The first pass ranks everything; later arrivals go above the cards already in place.
     let arrivals = ranked.filter { order[$0.id] == nil }
+    let live = Set(workspace.cards.map(\.id))
+    var held = workspace.preferences.newHint == .off ? [] : waiting.filter(live.contains)
+    if !order.isEmpty, scrollOffset >= Feed.awayFromTop, workspace.preferences.newHint != .off {
+      let fresh = arrivals.map(\.id).filter { !held.contains($0) }
+      held += fresh
+    }
+    if held != waiting { waiting = held }
     var top = order.values.min() ?? arrivals.count
     for card in arrivals.reversed() {
       top -= 1
       order[card.id] = top
     }
+    let hidden = Set(waiting)
     let matched = workspace.cards.filter { card in
+      if hidden.contains(card.id) { return false }
       let s = state(card.id)
       // Searching reaches archived cards; browsing shows only the desk.
       if text.isEmpty, s.archived { return false }

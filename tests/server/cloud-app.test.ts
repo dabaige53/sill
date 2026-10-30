@@ -92,7 +92,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 		const tools = (await client.listTools()).tools;
 		const identityOpened = await client.callTool({ name: "sill_open_workspace", arguments: {} });
 		assert.equal(identityOpened.structuredContent.userId, A);
-		assert.equal(tools.length, 11);
+		assert.equal(tools.length, 12);
 		for (const tool of tools.slice(0, 2)) {
 			assert.deepEqual(
 				tool.icons.map((i?: any) => i.theme),
@@ -116,6 +116,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 				body: {
 					type: "note",
 					title: "Remote cover",
+					summary: "Synthetic remote cover.",
 					images: ["https://images.example.com/cover.jpg"],
 				},
 			},

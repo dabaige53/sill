@@ -4896,7 +4896,7 @@
     },
     {
       "name": "sill_getWorkspace",
-      "description": "Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Requires whole-workspace read access. Card contract 5.0.0: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
+      "description": "Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Large workspaces can exceed what you can receive: pass compact:true to get every card without body, chapters and transcript (with bodyChars), then read full cards by ID. Compact cards are read-only: never use one as card or before in sill_applyOperations. Requires whole-workspace read access. Card contract 5.0.0: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -4906,157 +4906,251 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 100
+          },
+          "compact": {
+            "description": "true returns every card without body, chapters or transcript, adding bodyChars. Compact cards are for reading only: never send one as card or before in a write.",
+            "type": "boolean"
           }
         },
         "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Workspace",
+        "$ref": "#/$defs/WorkspaceRead",
         "$defs": {
-          "Workspace": {
-            "type": "object",
-            "properties": {
-              "revision": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              "state": {
+          "WorkspaceRead": {
+            "anyOf": [
+              {
                 "type": "object",
                 "properties": {
-                  "cards": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "audioUrl": {
-                          "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
-                          "type": "string",
-                          "pattern": "^https?:\\/\\/"
-                        },
-                        "chapters": {
-                          "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
-                          "maxItems": 10000,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "start": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 86400
-                              },
-                              "title": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 500
-                              }
-                            },
-                            "required": [
-                              "start",
-                              "title"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "transcript": {
-                          "description": "Media only: actual timestamped transcript {start,text}; start in seconds, strictly increasing and within known duration. Ordinary notes belong in body.",
-                          "maxItems": 10000,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "start": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 86400
-                              },
-                              "text": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 20000
-                              }
-                            },
-                            "required": [
-                              "start",
-                              "text"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "pullRequest": {
-                          "description": "Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, reviewers, checks and statistics reflect observed evidence. Only completed checks may have conclusion. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "state": {
+                    "type": "object",
+                    "properties": {
+                      "cards": {
+                        "type": "array",
+                        "items": {
                           "type": "object",
                           "properties": {
-                            "repository": {
+                            "audioUrl": {
+                              "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                               "type": "string",
-                              "maxLength": 300,
-                              "pattern": "^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+$"
+                              "pattern": "^https?:\\/\\/"
                             },
-                            "number": {
-                              "type": "integer",
-                              "minimum": 1,
-                              "maximum": 9007199254740991
-                            },
-                            "state": {
-                              "type": "string",
-                              "enum": [
-                                "draft",
-                                "open",
-                                "merged",
-                                "closed"
-                              ]
-                            },
-                            "observedAt": {
-                              "type": "string",
-                              "pattern": "(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)|(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)"
-                            },
-                            "headBranch": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 300
-                            },
-                            "baseBranch": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 300
-                            },
-                            "reviewers": {
-                              "maxItems": 100,
+                            "chapters": {
+                              "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
+                              "maxItems": 10000,
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "login": {
+                                  "start": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 86400
+                                  },
+                                  "title": {
                                     "type": "string",
                                     "minLength": 1,
-                                    "maxLength": 300
-                                  },
-                                  "url": {
-                                    "type": "string",
-                                    "pattern": "^https?:\\/\\/"
-                                  },
-                                  "decision": {
-                                    "type": "string",
-                                    "enum": [
-                                      "pending",
-                                      "approved",
-                                      "changesRequested",
-                                      "commented",
-                                      "dismissed"
-                                    ]
+                                    "maxLength": 500
                                   }
                                 },
                                 "required": [
-                                  "login",
-                                  "decision"
+                                  "start",
+                                  "title"
                                 ],
                                 "additionalProperties": false
                               }
                             },
-                            "checks": {
-                              "maxItems": 1000,
+                            "transcript": {
+                              "description": "Media only: actual timestamped transcript {start,text}; start in seconds, strictly increasing and within known duration. Ordinary notes belong in body.",
+                              "maxItems": 10000,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "start": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 86400
+                                  },
+                                  "text": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 20000
+                                  }
+                                },
+                                "required": [
+                                  "start",
+                                  "text"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "pullRequest": {
+                              "description": "Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, reviewers, checks and statistics reflect observed evidence. Only completed checks may have conclusion. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
+                              "type": "object",
+                              "properties": {
+                                "repository": {
+                                  "type": "string",
+                                  "maxLength": 300,
+                                  "pattern": "^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+$"
+                                },
+                                "number": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 9007199254740991
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "draft",
+                                    "open",
+                                    "merged",
+                                    "closed"
+                                  ]
+                                },
+                                "observedAt": {
+                                  "type": "string",
+                                  "pattern": "(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)|(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)"
+                                },
+                                "headBranch": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "baseBranch": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "reviewers": {
+                                  "maxItems": 100,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "login": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 300
+                                      },
+                                      "url": {
+                                        "type": "string",
+                                        "pattern": "^https?:\\/\\/"
+                                      },
+                                      "decision": {
+                                        "type": "string",
+                                        "enum": [
+                                          "pending",
+                                          "approved",
+                                          "changesRequested",
+                                          "commented",
+                                          "dismissed"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "login",
+                                      "decision"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "checks": {
+                                  "maxItems": 1000,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 300
+                                      },
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "queued",
+                                          "inProgress",
+                                          "completed"
+                                        ]
+                                      },
+                                      "conclusion": {
+                                        "type": "string",
+                                        "enum": [
+                                          "success",
+                                          "failure",
+                                          "neutral",
+                                          "cancelled",
+                                          "skipped",
+                                          "timedOut",
+                                          "actionRequired",
+                                          "stale"
+                                        ]
+                                      },
+                                      "url": {
+                                        "type": "string",
+                                        "pattern": "^https?:\\/\\/"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "status"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "additions": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "deletions": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "changedFiles": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "reviewRequested": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "repository",
+                                "number",
+                                "state",
+                                "observedAt"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "type": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000,
+                              "description": "Specific plain-text title; do not place the full body here."
+                            },
+                            "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results; for photos, the factual image description. Not shown in the detail; put all detail text in body.",
+                              "type": "string",
+                              "maxLength": 10000
+                            },
+                            "authors": {
+                              "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
+                              "maxItems": 20,
                               "type": "array",
                               "items": {
                                 "type": "object",
@@ -5066,26 +5160,175 @@
                                     "minLength": 1,
                                     "maxLength": 300
                                   },
-                                  "status": {
+                                  "url": {
                                     "type": "string",
-                                    "enum": [
-                                      "queued",
-                                      "inProgress",
-                                      "completed"
-                                    ]
+                                    "pattern": "^https?:\\/\\/"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "publishedAt": {
+                              "description": "Original publication, send or capture date, or offset datetime. Preserve date-only precision.",
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "project": {
+                              "description": "Task or reminder only: existing project name and optional HTTP(S) link.",
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "form": {
+                              "description": "Note only: quote shows the title as a quotation. Omit for the default layout.",
+                              "type": "string",
+                              "enum": [
+                                "quote"
+                              ]
+                            },
+                            "images": {
+                              "description": "Built-in illustrative asset IDs or HTTPS image URLs, not uploads. The first image is the cover; photo cards show all. Required for video and photo cards; never substitute for a real user photo.",
+                              "minItems": 1,
+                              "maxItems": 50,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 8192,
+                                "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
+                              }
+                            },
+                            "tags": {
+                              "description": "Content tags. Editing tags edits the card.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 100
+                              }
+                            },
+                            "body": {
+                              "type": "string",
+                              "maxLength": 500000
+                            },
+                            "url": {
+                              "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            },
+                            "sources": {
+                              "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
+                              "maxItems": 11,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
                                   },
-                                  "conclusion": {
+                                  "kind": {
                                     "type": "string",
-                                    "enum": [
-                                      "success",
-                                      "failure",
-                                      "neutral",
-                                      "cancelled",
-                                      "skipped",
-                                      "timedOut",
-                                      "actionRequired",
-                                      "stale"
-                                    ]
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "kind"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "location": {
+                              "description": "Known event or photo location; omit if unavailable.",
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "meeting": {
+                              "description": "Existing meeting reference {name,url,code?}, not a request to create a meeting. Never store credentials in the URL or code.",
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                },
+                                "code": {
+                                  "type": "string",
+                                  "maxLength": 100
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "url"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "media": {
+                              "description": "Media subtype, independent of type=media and file MIME type.",
+                              "type": "string",
+                              "enum": [
+                                "video",
+                                "podcast"
+                              ]
+                            },
+                            "duration": {
+                              "description": "Known media duration in integer seconds. Unknown is omitted, not zero.",
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 86400
+                            },
+                            "files": {
+                              "description": "Files or mail attachments: name, optional MIME type, integer sizeBytes, original modifiedAt and HTTP(S) url. No binary/base64 upload. File cards require a nonempty list.",
+                              "maxItems": 200,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
+                                  },
+                                  "mimeType": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 200,
+                                    "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
+                                  },
+                                  "sizeBytes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "modifiedAt": {
+                                    "type": "string",
+                                    "minLength": 10,
+                                    "maxLength": 40,
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
                                   },
                                   "url": {
                                     "type": "string",
@@ -5093,325 +5336,212 @@
                                   }
                                 },
                                 "required": [
-                                  "name",
-                                  "status"
+                                  "name"
                                 ],
                                 "additionalProperties": false
                               }
                             },
-                            "additions": {
-                              "type": "integer",
+                            "tasks": {
+                              "description": "Task card actionable subtasks as {id,text}; use nonempty tasks with unique stable IDs. Completion is personal state taskDone. Markdown checkboxes do not create interactive tasks.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                                  },
+                                  "text": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 2000
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "text"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "start": {
+                              "description": "Event start as Unix milliseconds, greater than zero; pair with end.",
+                              "type": "number",
                               "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "end": {
+                              "description": "Event end as Unix milliseconds, strictly later than start.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "due": {
+                              "description": "Known task/reminder due time as Unix milliseconds; recording it does not schedule an external notification.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "time": {
+                              "description": "Card timeline time in Unix milliseconds; separate from publishedAt.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "people": {
+                              "description": "Event only: known attendees; do not invent participants.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 100
+                              }
+                            },
+                            "related": {
+                              "description": "Real Sill card IDs read under the current permissions; not titles or URLs.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                              }
+                            },
+                            "priority": {
+                              "description": "Priority from 0 to 10, only when requested or supported by source facts.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                            },
+                            "state": {
+                              "type": "object",
+                              "properties": {
+                                "seen": {
+                                  "type": "boolean"
+                                },
+                                "read": {
+                                  "type": "boolean"
+                                },
+                                "bookmarked": {
+                                  "type": "boolean"
+                                },
+                                "later": {
+                                  "type": "boolean"
+                                },
+                                "playbackPosition": {
+                                  "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 86400
+                                },
+                                "progress": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "note": {
+                                  "type": "string",
+                                  "maxLength": 4000
+                                },
+                                "taskDone": {
+                                  "maxItems": 100,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                                  }
+                                },
+                                "addedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "snoozedUntil": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "dismissed": {
+                                  "type": "boolean"
+                                },
+                                "reminderDone": {
+                                  "type": "boolean"
+                                },
+                                "lastReminderKey": {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                "lastNotifiedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "readAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "restoredAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "done": {
+                                  "type": "boolean"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                },
+                                "lessLike": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
                               "maximum": 9007199254740991
                             },
-                            "deletions": {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
                             },
-                            "changedFiles": {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
                             },
-                            "reviewRequested": {
+                            "deleted": {
                               "type": "boolean"
                             }
                           },
                           "required": [
-                            "repository",
-                            "number",
+                            "type",
+                            "title",
+                            "body",
+                            "id",
                             "state",
-                            "observedAt"
+                            "revision",
+                            "created_at",
+                            "updated_at",
+                            "deleted"
                           ],
                           "additionalProperties": false
-                        },
-                        "type": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100
-                        },
-                        "title": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 1000,
-                          "description": "Specific plain-text title; do not place the full body here."
-                        },
-                        "summary": {
-                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results; for photos, the factual image description. Not shown in the detail; put all detail text in body.",
-                          "type": "string",
-                          "maxLength": 10000
-                        },
-                        "authors": {
-                          "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
-                          "maxItems": 20,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 300
-                              },
-                              "url": {
-                                "type": "string",
-                                "pattern": "^https?:\\/\\/"
-                              }
-                            },
-                            "required": [
-                              "name"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "publishedAt": {
-                          "description": "Original publication, send or capture date, or offset datetime. Preserve date-only precision.",
-                          "type": "string",
-                          "minLength": 10,
-                          "maxLength": 40,
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
-                        },
-                        "project": {
-                          "description": "Task or reminder only: existing project name and optional HTTP(S) link.",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 300
-                            },
-                            "url": {
-                              "type": "string",
-                              "pattern": "^https?:\\/\\/"
-                            }
-                          },
-                          "required": [
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "form": {
-                          "description": "Note only: quote shows the title as a quotation. Omit for the default layout.",
-                          "type": "string",
-                          "enum": [
-                            "quote"
-                          ]
-                        },
-                        "images": {
-                          "description": "Built-in illustrative asset IDs or HTTPS image URLs, not uploads. The first image is the cover; photo cards show all. Required for video and photo cards; never substitute for a real user photo.",
-                          "minItems": 1,
-                          "maxItems": 50,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 8192,
-                            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
-                          }
-                        },
-                        "tags": {
-                          "description": "Content tags. Editing tags edits the card.",
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 100
-                          }
-                        },
-                        "body": {
-                          "type": "string",
-                          "maxLength": 500000
-                        },
-                        "url": {
-                          "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
-                          "type": "string",
-                          "pattern": "^https?:\\/\\/"
-                        },
-                        "sources": {
-                          "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
-                          "maxItems": 11,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 300
-                              },
-                              "kind": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 100
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "kind"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "location": {
-                          "description": "Known event or photo location; omit if unavailable.",
-                          "type": "string",
-                          "maxLength": 300
-                        },
-                        "meeting": {
-                          "description": "Existing meeting reference {name,url,code?}, not a request to create a meeting. Never store credentials in the URL or code.",
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 100
-                            },
-                            "url": {
-                              "type": "string",
-                              "pattern": "^https?:\\/\\/"
-                            },
-                            "code": {
-                              "type": "string",
-                              "maxLength": 100
-                            }
-                          },
-                          "required": [
-                            "name",
-                            "url"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "media": {
-                          "description": "Media subtype, independent of type=media and file MIME type.",
-                          "type": "string",
-                          "enum": [
-                            "video",
-                            "podcast"
-                          ]
-                        },
-                        "duration": {
-                          "description": "Known media duration in integer seconds. Unknown is omitted, not zero.",
-                          "type": "integer",
-                          "minimum": 0,
-                          "maximum": 86400
-                        },
-                        "files": {
-                          "description": "Files or mail attachments: name, optional MIME type, integer sizeBytes, original modifiedAt and HTTP(S) url. No binary/base64 upload. File cards require a nonempty list.",
-                          "maxItems": 200,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 300
-                              },
-                              "mimeType": {
-                                "type": "string",
-                                "minLength": 3,
-                                "maxLength": 200,
-                                "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
-                              },
-                              "sizeBytes": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "maximum": 9007199254740991
-                              },
-                              "modifiedAt": {
-                                "type": "string",
-                                "minLength": 10,
-                                "maxLength": 40,
-                                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
-                              },
-                              "url": {
-                                "type": "string",
-                                "pattern": "^https?:\\/\\/"
-                              }
-                            },
-                            "required": [
-                              "name"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "tasks": {
-                          "description": "Task card actionable subtasks as {id,text}; use nonempty tasks with unique stable IDs. Completion is personal state taskDone. Markdown checkboxes do not create interactive tasks.",
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
-                              },
-                              "text": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 2000
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "text"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "start": {
-                          "description": "Event start as Unix milliseconds, greater than zero; pair with end.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "end": {
-                          "description": "Event end as Unix milliseconds, strictly later than start.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "due": {
-                          "description": "Known task/reminder due time as Unix milliseconds; recording it does not schedule an external notification.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "time": {
-                          "description": "Card timeline time in Unix milliseconds; separate from publishedAt.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "people": {
-                          "description": "Event only: known attendees; do not invent participants.",
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 100
-                          }
-                        },
-                        "related": {
-                          "description": "Real Sill card IDs read under the current permissions; not titles or URLs.",
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
-                          }
-                        },
-                        "priority": {
-                          "description": "Priority from 0 to 10, only when requested or supported by source facts.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 10
-                        },
-                        "id": {
+                        }
+                      },
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
                           "type": "string",
                           "pattern": "^[a-zA-Z0-9_-]{1,100}$"
                         },
-                        "state": {
+                        "additionalProperties": {
                           "type": "object",
                           "properties": {
                             "seen": {
@@ -5495,297 +5625,1004 @@
                             }
                           },
                           "additionalProperties": false
-                        },
-                        "revision": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 9007199254740991
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                        },
-                        "updated_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                        },
-                        "deleted": {
-                          "type": "boolean"
                         }
                       },
-                      "required": [
-                        "type",
-                        "title",
-                        "body",
-                        "id",
-                        "state",
-                        "revision",
-                        "created_at",
-                        "updated_at",
-                        "deleted"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "items": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string",
-                      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
-                    },
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "seen": {
-                          "type": "boolean"
-                        },
-                        "read": {
-                          "type": "boolean"
-                        },
-                        "bookmarked": {
-                          "type": "boolean"
-                        },
-                        "later": {
-                          "type": "boolean"
-                        },
-                        "playbackPosition": {
-                          "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 86400
-                        },
-                        "progress": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        "note": {
-                          "type": "string",
-                          "maxLength": 4000
-                        },
-                        "taskDone": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
+                      "preferences": {
+                        "type": "object",
+                        "properties": {
+                          "cardTextSize": {
                             "type": "string",
-                            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                            "enum": [
+                              "small",
+                              "standard",
+                              "large"
+                            ]
+                          },
+                          "cardSpacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "cardPadding": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "readerTextSize": {
+                            "type": "string",
+                            "enum": [
+                              "small",
+                              "standard",
+                              "large"
+                            ]
+                          },
+                          "readerSpacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "readerWidth": {
+                            "type": "string",
+                            "enum": [
+                              "narrow",
+                              "standard",
+                              "full"
+                            ]
+                          },
+                          "textWeight": {
+                            "type": "string",
+                            "enum": [
+                              "standard",
+                              "strong"
+                            ]
+                          },
+                          "singleKeyShortcuts": {
+                            "type": "boolean"
+                          },
+                          "reduceMotion": {
+                            "type": "boolean"
+                          },
+                          "reduceTransparency": {
+                            "type": "boolean"
+                          },
+                          "sort": {
+                            "type": "string",
+                            "enum": [
+                              "priority",
+                              "unread",
+                              "time"
+                            ]
+                          },
+                          "stack": {
+                            "type": "boolean"
+                          },
+                          "fadeRead": {
+                            "type": "boolean"
+                          },
+                          "archiveAfter": {
+                            "type": "string",
+                            "enum": [
+                              "3d",
+                              "7d",
+                              "never"
+                            ]
+                          },
+                          "floatTimely": {
+                            "type": "boolean"
+                          },
+                          "collapseOnFinish": {
+                            "type": "boolean"
+                          },
+                          "newHint": {
+                            "type": "string",
+                            "enum": [
+                              "away",
+                              "off"
+                            ]
+                          },
+                          "theme": {
+                            "type": "string",
+                            "enum": [
+                              "system",
+                              "light",
+                              "dark"
+                            ]
+                          },
+                          "density": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "aiLocal": {
+                            "type": "boolean"
+                          },
+                          "onboarded": {
+                            "type": "boolean"
+                          },
+                          "hiddenActions": {
+                            "maxItems": 9,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "bookmark",
+                                "tag",
+                                "later",
+                                "reply",
+                                "open",
+                                "join",
+                                "snooze",
+                                "download",
+                                "dismiss"
+                              ]
+                            }
                           }
                         },
-                        "addedAt": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "snoozedUntil": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "dismissed": {
-                          "type": "boolean"
-                        },
-                        "reminderDone": {
-                          "type": "boolean"
-                        },
-                        "lastReminderKey": {
-                          "type": "string",
-                          "maxLength": 200
-                        },
-                        "lastNotifiedAt": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "readAt": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "restoredAt": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 8640000000000000
-                        },
-                        "done": {
-                          "type": "boolean"
-                        },
-                        "archived": {
-                          "type": "boolean"
-                        },
-                        "lessLike": {
-                          "type": "boolean"
-                        }
+                        "additionalProperties": false
                       },
-                      "additionalProperties": false
-                    }
-                  },
-                  "preferences": {
-                    "type": "object",
-                    "properties": {
-                      "cardTextSize": {
-                        "type": "string",
-                        "enum": [
-                          "small",
-                          "standard",
-                          "large"
-                        ]
-                      },
-                      "cardSpacing": {
-                        "type": "string",
-                        "enum": [
-                          "compact",
-                          "standard",
-                          "roomy"
-                        ]
-                      },
-                      "cardPadding": {
-                        "type": "string",
-                        "enum": [
-                          "compact",
-                          "standard",
-                          "roomy"
-                        ]
-                      },
-                      "readerTextSize": {
-                        "type": "string",
-                        "enum": [
-                          "small",
-                          "standard",
-                          "large"
-                        ]
-                      },
-                      "readerSpacing": {
-                        "type": "string",
-                        "enum": [
-                          "compact",
-                          "standard",
-                          "roomy"
-                        ]
-                      },
-                      "readerWidth": {
-                        "type": "string",
-                        "enum": [
-                          "narrow",
-                          "standard",
-                          "full"
-                        ]
-                      },
-                      "textWeight": {
-                        "type": "string",
-                        "enum": [
-                          "standard",
-                          "strong"
-                        ]
-                      },
-                      "singleKeyShortcuts": {
-                        "type": "boolean"
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
-                      },
-                      "sort": {
-                        "type": "string",
-                        "enum": [
-                          "priority",
-                          "unread",
-                          "time"
-                        ]
-                      },
-                      "stack": {
-                        "type": "boolean"
-                      },
-                      "fadeRead": {
-                        "type": "boolean"
-                      },
-                      "archiveAfter": {
-                        "type": "string",
-                        "enum": [
-                          "3d",
-                          "7d",
-                          "never"
-                        ]
-                      },
-                      "floatTimely": {
-                        "type": "boolean"
-                      },
-                      "collapseOnFinish": {
-                        "type": "boolean"
-                      },
-                      "newHint": {
-                        "type": "string",
-                        "enum": [
-                          "away",
-                          "off"
-                        ]
-                      },
-                      "theme": {
-                        "type": "string",
-                        "enum": [
-                          "system",
-                          "light",
-                          "dark"
-                        ]
-                      },
-                      "density": {
-                        "type": "string",
-                        "enum": [
-                          "compact",
-                          "standard",
-                          "roomy"
-                        ]
-                      },
-                      "aiLocal": {
-                        "type": "boolean"
-                      },
-                      "onboarded": {
-                        "type": "boolean"
-                      },
-                      "hiddenActions": {
-                        "maxItems": 9,
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "enum": [
-                            "bookmark",
-                            "tag",
-                            "later",
-                            "reply",
-                            "open",
-                            "join",
-                            "snooze",
-                            "download",
-                            "dismiss"
-                          ]
-                        }
+                      "seconds": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10000000
                       }
                     },
+                    "required": [
+                      "cards",
+                      "items",
+                      "preferences",
+                      "seconds"
+                    ],
                     "additionalProperties": false
-                  },
-                  "seconds": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 10000000
                   }
                 },
                 "required": [
-                  "cards",
-                  "items",
-                  "preferences",
-                  "seconds"
+                  "revision",
+                  "state"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "compact": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "state": {
+                    "type": "object",
+                    "properties": {
+                      "cards": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "audioUrl": {
+                              "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            },
+                            "pullRequest": {
+                              "description": "Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, reviewers, checks and statistics reflect observed evidence. Only completed checks may have conclusion. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
+                              "type": "object",
+                              "properties": {
+                                "repository": {
+                                  "type": "string",
+                                  "maxLength": 300,
+                                  "pattern": "^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+$"
+                                },
+                                "number": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 9007199254740991
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "draft",
+                                    "open",
+                                    "merged",
+                                    "closed"
+                                  ]
+                                },
+                                "observedAt": {
+                                  "type": "string",
+                                  "pattern": "(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)|(?:^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$)"
+                                },
+                                "headBranch": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "baseBranch": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "reviewers": {
+                                  "maxItems": 100,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "login": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 300
+                                      },
+                                      "url": {
+                                        "type": "string",
+                                        "pattern": "^https?:\\/\\/"
+                                      },
+                                      "decision": {
+                                        "type": "string",
+                                        "enum": [
+                                          "pending",
+                                          "approved",
+                                          "changesRequested",
+                                          "commented",
+                                          "dismissed"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "login",
+                                      "decision"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "checks": {
+                                  "maxItems": 1000,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 300
+                                      },
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "queued",
+                                          "inProgress",
+                                          "completed"
+                                        ]
+                                      },
+                                      "conclusion": {
+                                        "type": "string",
+                                        "enum": [
+                                          "success",
+                                          "failure",
+                                          "neutral",
+                                          "cancelled",
+                                          "skipped",
+                                          "timedOut",
+                                          "actionRequired",
+                                          "stale"
+                                        ]
+                                      },
+                                      "url": {
+                                        "type": "string",
+                                        "pattern": "^https?:\\/\\/"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "status"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "additions": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "deletions": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "changedFiles": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "reviewRequested": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "repository",
+                                "number",
+                                "state",
+                                "observedAt"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "type": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000,
+                              "description": "Specific plain-text title; do not place the full body here."
+                            },
+                            "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results; for photos, the factual image description. Not shown in the detail; put all detail text in body.",
+                              "type": "string",
+                              "maxLength": 10000
+                            },
+                            "authors": {
+                              "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
+                              "maxItems": 20,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "pattern": "^https?:\\/\\/"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "publishedAt": {
+                              "description": "Original publication, send or capture date, or offset datetime. Preserve date-only precision.",
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "project": {
+                              "description": "Task or reminder only: existing project name and optional HTTP(S) link.",
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "form": {
+                              "description": "Note only: quote shows the title as a quotation. Omit for the default layout.",
+                              "type": "string",
+                              "enum": [
+                                "quote"
+                              ]
+                            },
+                            "images": {
+                              "description": "Built-in illustrative asset IDs or HTTPS image URLs, not uploads. The first image is the cover; photo cards show all. Required for video and photo cards; never substitute for a real user photo.",
+                              "minItems": 1,
+                              "maxItems": 50,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 8192,
+                                "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
+                              }
+                            },
+                            "tags": {
+                              "description": "Content tags. Editing tags edits the card.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 100
+                              }
+                            },
+                            "url": {
+                              "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            },
+                            "sources": {
+                              "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
+                              "maxItems": 11,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "kind"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "location": {
+                              "description": "Known event or photo location; omit if unavailable.",
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "meeting": {
+                              "description": "Existing meeting reference {name,url,code?}, not a request to create a meeting. Never store credentials in the URL or code.",
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                },
+                                "code": {
+                                  "type": "string",
+                                  "maxLength": 100
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "url"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "media": {
+                              "description": "Media subtype, independent of type=media and file MIME type.",
+                              "type": "string",
+                              "enum": [
+                                "video",
+                                "podcast"
+                              ]
+                            },
+                            "duration": {
+                              "description": "Known media duration in integer seconds. Unknown is omitted, not zero.",
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 86400
+                            },
+                            "files": {
+                              "description": "Files or mail attachments: name, optional MIME type, integer sizeBytes, original modifiedAt and HTTP(S) url. No binary/base64 upload. File cards require a nonempty list.",
+                              "maxItems": 200,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
+                                  },
+                                  "mimeType": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 200,
+                                    "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
+                                  },
+                                  "sizeBytes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "modifiedAt": {
+                                    "type": "string",
+                                    "minLength": 10,
+                                    "maxLength": 40,
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "pattern": "^https?:\\/\\/"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "tasks": {
+                              "description": "Task card actionable subtasks as {id,text}; use nonempty tasks with unique stable IDs. Completion is personal state taskDone. Markdown checkboxes do not create interactive tasks.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                                  },
+                                  "text": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 2000
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "text"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "start": {
+                              "description": "Event start as Unix milliseconds, greater than zero; pair with end.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "end": {
+                              "description": "Event end as Unix milliseconds, strictly later than start.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "due": {
+                              "description": "Known task/reminder due time as Unix milliseconds; recording it does not schedule an external notification.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "time": {
+                              "description": "Card timeline time in Unix milliseconds; separate from publishedAt.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "people": {
+                              "description": "Event only: known attendees; do not invent participants.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 100
+                              }
+                            },
+                            "related": {
+                              "description": "Real Sill card IDs read under the current permissions; not titles or URLs.",
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                              }
+                            },
+                            "priority": {
+                              "description": "Priority from 0 to 10, only when requested or supported by source facts.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                            },
+                            "state": {
+                              "type": "object",
+                              "properties": {
+                                "seen": {
+                                  "type": "boolean"
+                                },
+                                "read": {
+                                  "type": "boolean"
+                                },
+                                "bookmarked": {
+                                  "type": "boolean"
+                                },
+                                "later": {
+                                  "type": "boolean"
+                                },
+                                "playbackPosition": {
+                                  "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 86400
+                                },
+                                "progress": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "note": {
+                                  "type": "string",
+                                  "maxLength": 4000
+                                },
+                                "taskDone": {
+                                  "maxItems": 100,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                                  }
+                                },
+                                "addedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "snoozedUntil": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "dismissed": {
+                                  "type": "boolean"
+                                },
+                                "reminderDone": {
+                                  "type": "boolean"
+                                },
+                                "lastReminderKey": {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                "lastNotifiedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "readAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "restoredAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "done": {
+                                  "type": "boolean"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                },
+                                "lessLike": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            "deleted": {
+                              "type": "boolean"
+                            },
+                            "bodyChars": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "title",
+                            "id",
+                            "state",
+                            "revision",
+                            "created_at",
+                            "updated_at",
+                            "deleted",
+                            "bodyChars"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                        },
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "seen": {
+                              "type": "boolean"
+                            },
+                            "read": {
+                              "type": "boolean"
+                            },
+                            "bookmarked": {
+                              "type": "boolean"
+                            },
+                            "later": {
+                              "type": "boolean"
+                            },
+                            "playbackPosition": {
+                              "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 86400
+                            },
+                            "progress": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "taskDone": {
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                              }
+                            },
+                            "addedAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "snoozedUntil": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "dismissed": {
+                              "type": "boolean"
+                            },
+                            "reminderDone": {
+                              "type": "boolean"
+                            },
+                            "lastReminderKey": {
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "lastNotifiedAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "readAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "restoredAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "done": {
+                              "type": "boolean"
+                            },
+                            "archived": {
+                              "type": "boolean"
+                            },
+                            "lessLike": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "preferences": {
+                        "type": "object",
+                        "properties": {
+                          "cardTextSize": {
+                            "type": "string",
+                            "enum": [
+                              "small",
+                              "standard",
+                              "large"
+                            ]
+                          },
+                          "cardSpacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "cardPadding": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "readerTextSize": {
+                            "type": "string",
+                            "enum": [
+                              "small",
+                              "standard",
+                              "large"
+                            ]
+                          },
+                          "readerSpacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "readerWidth": {
+                            "type": "string",
+                            "enum": [
+                              "narrow",
+                              "standard",
+                              "full"
+                            ]
+                          },
+                          "textWeight": {
+                            "type": "string",
+                            "enum": [
+                              "standard",
+                              "strong"
+                            ]
+                          },
+                          "singleKeyShortcuts": {
+                            "type": "boolean"
+                          },
+                          "reduceMotion": {
+                            "type": "boolean"
+                          },
+                          "reduceTransparency": {
+                            "type": "boolean"
+                          },
+                          "sort": {
+                            "type": "string",
+                            "enum": [
+                              "priority",
+                              "unread",
+                              "time"
+                            ]
+                          },
+                          "stack": {
+                            "type": "boolean"
+                          },
+                          "fadeRead": {
+                            "type": "boolean"
+                          },
+                          "archiveAfter": {
+                            "type": "string",
+                            "enum": [
+                              "3d",
+                              "7d",
+                              "never"
+                            ]
+                          },
+                          "floatTimely": {
+                            "type": "boolean"
+                          },
+                          "collapseOnFinish": {
+                            "type": "boolean"
+                          },
+                          "newHint": {
+                            "type": "string",
+                            "enum": [
+                              "away",
+                              "off"
+                            ]
+                          },
+                          "theme": {
+                            "type": "string",
+                            "enum": [
+                              "system",
+                              "light",
+                              "dark"
+                            ]
+                          },
+                          "density": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "standard",
+                              "roomy"
+                            ]
+                          },
+                          "aiLocal": {
+                            "type": "boolean"
+                          },
+                          "onboarded": {
+                            "type": "boolean"
+                          },
+                          "hiddenActions": {
+                            "maxItems": 9,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "bookmark",
+                                "tag",
+                                "later",
+                                "reply",
+                                "open",
+                                "join",
+                                "snooze",
+                                "download",
+                                "dismiss"
+                              ]
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "seconds": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10000000
+                      }
+                    },
+                    "required": [
+                      "cards",
+                      "items",
+                      "preferences",
+                      "seconds"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "revision",
+                  "compact",
+                  "state"
                 ],
                 "additionalProperties": false
               }
-            },
-            "required": [
-              "revision",
-              "state"
-            ],
-            "additionalProperties": false
+            ]
           }
         }
       },

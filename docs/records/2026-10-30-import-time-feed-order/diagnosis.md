@@ -33,5 +33,6 @@
 
 - 本地：契约测试 `tests/contracts/card.test.ts` 全部通过，新增用例覆盖秒级时间、缺 `due` 的提醒和旧值原样保存；直接调用 `FeedPolicy.sort` 确认三种排序结果；修改的 Swift 文件通过语法解析。
 - 未在本地运行：Web 核心测试（工作区内另一处未完成的 `about-settings.tsx` 让测试打包失败）、服务端数据库测试、Mac 编译与测试、浏览器体验。由 GitHub Actions 与实际使用验证。
-- Mac 尚未接入新卡胶囊：新卡直接出现在顶部，不经提示。
+- Mac 新卡胶囊已在后续改动中接入：离开顶部 40pt 以上时，新卡停在「新内容」胶囊后，点击回到顶部显示；Web 在打开详情时也会暂存新卡，Mac 只按滚动位置判断。
 - 提交 36c86c72 漏改了 `contracts/fixtures.json` 里日程与提醒的示例时间（`1000`、`2000`），`tests/server/rich-card.test.ts` 用新校验解析时失败。后续提交把它们改成真实毫秒时间，该测试与 `tests/server/supabase-mcp.test.ts`、`tests/server/explicit-card-fields.test.ts` 本地通过。
+- 提交 b0f335e8 增加搜索工具后没有同步 `tests/server/cloud-app.test.ts` 的工具总数（11 → 12），后续提交修正。

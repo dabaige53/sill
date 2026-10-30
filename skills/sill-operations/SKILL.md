@@ -14,7 +14,7 @@ description: 操作 Sill（窗台）工作区、改设置、管理备份或排�
 | 打开窗台 / 工作台 | `sill_open_workspace` |
 | 在当前聊天里看卡片 | `sill_open_cards` |
 | 找一张卡片 | 有 ID 用 `sill_getContent`；只知道标题、链接或内容里的词时用 `sill_searchContents`，再按返回的 ID 读取 |
-| 筛选、统计、导出 | `sill_getWorkspace` 读取完整快照后自己筛选 |
+| 筛选、统计、导出 | `sill_getWorkspace` 读取快照后自己筛选；卡片多、不需要正文时传 `compact:true` |
 | 改一张卡的状态或内容 | 先读取，再用 `sill_updateContent` |
 | 批量改状态、标签、备注、偏好 | `sill_applyOperations`，整批成功或整批回滚 |
 | 归档 / 恢复 | `state.archived` 设为 `true` / `false`；不要用删除代替归档 |
