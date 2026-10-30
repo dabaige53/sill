@@ -281,34 +281,38 @@ export const appLifecycleMethods = {
 	announce(this: AppController, text?: string) {
 		document.getElementById("announcer").textContent = text;
 	},
+	/** Writes the keyboard height the visual viewport shows now. */
+	syncKeyboard(this: AppController) {
+		const vv = window.visualViewport;
+		if (!vv) return;
+		const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+		// Only the dialogs read the height. Set on the root, the inherited value restyled the
+		// whole feed behind search on every frame of the keyboard's motion.
+		const value = `${kb}px`;
+		for (const dialog of document.querySelectorAll<HTMLElement>("dialog"))
+			if (dialog.style.getPropertyValue("--kb") !== value) dialog.style.setProperty("--kb", value);
+		if (kb === this.keyboardHeight) return;
+		this.keyboardHeight = kb;
+		// Browser chrome can change the viewport slightly; once a keyboard is open, keep its
+		// controls hidden through the closing frames instead of revealing them below 120px.
+		const open = kb > 120 || (kb > 0 && document.body.classList.contains("keyboard-open"));
+		document.body.classList.toggle("keyboard-open", open);
+	},
 	bindKeyboard(this: AppController) {
 		const vv = window.visualViewport;
 		if (!vv) return;
 		let frame = 0;
-		let last = -1;
-		const sync = () => {
-			frame = 0;
-			const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
-			// Only the dialogs read the height. Set on the root, the inherited value restyled the
-			// whole feed behind search on every frame of the keyboard's motion.
-			const value = `${kb}px`;
-			for (const dialog of document.querySelectorAll<HTMLElement>("dialog"))
-				if (dialog.style.getPropertyValue("--kb") !== value)
-					dialog.style.setProperty("--kb", value);
-			if (kb === last) return;
-			last = kb;
-			// Browser chrome can change the viewport slightly; once a keyboard is open, keep its
-			// controls hidden through the closing frames instead of revealing them below 120px.
-			const open = kb > 120 || (kb > 0 && document.body.classList.contains("keyboard-open"));
-			document.body.classList.toggle("keyboard-open", open);
-		};
 		const schedule = () => {
-			if (!frame) frame = requestAnimationFrame(sync);
+			if (!frame)
+				frame = requestAnimationFrame(() => {
+					frame = 0;
+					this.syncKeyboard();
+				});
 		};
 		vv.addEventListener("resize", schedule);
 		vv.addEventListener("scroll", schedule);
 		window.addEventListener("resize", schedule);
-		sync();
+		this.syncKeyboard();
 	},
 	paintAccount(this: AppController) {
 		const face = document.querySelector<HTMLElement>("#account .account-wrap");

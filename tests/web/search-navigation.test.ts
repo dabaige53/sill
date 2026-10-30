@@ -138,3 +138,66 @@ for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restor
 			f.dom.window.close();
 		}
 	});
+
+test("an empty editing search keeps its suggestions without the keyboard and under a card", () => {
+	const f = fixture();
+	try {
+		f.app.desktop = () => false;
+		f.app.setSearchEditing(true, undefined, true);
+		const search = f.app.dialog;
+		assert.equal(search.classList.contains("search-keyboard"), true);
+		// Picking a suggestion closes the keyboard under the card; the page must not go empty.
+		f.app.suspendSearch();
+		assert.equal(search.classList.contains("search-keyboard"), true, "the card covers the list");
+		f.app.dialog.innerHTML = '<h1 id="modal-title">Detail</h1>';
+		f.app.modalKind = "preview";
+		f.app.restoreSearch();
+		assert.equal(search.classList.contains("search-keyboard"), true, "the list is back, not blank");
+		f.app.searchFilter.query = "Alpha";
+		f.app.repaintSearch();
+		f.app.setSearchEditing(true, undefined, false);
+		assert.equal(search.classList.contains("search-keyboard"), false, "typed text shows results");
+		f.app.searchFilter.query = "";
+		f.app.repaintSearch();
+		f.app.setSearchEditing(false, undefined, false);
+		assert.equal(search.classList.contains("search-keyboard"), false, "cancel closes the list");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("a phone category leaves its grid as an inert copy instead of a blank page", () => {
+	const f = fixture();
+	try {
+		f.app.desktop = () => false;
+		f.app.action("search-category", "", "task");
+		const copy = f.app.dialog.querySelector('.search-results[aria-hidden="true"]');
+		assert.ok(copy, "the categories leave as a copy");
+		assert.equal(copy.querySelectorAll(".search-category").length, 6);
+		assert.equal(copy.querySelector("[id]"), null);
+		// Editing hides .search-browse and :has(.search-browse) marks the categories page.
+		assert.equal(f.app.dialog.querySelector(".search-browse"), null);
+		assert.equal(copy.firstElementChild.className, "");
+		assert.ok(copy.firstElementChild.style.display, "the copy keeps its drawn layout inline");
+		assert.ok(f.app.dialog.querySelector("#search-results [data-card='b']"));
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("search returning from a card reads the keyboard height again", () => {
+	const f = fixture();
+	try {
+		f.app.desktop = () => false;
+		f.w.visualViewport = { height: f.w.innerHeight, offsetTop: 0 };
+		f.app.suspendSearch();
+		const search = f.app.searchBackground;
+		search.style.setProperty("--kb", "434px");
+		f.app.dialog.innerHTML = '<h1 id="modal-title">Detail</h1>';
+		f.app.modalKind = "preview";
+		f.app.restoreSearch();
+		assert.equal(search.style.getPropertyValue("--kb"), "0px");
+	} finally {
+		f.dom.window.close();
+	}
+});

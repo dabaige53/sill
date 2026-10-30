@@ -200,7 +200,9 @@ test("keyboard bounds use the next frame and update on a window resize", () => {
 		f.w.requestAnimationFrame = (callback: () => void) => frames.push(callback);
 		const dialog = f.w.document.createElement("dialog");
 		f.w.document.body.append(dialog);
-		f.w.ChromeTest.AppController.prototype.bindKeyboard.call({});
+		const app = Object.create(f.w.ChromeTest.AppController.prototype);
+		app.keyboardHeight = -1;
+		app.bindKeyboard();
 		viewport.dispatchEvent(new f.w.Event("resize"));
 		viewport.dispatchEvent(new f.w.Event("scroll"));
 		viewport.height -= 300;

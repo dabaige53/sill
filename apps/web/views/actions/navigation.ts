@@ -280,7 +280,7 @@ function filterType(this: AppController, { extra }: ActionContext) {
 
 /** A category card becomes an ink token in the search bar (ADR 0048); the bar moves up like typing, without the keyboard. */
 function searchCategory(this: AppController, { extra }: ActionContext) {
-	const pose = !this.desktop() ? capturePhoneSearch(this.dialog) : undefined;
+	const pose = !this.desktop() ? capturePhoneSearch(this.dialog, true) : undefined;
 	this.searchFilter.type = extra;
 	this.searchFilter.pinned = true;
 	this.repaintSearch();

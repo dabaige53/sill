@@ -39,18 +39,32 @@ export function capturePhoneSearch(dialog: HTMLElement, retainResults = false): 
 			] as const;
 		}),
 	);
-	const result = dialog.querySelector<HTMLElement>("#search-results:not(:has(.search-browse))");
+	// The categories count only while they show: editing hides them under the field.
+	const result = dialog.querySelector<HTMLElement>(
+		dialog.classList.contains("search-editing")
+			? "#search-results:not(:has(.search-browse))"
+			: "#search-results",
+	);
+	const copy = retainResults ? (result?.cloneNode(true) as HTMLElement | undefined) : undefined;
+	const browse = result?.querySelector<HTMLElement>(".search-browse");
+	const copied = copy?.querySelector<HTMLElement>(".search-browse");
+	if (browse && copied) {
+		// The copy keeps the grid it was drawn with, not the class that editing hides and that
+		// the page reads to know it is showing categories.
+		const { display, gridTemplateColumns, gap } = getComputedStyle(browse);
+		copied.removeAttribute("class");
+		Object.assign(copied.style, { display, gridTemplateColumns, gap });
+	}
 	return {
 		nodes,
 		header: dialog.querySelector(".search-header")?.getBoundingClientRect(),
-		result:
-			retainResults && result
-				? {
-						node: result.cloneNode(true) as HTMLElement,
-						rect: result.getBoundingClientRect(),
-						opacity: getComputedStyle(result).opacity,
-					}
-				: undefined,
+		result: copy
+			? {
+					node: copy,
+					rect: result.getBoundingClientRect(),
+					opacity: getComputedStyle(result).opacity,
+				}
+			: undefined,
 	};
 }
 function draw(node: HTMLElement, pose: SearchPose) {
@@ -125,16 +139,26 @@ export function revealPhoneSearchResults(dialog: HTMLElement) {
 		});
 	}
 }
+/** With nothing typed, editing hides the categories and has no results: the suggestions stay,
+ * or the page under the field was left empty once the keyboard went (or a card closed). */
+function suggesting(dialog: HTMLElement, typing: boolean) {
+	return (
+		typing ||
+		(dialog.classList.contains("search-editing") &&
+			!!dialog.querySelector("#search-results .search-browse"))
+	);
+}
 /** Suggestions follow keyboard visibility; the editing page owns navigation visibility. */
 export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, _pose?: SearchPose) {
 	markOpenPage();
 	const dock = document.getElementById("dock");
 	if (dock) dock.inert = dialog.classList.contains("search-editing");
-	if (dialog.classList.contains("search-keyboard") === typing) return;
-	const toggle = () => dialog.classList.toggle("search-keyboard", typing);
+	const listed = suggesting(dialog, typing);
+	if (dialog.classList.contains("search-keyboard") === listed) return;
+	const toggle = () => dialog.classList.toggle("search-keyboard", listed);
 	const suggest = dialog.querySelector<HTMLElement>(".search-suggest");
 	if (suggest)
-		MotionEngine.change(suggest, toggle, typing ? list.listOpen : list.listClose, {
+		MotionEngine.change(suggest, toggle, listed ? list.listOpen : list.listClose, {
 			easing: list.listEase,
 		});
 	else toggle();
@@ -258,38 +282,52 @@ export function transitionPhoneSearch(
 	);
 	syncPhoneSearchKeyboard(dialog, typing, pose);
 	if (editing) revealPhoneSearchResults(dialog);
-	else {
-		if (pose.result) {
-			const { node, rect, opacity } = pose.result;
-			node.removeAttribute("id");
-			node.querySelectorAll("[id]").forEach((child) => {
-				child.removeAttribute("id");
-			});
-			node.inert = true;
-			node.setAttribute("aria-hidden", "true");
-			Object.assign(node.style, {
-				position: "fixed",
-				left: `${rect.left}px`,
-				top: `${rect.top}px`,
-				width: `${rect.width}px`,
-				height: `${rect.height}px`,
-				pointerEvents: "none",
-				zIndex: "2",
-				// The fade ends before the slide; without an end opacity the copy came back whole
-				// for the rest of the slide, and the results flashed over the returning search page.
-				opacity: "0",
-			});
-			dialog.append(node);
-			state.ghost = node;
-			state.animations.push(
-				fade(node, opacity || "1", 0, timing.resultFade),
-				travel(node, "none", `translateY(${timing.resultTravel}px)`, timing.resultMove),
-			);
-			Promise.all(state.animations.map((animation) => animation?.finished)).then(
-				() => node.remove(),
-				() => {},
-			);
-		}
+	// A category's results replace the categories before this runs; a copy of the categories leaves
+	// like the categories do while typing, instead of the grid vanishing to a blank page.
+	if (pose.result) {
+		const { node, rect, opacity } = pose.result;
+		node.removeAttribute("id");
+		node.querySelectorAll("[id]").forEach((child) => {
+			child.removeAttribute("id");
+		});
+		node.inert = true;
+		node.setAttribute("aria-hidden", "true");
+		Object.assign(node.style, {
+			position: "fixed",
+			left: `${rect.left}px`,
+			top: `${rect.top}px`,
+			width: `${rect.width}px`,
+			height: `${rect.height}px`,
+			pointerEvents: "none",
+			zIndex: "2",
+			// The fade ends before the slide; without an end opacity the copy came back whole
+			// for the rest of the slide, and the results flashed over the returning search page.
+			opacity: "0",
+		});
+		dialog.append(node);
+		state.ghost = node;
+		state.animations.push(
+			...(editing
+				? [
+						fade(node, opacity || "1", 0, timing.browseFade),
+						travel(
+							node,
+							"none",
+							`translateY(-${timing.headTravel}px)`,
+							timing.browseMove,
+							0,
+							timing.browseEase,
+						),
+					]
+				: [
+						fade(node, opacity || "1", 0, timing.resultFade),
+						travel(node, "none", `translateY(${timing.resultTravel}px)`, timing.resultMove),
+					]),
+		);
+		Promise.all(state.animations.map((animation) => animation?.finished)).then(
+			() => node.remove(),
+			() => {},
+		);
 	}
 }
 export function resetPhoneSearch(dialog: HTMLElement, preserveNavigation = false) {
@@ -297,7 +335,9 @@ export function resetPhoneSearch(dialog: HTMLElement, preserveNavigation = false
 	for (const animation of state?.animations || []) animation?.cancel();
 	state?.ghost?.remove();
 	states.delete(dialog);
-	dialog.classList.remove("search-keyboard", "search-moving");
+	dialog.classList.remove("search-moving");
+	// The keyboard goes; suggestions with nothing typed stay under a card as they were.
+	dialog.classList.toggle("search-keyboard", suggesting(dialog, false));
 	const dock = document.getElementById("dock");
 	if (dock && !preserveNavigation) {
 		dock.inert = false;

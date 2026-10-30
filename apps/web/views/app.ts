@@ -118,6 +118,7 @@ class AppController {
 	declare bindDialog: AppControllerMethods["bindDialog"];
 	declare applyPreferences: AppControllerMethods["applyPreferences"];
 	declare announce: AppControllerMethods["announce"];
+	declare syncKeyboard: AppControllerMethods["syncKeyboard"];
 	declare bindKeyboard: AppControllerMethods["bindKeyboard"];
 	declare paintAccount: AppControllerMethods["paintAccount"];
 	declare accountRing: AppControllerMethods["accountRing"];
@@ -174,6 +175,8 @@ class AppController {
 	homeHashIndex = 0;
 	searchScroll = 0;
 	searchLimit = 40;
+	/** Last keyboard height written to the dialogs; -1 before the first reading. */
+	keyboardHeight = -1;
 	searchBackground?: HTMLDialogElement;
 	searchFocus?: HTMLElement;
 	aiSelectionIds: string[] = [];

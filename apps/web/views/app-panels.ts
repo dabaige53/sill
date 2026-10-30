@@ -254,6 +254,9 @@ export const appPanelsMethods = {
 		this.dialog.querySelector<HTMLElement>("h1").id = "modal-title";
 		this.searchBackground = undefined;
 		this.modalKind = "search";
+		// The keyboard closed under the card. On an iPhone the page came back with the keyboard's
+		// height still applied, and its results stopped where the keyboard had been.
+		this.syncKeyboard();
 		if (!this.desktop()) syncPhoneSearchKeyboard(this.dialog, false);
 		this.panelReturn = null;
 		const opened = this.currentId;
