@@ -156,9 +156,10 @@
 	) {
 		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
-	/* Editing owns the hidden rail even under a card. Reserve only the actual keyboard height. */
+	/* Editing owns the hidden rail even under a card. Keep a typing gap, which returns to zero
+	   with the keyboard so it never leaves an empty capsule-sized band below the results. */
 	:is(:is(#modal, .phone-layer), #search-background).page.search.search-editing {
-		--search-bottom: 0px;
+		--search-bottom: min(var(--space-16), var(--kb, 0px));
 	}
 	:is(:is(#modal, .phone-layer), #search-background).page.search.search-editing .search-results {
 		padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-24));

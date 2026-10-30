@@ -57,7 +57,10 @@ export async function runReadingSelection({
 			const keyboardField = await page.locator(".search-header").boundingBox();
 			const results = await page.locator(".search-results").boundingBox();
 			assert.ok(Math.abs(keyboardField.y - field.y) < 1, "keyboard does not lift the field");
-			assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
+			assert.ok(
+				results.y + results.height <= 800 - 300,
+				`results stay above the keyboard: ${JSON.stringify(results)}`,
+			);
 			await page.evaluate(() => {
 				document.querySelector<HTMLElement>("#modal").style.removeProperty("--kb");
 				document.body.classList.remove("keyboard-open");
