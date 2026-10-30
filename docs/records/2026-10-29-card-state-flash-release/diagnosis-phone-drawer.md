@@ -98,4 +98,8 @@ iPhone 主屏幕 Web App，本地服务（局域网地址），工作区含未�
 
 首轮 CI（`706081ee`）：[集成检查](https://github.com/dabaige53/sill/actions/runs/41009120404) 的 Web 构建、类型和 51 项契约测试通过，477 项 Web 测试通过 476 项，抽屉相关用例均通过。唯一失败为样式检查未登记 Vaul 圆角变量的过渡属性；已在动效手册和 `visibility-motion.test.ts` 增加仅限该属性列表的适配，仍禁止独立时长、曲线和其他 CSS 动画。
 
-同轮[云端浏览器检查](https://github.com/dabaige53/sill/actions/runs/41009120106) 在桌面短备注的范围断言失败。用例在入场期间分两次协议调用读取正文和外框位置，取到的不是同一帧；本轮手机样式不作用于该桌面视口。`cloud-app-browser.ts` 改为等待真实入场动画完成，并在同一帧读取两者，不添加固定等待或改变产品布局。后续检查以修正后的提交为准。
+同轮[云端浏览器检查](https://github.com/dabaige53/sill/actions/runs/41009120106) 在桌面短备注的范围断言失败。用例在入场期间分两次协议调用读取正文和外框位置，存在跨帧测量；本轮手机样式不作用于该桌面视口。`cloud-app-browser.ts` 改为等待真实入场动画完成，并在同一帧读取两者，不添加固定等待或改变产品布局。
+
+最终程序检查（`c421f56c`）：[Sill integration](https://github.com/dabaige53/sill/actions/runs/41010190863)、[Sill authenticated data](https://github.com/dabaige53/sill/actions/runs/41010190806) 与 [Offline MCP consent policy](https://github.com/dabaige53/sill/actions/runs/41010190727) 全部通过。覆盖 Web/云端构建、类型检查、契约与核心测试、插件构建、本地服务集成浏览器及云端浏览器检查。本地文件管理、差异与格式错误检查通过；Impeccable 对修改的 TSX 未返回问题。
+
+新增的 `drawer-browser-rail-material.ts` 场景由 Verify Sill 流程接入，该流程不在此分支 push 时运行，因此本次未执行该场景。尚未进行 iPhone/PWA 逐帧复录，不将 CI 的 Chromium 检查当作 WebKit 图层问题已验收。修复仅推送至 `codex/fix-phone-drawer-paint`，未合并或上线。

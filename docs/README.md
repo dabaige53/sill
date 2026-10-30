@@ -59,6 +59,7 @@
 - [错误索引](records/errors.md)：按报错、症状和模块查找定位与解决记录。
 - [事件记录索引](records/README.md)：验收、发布、研究与交接材料，只说明当时的事实。
 - [产品变更日志](records/CHANGELOG.md)：按版本汇总产品与维护变化。
+- [1.2.19 手机抽屉绘制修复与发布](records/2026-10-30-phone-drawer-release/README.md)：录屏中的卡片缺失、背景交接修复，以及发布检查与回退基准。
 - [1.2.18 手机交互修复与发布](records/2026-10-30-phone-page-lifecycle/README.md)：AI 输入框、搜索与抽屉、主页双击刷新，以及部署与回退标识。
 - [1.2.16 按钮审查与发布](records/2026-10-29-interface-hardening/README.md)：按钮调用链、回归结果、部署与回退标识。
 - [设计变更日志](records/design-changelog.md)：按次追加的设计变更。
