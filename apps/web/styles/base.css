@@ -56,16 +56,12 @@ body {
 #workspace-background.is-page-frozen > main {
 	overflow: clip;
 }
-/* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
-   page differently, and the card shadows and the dock's glass changed in one frame as the drawer
-   finished closing. phone-drawer.tsx measures the visible part. All four corners round, so cards
-   under a tucked top bar never stick out past the page's top corners. */
+/* Freeze the existing feed in a viewport, not a translated, full-page compositing layer.
+   The wrapper clips the scaled page; main retains its reading position with native scrollTop. */
 #workspace-background.is-drawer-background > main {
-	--phone-drawer-roundness: inherit;
-	clip-path: inset(
-		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round
-			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
-	);
+	height: 100dvh;
+	min-height: 0;
+	overflow: hidden;
 }
 button,
 input,

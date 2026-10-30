@@ -27,11 +27,10 @@
 	[data-vaul-drawer-wrapper] {
 		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
 		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness)) !important;
-	}
-	/* Vaul clips the page; the home page's cards clip themselves instead (base.css), so glass and
-	   shadows draw the same way during and after the drawer. Search keeps Vaul's clip. */
-	#workspace-background[data-vaul-drawer-wrapper] {
-		overflow: visible !important;
+		/* Vaul removes its inline overflow at exit start; keep the viewport clipped until unmount. */
+		overflow: clip !important;
+		/* Vaul supplies duration/easing, and sets duration to zero while dragging. */
+		transition-property: transform, --phone-drawer-roundness !important;
 	}
 	/* The top bar and the status bar fill carry the page's top corners. */
 	#workspace-background[data-vaul-drawer-wrapper] .home-top,
@@ -59,12 +58,6 @@
 	   page looking as it did when the drawer opened. */
 	[data-vaul-drawer-wrapper] .home-top {
 		background: var(--canvas) !important;
-	}
-	/* The cards keep one layer of their own. When a closing drawer returns the frozen page to normal
-	   scrolling, iOS then moves that layer instead of repainting every card, and the card shadows
-	   no longer appear a beat after the page. */
-	#feed-grid {
-		will-change: transform;
 	}
 	/* The black behind the scaled page. It switches while the page still covers the screen, so only
 	   the page's movement reveals it, never a fade of its fill. */
@@ -112,6 +105,7 @@
 		max-height: calc(100dvh - env(safe-area-inset-top) - 24px);
 		background: var(--card);
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		overflow: clip;
 		outline: none;
 	}
 	/* iOS paints the drawer as one large tiled layer, and on a first open its lower tiles arrived a few
@@ -147,10 +141,9 @@
 		overscroll-behavior: contain;
 		height: auto;
 		max-height: none;
-		/* The scroller is a layer of its own and painted in time, but its text had no fill under it.
-		   It carries the sheet's fill, so content never depends on the drawer layer's late tiles. */
-		background: inherit;
-		border-radius: inherit;
+		/* Keep the bounded native scroll layer painted while its parent slides out. */
+		background: var(--card);
+		transform: translateZ(0);
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;

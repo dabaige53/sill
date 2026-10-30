@@ -268,6 +268,88 @@ export async function runRailMaterial({
 		phone,
 	);
 	await scenario(
+		"Scrolled phone feed keeps its viewport and card position through a drawer",
+		async (page) => {
+			const before = await page.evaluate(() => {
+				window.scrollTo({ top: 600, behavior: "instant" });
+				const card = [...document.querySelectorAll<HTMLElement>("#feed-grid > .feed-item")].find(
+					(node) => {
+						const box = node.getBoundingClientRect();
+						return box.top >= 0 && box.top < innerHeight;
+					},
+				);
+				(window as any).__drawerFeedCard = card;
+				return { scroll: scrollY, top: card.getBoundingClientRect().top };
+			});
+			await page.evaluate(() => window.__app.openCard("short-task"));
+			await page.locator('.phone-drawer[data-state="open"]').waitFor();
+			await page.locator("[data-vaul-drawer-wrapper]").evaluate(async (node) => {
+				await Promise.all(
+					node.getAnimations().map((animation) => animation.finished.catch(() => {})),
+				);
+			});
+			const frozen = await page.evaluate(() => {
+				const background = document.querySelector<HTMLElement>("[data-vaul-drawer-wrapper]");
+				const main = background.querySelector("main");
+				const card = (window as any).__drawerFeedCard as HTMLElement;
+				const box = background.getBoundingClientRect();
+				const scale = box.width / background.offsetWidth;
+				const scroller = document.querySelector<HTMLElement>(".phone-drawer .sheet-scroll");
+				return {
+					viewport: main.clientHeight,
+					height: innerHeight,
+					scroll: main.scrollTop,
+					documentScroll: scrollY,
+					feedTransform: getComputedStyle(main).transform,
+					feedTranslate: getComputedStyle(main).translate,
+					feedClip: getComputedStyle(main).clipPath,
+					overflow: getComputedStyle(main).overflowY,
+					transition: getComputedStyle(background).transitionProperty,
+					top: (card.getBoundingClientRect().top - box.top) / scale,
+					connected: card.isConnected,
+					detailBackground: getComputedStyle(scroller).backgroundColor,
+					detailTransform: getComputedStyle(scroller).transform,
+				};
+			});
+			assert.equal(
+				frozen.viewport,
+				frozen.height,
+				"the frozen feed has viewport-sized paint bounds",
+			);
+			assert.equal(frozen.scroll, before.scroll);
+			assert.equal(frozen.documentScroll, 0, "the page cannot block downward drawer gestures");
+			assert.equal(frozen.feedTransform, "none");
+			assert.equal(frozen.feedTranslate, "none");
+			assert.equal(
+				frozen.feedClip,
+				"none",
+				"no full-feed clipping mask is rebuilt during the exit",
+			);
+			assert.equal(frozen.overflow, "hidden");
+			assert.ok(frozen.transition.includes("--phone-drawer-roundness"));
+			assert.ok(Math.abs(frozen.top - before.top) < 1, JSON.stringify({ before, frozen }));
+			assert.equal(frozen.connected, true);
+			assert.notEqual(frozen.detailTransform, "none");
+			assert.notEqual(frozen.detailBackground, "rgba(0, 0, 0, 0)");
+			await page.evaluate(() => window.__app.closeNative());
+			await page.locator("#modal[open]").waitFor({ state: "hidden" });
+			const restored = await page.evaluate(() => {
+				const card = (window as any).__drawerFeedCard as HTMLElement;
+				return {
+					scroll: scrollY,
+					mainScroll: document.querySelector("#workspace-background > main").scrollTop,
+					connected: card.isConnected,
+					top: card.getBoundingClientRect().top,
+				};
+			});
+			assert.equal(restored.scroll, before.scroll);
+			assert.equal(restored.mainScroll, 0);
+			assert.equal(restored.connected, true);
+			assert.ok(Math.abs(restored.top - before.top) < 1, JSON.stringify({ before, restored }));
+		},
+		phone,
+	);
+	await scenario(
 		"Drawer cancellation preserves data and restores the page scroll",
 		async (page, context) => {
 			await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));

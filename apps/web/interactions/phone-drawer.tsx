@@ -113,23 +113,15 @@ function prepareBackground(app: AppController) {
 		};
 	}
 	const main = background.querySelector<HTMLElement>("main");
-	const translate = main?.style.translate || "";
+	const mainScroll = main?.scrollTop || 0;
 	const minHeight = document.body.style.minHeight;
 	const scroll = window.scrollY;
 	document.body.style.minHeight = `${window.innerHeight}px`;
 	background.classList.add("is-drawer-background");
-	if (main) {
-		main.style.translate = `0 ${-scroll}px`;
-		// The cards clip to the screen (base.css); the rest of the page stays unclipped.
-		const rect = main.getBoundingClientRect();
-		main.style.setProperty("--drawer-clip-top", `${Math.max(0, -rect.top)}px`);
-		main.style.setProperty(
-			"--drawer-clip-bottom",
-			`${Math.max(0, rect.bottom - window.innerHeight)}px`,
-		);
-	}
-	// Keep the saved position in main's translation, not in the scrollable document. Vaul checks
-	// ancestor scroll offsets before allowing a downward drag, including the hidden page.
+	// A viewport-sized scrollport keeps the already visible cards inside its painted bounds.
+	// Only that viewport should scale, not a translated and clipped feed-sized layer.
+	if (main) main.scrollTop = scroll;
+	// Vaul checks ancestor scroll offsets before allowing a downward drag, including the document.
 	const overflow = document.documentElement.style.overflow;
 	document.documentElement.style.overflow = "hidden";
 	window.scrollTo({ top: 0, behavior: "instant" });
@@ -139,11 +131,7 @@ function prepareBackground(app: AppController) {
 		releaseGlass();
 		clearRadius();
 		background.classList.remove("is-drawer-background");
-		if (main) {
-			main.style.translate = translate;
-			main.style.removeProperty("--drawer-clip-top");
-			main.style.removeProperty("--drawer-clip-bottom");
-		}
+		if (main) main.scrollTop = mainScroll;
 		document.body.style.minHeight = minHeight;
 		document.documentElement.style.overflow = overflow;
 		// The page is visible again in this frame; put the document back where the reader left it.
