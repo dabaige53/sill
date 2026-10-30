@@ -278,6 +278,76 @@ test("reopening the exiting child restores its exact content position before mot
 	}
 });
 
+test("phone AI and search refocus without scrolling and retain native caret selection", () => {
+	const f = nestedFixture();
+	try {
+		f.app.dialog.innerHTML =
+			'<div class="ai-composer"><textarea id="ai-local-draft">Draft text</textarea></div>' +
+			'<div class="search-header"><div class="search-pill"><input id="filter-search" value="Query text"></div></div>';
+		f.app.dialog.addEventListener("pointerdown", f.w.ControllerTest.focusPhoneField);
+		for (const id of ["ai-local-draft", "filter-search"]) {
+			const field = f.w.document.getElementById(id);
+			const focus = field.focus.bind(field);
+			const options: FocusOptions[] = [];
+			field.focus = (value: FocusOptions) => {
+				options.push(value);
+				focus(value);
+			};
+			const tap = () => {
+				const event = new f.w.MouseEvent("pointerdown", { bubbles: true, cancelable: true });
+				field.dispatchEvent(event);
+				return event;
+			};
+			assert.equal(tap().defaultPrevented, true);
+			assert.equal(options[0].preventScroll, true);
+			field.setSelectionRange(1, 4);
+			assert.equal(tap().defaultPrevented, false, "the caret stays under native control");
+			assert.equal(options.length, 1);
+			assert.equal(field.selectionStart, 1);
+			assert.equal(field.selectionEnd, 4);
+			field.blur();
+			assert.equal(tap().defaultPrevented, true);
+			assert.equal(options[1].preventScroll, true);
+			assert.ok(field.value.endsWith("text"), "refocusing keeps the draft");
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("phone pages freeze the feed even at the top and restore its reading position", () => {
+	const f = nestedFixture();
+	try {
+		f.app.desktop = () => false;
+		f.w.document.body.insertAdjacentHTML(
+			"afterbegin",
+			'<div id="workspace-background"><main></main></div>',
+		);
+		const desk = f.w.document.getElementById("workspace-background");
+		const main = desk.querySelector("main");
+		let position = 0;
+		Object.defineProperty(f.w, "scrollY", { get: () => position });
+		f.w.scrollTo = (options: { top: number }) => {
+			position = options.top;
+		};
+		for (const initial of [0, 240]) {
+			position = initial;
+			main.style.translate = "0 8px";
+			f.app.lockPageScroll();
+			assert.equal(desk.classList.contains("is-page-frozen"), true);
+			assert.equal(position, 0, "native input focus starts from a document at the top");
+			assert.equal(main.style.translate, `0 ${-initial}px`);
+			f.app.lockPageScroll();
+			f.app.unlockPageScroll();
+			assert.equal(position, initial, "a repeated lock keeps the original reading position");
+			assert.equal(main.style.translate, "0 8px");
+			assert.equal(desk.classList.contains("is-page-frozen"), false);
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("phone nested previews retain the mounted parent and its scroll position", () => {
 	const f = nestedFixture();
 	try {

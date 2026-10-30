@@ -1,3 +1,5 @@
+import { animate, motionValue } from "motion";
+import tokens from "../../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../../data/store.ts";
 import { MotionEngine } from "../../interactions/motion.ts";
 import { capturePhoneSearch } from "../../interactions/phone-search-motion.ts";
@@ -5,15 +7,114 @@ import { FeedPolicy } from "../../services/feed-policy.ts";
 import type { AppController } from "../app.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
+type HomeReturn = { tappedAt: number | null; refresh: boolean; cancel?: () => void };
+const homeReturns = new WeakMap<AppController, HomeReturn>();
+
+/** Keep one journey to the top; the second tap adds refresh without restarting the scroll. */
+function returnHomeTop(app: AppController, state: HomeReturn) {
+	if (state.cancel) return;
+	app.railHide?.show();
+	const finish = () => {
+		app.railHide?.syncPosition();
+		app.railHide?.show();
+		const refresh = state.refresh;
+		state.refresh = false;
+		if (refresh && !app.dialog.open && app.navKey === "home" && window.scrollY <= 1)
+			void app.gestures.refresh();
+	};
+	const distance = Math.max(0, window.scrollY);
+	if (distance <= 1) {
+		window.scrollTo({ top: 0, behavior: "instant" });
+		finish();
+		return;
+	}
+	const config = tokens.motion.homeReturn;
+	const position = motionValue(distance);
+	let active = true;
+	let playback: ReturnType<typeof animate> | undefined;
+	const cleanup = () => {
+		unsubscribe();
+		position.destroy();
+		state.cancel = undefined;
+		for (const type of ["pointerdown", "touchstart", "wheel", "keydown", "popstate", "pagehide"])
+			window.removeEventListener(type, interrupt, true);
+	};
+	const cancel = () => {
+		if (!active) return;
+		active = false;
+		playback?.stop();
+		state.refresh = false;
+		state.tappedAt = null;
+		cleanup();
+	};
+	const interrupt = (event: Event) => {
+		// The second tap belongs to this journey; other input immediately returns control to the user.
+		if (
+			(event.type === "pointerdown" || event.type === "touchstart") &&
+			(event.target as Element)?.closest?.('#nav [data-extra="home"]')
+		)
+			return;
+		cancel();
+	};
+	const unsubscribe = position.on("change", (top) => {
+		if (app.dialog.open || app.navKey !== "home") return cancel();
+		window.scrollTo({ top, behavior: "instant" });
+	});
+	state.cancel = cancel;
+	for (const type of ["pointerdown", "touchstart", "wheel", "keydown", "popstate", "pagehide"])
+		window.addEventListener(type, interrupt, { capture: true, passive: true });
+	playback = animate(position, 0, {
+		duration:
+			Math.min(
+				config.maxDurationMs,
+				config.durationMs + (distance / innerHeight) * config.perScreenMs,
+			) / 1000,
+		ease: config.easing as [number, number, number, number],
+		onComplete: () => {
+			if (!active) return;
+			active = false;
+			cleanup();
+			finish();
+		},
+	});
+}
+
 function filter(this: AppController) {
 	this.openPanel("search");
 }
 
-function nav(this: AppController, { extra }: ActionContext) {
-	this.goTo(extra);
+function nav(this: AppController, { extra, el, event }: ActionContext) {
+	let state = homeReturns.get(this);
+	const phoneHome =
+		extra === "home" &&
+		!this.desktop() &&
+		el?.closest("#nav") &&
+		event instanceof MouseEvent &&
+		event.detail > 0;
+	if (!phoneHome) {
+		state?.cancel?.();
+		if (state) state.tappedAt = null;
+		this.goTo(extra);
+		return;
+	}
+	if (!state) {
+		state = { tappedAt: null, refresh: false };
+		homeReturns.set(this, state);
+	}
+	const now = event.timeStamp;
+	const double =
+		state.tappedAt !== null && now - state.tappedAt <= tokens.motion.homeReturn.doubleTapMs;
+	state.tappedAt = double ? null : now;
+	state.refresh ||= double;
+	if (this.dialog.open) this.goTo("home");
+	else {
+		this.setNav("home");
+		returnHomeTop(this, state);
+	}
 }
 
 function top(this: AppController) {
+	homeReturns.get(this)?.cancel?.();
 	window.scrollTo({
 		top: 0,
 		behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",

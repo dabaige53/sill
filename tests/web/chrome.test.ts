@@ -210,11 +210,30 @@ test("keyboard bounds use the next frame and update on a window resize", () => {
 		assert.equal(dialog.style.getPropertyValue("--kb"), "300px");
 		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "");
 		assert.equal(f.w.document.body.classList.contains("keyboard-open"), true);
+		for (const remaining of [120, 70, 1]) {
+			viewport.height = f.w.innerHeight - remaining;
+			viewport.dispatchEvent(new f.w.Event("resize"));
+			frames.shift()();
+			assert.equal(dialog.style.getPropertyValue("--kb"), `${remaining}px`);
+			assert.equal(
+				f.w.document.body.classList.contains("keyboard-open"),
+				true,
+				"the capsule stays hidden until the keyboard has completely left",
+			);
+		}
 		f.w.dispatchEvent(new f.w.Event("resize"));
 		viewport.height = f.w.innerHeight;
 		frames.shift()();
 		assert.equal(dialog.style.getPropertyValue("--kb"), "0px");
 		assert.equal(f.w.document.body.classList.contains("keyboard-open"), false);
+		viewport.height -= 70;
+		viewport.dispatchEvent(new f.w.Event("resize"));
+		frames.shift()();
+		assert.equal(
+			f.w.document.body.classList.contains("keyboard-open"),
+			false,
+			"a small viewport change alone does not claim keyboard ownership",
+		);
 	} finally {
 		f.hide.destroy();
 		f.dom.window.close();

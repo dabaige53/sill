@@ -1,6 +1,7 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { MotionEngine } from "./motion.ts";
 import type { Playback } from "./motion-playback.ts";
+import { markOpenPage } from "./status-bar.ts";
 
 type Drawn = { opacity: string; transform: string; clipPath: string; rect: DOMRect };
 export type SearchPose = {
@@ -126,6 +127,7 @@ export function revealPhoneSearchResults(dialog: HTMLElement) {
 }
 /** Suggestions follow keyboard visibility; the editing page owns navigation visibility. */
 export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, _pose?: SearchPose) {
+	markOpenPage();
 	const dock = document.getElementById("dock");
 	if (dock) dock.inert = dialog.classList.contains("search-editing");
 	if (dialog.classList.contains("search-keyboard") === typing) return;
@@ -290,14 +292,14 @@ export function transitionPhoneSearch(
 		}
 	}
 }
-export function resetPhoneSearch(dialog: HTMLElement) {
+export function resetPhoneSearch(dialog: HTMLElement, preserveNavigation = false) {
 	const state = states.get(dialog);
 	for (const animation of state?.animations || []) animation?.cancel();
 	state?.ghost?.remove();
 	states.delete(dialog);
 	dialog.classList.remove("search-keyboard", "search-moving");
 	const dock = document.getElementById("dock");
-	if (dock) {
+	if (dock && !preserveNavigation) {
 		dock.inert = false;
 		dock.style.visibility = "";
 	}

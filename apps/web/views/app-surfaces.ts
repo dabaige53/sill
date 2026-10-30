@@ -69,10 +69,11 @@ export const appSurfacesMethods = {
 		// slid down instead of up. The desk keeps its picture while the document rests at the top.
 		const desk = document.getElementById("workspace-background");
 		const main = desk?.querySelector<HTMLElement>("main");
-		if (!this.desktop() && desk && main && this.lockedScroll) {
+		if (!this.desktop() && desk && main) {
 			this.frozenTranslate = main.style.translate;
 			main.style.translate = `0 ${-this.lockedScroll}px`;
 			desk.classList.add("is-page-frozen");
+			window.scrollTo({ top: 0, behavior: "instant" });
 		}
 	},
 	unlockPageScroll(this: AppController) {
@@ -102,7 +103,7 @@ export const appSurfacesMethods = {
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
 		if (!nested && kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
-			this.suspendSearch();
+			this.suspendSearch(!this.isPage(kind));
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
 		if (nested) {

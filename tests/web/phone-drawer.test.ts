@@ -36,6 +36,9 @@ function fixture() {
 		w.document.documentElement.scrollTop = options.top || 0;
 	};
 	w.document.documentElement.scrollTop = 180;
+	Object.defineProperty(w, "scrollY", {
+		get: () => w.document.documentElement.scrollTop,
+	});
 	w.HTMLDialogElement.prototype.close = function () {
 		this.removeAttribute("open");
 	};
@@ -163,7 +166,9 @@ test("the scale target includes the page chrome and restores page geometry on un
 		const background = f.w.document.querySelector("#workspace-background");
 		assert.equal(f.w.document.querySelector("[data-vaul-drawer-wrapper]"), background);
 		assert.equal(background.classList.contains("is-drawer-background"), true);
-		assert.equal(background.querySelector("main").style.translate, "0 0px");
+		assert.equal(background.querySelector("main").style.translate, "0 -180px");
+		assert.equal(f.w.scrollY, 0, "the frozen document cannot block Vaul's downward drag");
+		assert.equal(f.w.document.body.style.minHeight, `${f.w.innerHeight}px`);
 		f.api.releaseView(f.dialog);
 		assert.equal(background.classList.contains("is-drawer-background"), false);
 		// The glass returns a frame after the page geometry, never in the same frame.
@@ -206,6 +211,53 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 			f.w.document.querySelector("[data-vaul-drawer-wrapper]").id,
 			"workspace-background",
 		);
+	} finally {
+		f.dispose();
+	}
+});
+
+test("a drawer above a scrolled feed accepts a downward drag and closes", async () => {
+	const f = fixture();
+	try {
+		const drawer = f.dialog.querySelector(".phone-drawer");
+		Object.defineProperties(f.w.document.documentElement, {
+			scrollHeight: { get: () => 2200 },
+			clientHeight: { get: () => 768 },
+		});
+		drawer.getBoundingClientRect = () => ({ height: 600, width: 390, top: 100 });
+		drawer.setPointerCapture = () => {};
+		const computed = f.w.getComputedStyle.bind(f.w);
+		f.w.getComputedStyle = (node: Element) => {
+			const style = computed(node);
+			if (node === drawer) {
+				const distance = drawer.style.transform.match(/translate3d\(0, ([\d.]+)px, 0\)/)?.[1];
+				style.transform = distance ? `matrix(1, 0, 0, 1, 0, ${distance})` : "none";
+			}
+			return style;
+		};
+		// Complete the library's opening guard without waiting for a physical animation.
+		const DateBase = f.w.Date;
+		let now = DateBase.now() + 1000;
+		f.w.Date = class extends DateBase {
+			constructor() {
+				super(now);
+				now += 20;
+			}
+		};
+		const pointer = (type: string, y: number) => {
+			const event = new f.w.MouseEvent(type, { bubbles: true, clientX: 100, clientY: y });
+			Object.defineProperties(event, {
+				pointerId: { value: 1 },
+				pointerType: { value: "touch" },
+			});
+			f.api.flushSync(() => drawer.dispatchEvent(event));
+		};
+		pointer("pointerdown", 100);
+		pointer("pointermove", 400);
+		assert.equal(drawer.style.transform, "translate3d(0, 300px, 0)");
+		pointer("pointerup", 400);
+		assert.equal(f.app.closed, 1);
+		await Promise.resolve();
 	} finally {
 		f.dispose();
 	}

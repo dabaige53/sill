@@ -103,8 +103,8 @@
 	:is(#modal, .phone-layer).preview .phone-drawer {
 		position: absolute;
 		inset: auto 0 0;
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 		height: auto;
 		min-height: 70dvh;
 		/* 24px under the status bar, as Vaul shifts the page by the bar plus 14px. A home-screen app
@@ -132,19 +132,21 @@
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .preview-sheet {
 		position: relative;
-		flex: 1 1 auto;
+		/* Let the bounded drawer assign the row; a second viewport cap left unused space below it. */
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 		min-height: 0;
 		height: auto;
-		max-height: inherit;
+		max-height: none;
 		border-radius: inherit;
 		transform: none;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .sheet-scroll {
-		flex: 1 1 auto;
+		min-height: 0;
 		/* A scroll that reaches the end stays in the drawer instead of moving the page behind it. */
 		overscroll-behavior: contain;
 		height: auto;
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - env(safe-area-inset-bottom));
+		max-height: none;
 		/* The scroller is a layer of its own and painted in time, but its text had no fill under it.
 		   It carries the sheet's fill, so content never depends on the drawer layer's late tiles. */
 		background: inherit;

@@ -21,6 +21,8 @@
 	--accent-ink: #8fc0ff;
 	--success: #3fb25e;
 	--alert: #f0a04b;
+	--error: #ff8a80;
+	--check-border: #85858c;
 	--card-read: #121215;
 	--line-read: rgba(255, 255, 255, 0.04);
 	--alert-soft: #3a2a17;
@@ -173,7 +175,7 @@ textarea {
 }
 input::placeholder,
 textarea::placeholder {
-	color: var(--secondary);
+	color: var(--muted);
 }
 ::selection {
 	background: var(--selection);
@@ -724,8 +726,8 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	-webkit-user-select: none;
 	user-select: none;
 }
-/* One name for touch, pointer and keyboard; edge controls open their names inward. */
-.float-bar .icon-button::after {
+/* One centered name for touch, pointer and keyboard. */
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button::after {
 	--tip-x: -50%;
 	content: attr(aria-label);
 	position: absolute;
@@ -743,16 +745,20 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	pointer-events: none;
 	opacity: 0;
 }
-.float-bar .icon-button:is(:first-child, :last-child)::after {
-	--tip-x: 0px;
+@media (max-width: 650px) {
+	/* Keep edge labels within the compact phone viewport. */
+	:is(.float-bar, #selection-bar, #search-selection-bar)
+	.icon-button:is(:first-child, :last-child)::after {
+		--tip-x: 0px;
+	}
+	:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button:last-child::after {
+		left: auto;
+		right: 50%;
+	}
 }
-.float-bar .icon-button:last-child::after {
-	left: auto;
-	right: 50%;
-}
-.float-bar .icon-button.is-tipping::after,
-.float-bar .icon-button.is-hover-tipping::after,
-.float-bar .icon-button:focus-visible::after {
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button.is-tipping::after,
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button.is-hover-tipping::after,
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button:focus-visible::after {
 	opacity: 1;
 	translate: var(--tip-x) 0;
 }
@@ -1052,6 +1058,40 @@ body.is-dragging #toast {
 		border-radius: inherit;
 		pointer-events: none;
 		z-index: -1;
+	}
+	.ai-dock:not([data-height="panel"], [data-height="full"]) {
+		background: transparent;
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+	.ai-dock-surface.glass {
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--glass-edge),
+			var(--shadow-float);
+	}
+	.ai-dock-surface.glass::before {
+		background: none;
+	}
+	.ai-dock-surface::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: var(--glass-shade);
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--line-hover),
+			var(--shadow);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-hover) var(--ease);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.ai-dock:hover > .ai-dock-surface::after {
+			opacity: 0.35;
+		}
+	}
+	.ai-dock:focus-within > .ai-dock-surface::after {
+		opacity: 1;
 	}
 	.ai-dock .ai-dock-restore {
 		cursor: pointer;
@@ -1580,20 +1620,38 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	.home-logo {
 		display: flex;
 	}
+	.home-mark > .sill-wordmark {
+		display: none;
+	}
 	.home-menu-toggle {
-		display: grid;
-		place-items: center;
-		width: var(--space-36);
-		height: var(--space-36);
-		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		gap: var(--space-4);
+		min-width: var(--space-44);
+		height: var(--space-44);
+		padding: 0 var(--space-8);
+		font-size: var(--text-control);
+		white-space: nowrap;
 		border: 0;
 		border-radius: var(--space-10);
 		background: none;
 		color: var(--muted);
 	}
+	.home-menu-toggle .sill-wordmark {
+		font-size: var(--text-figure);
+		color: var(--ink);
+	}
 	.home-menu-toggle .icon {
 		rotate: 90deg;
 	}
+	@media (hover: hover) {
+		.home-menu-toggle:hover {
+			background: var(--faint);
+		}
+	}
+	.home-menu-toggle:focus-visible,
 	.home-menu-toggle[aria-expanded="true"] {
 		background: var(--faint);
 		color: var(--ink);
@@ -1714,7 +1772,29 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		font-size: var(--text-body);
 	}
 	.home-search input::placeholder {
-		color: var(--secondary);
+		color: var(--muted);
+		opacity: 1;
+	}
+	.home-search::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background: var(--glass-shade);
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--line-hover),
+			var(--shadow);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-hover) var(--ease);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search:hover::after {
+			opacity: 0.35;
+		}
+	}
+	.home-search:focus-within::after {
 		opacity: 1;
 	}
 	.home-search input:focus-visible {
@@ -1777,6 +1857,12 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	}
 	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
 	.home-search .search-hash {
+		background: var(--glass-thick);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--glass-edge),
+			var(--shadow-float);
 		z-index: 60;
 		padding: var(--space-4);
 		top: calc(100% + var(--space-8));
@@ -1943,9 +2029,19 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		right: var(--space-4);
 		height: var(--space-40);
 		border-radius: var(--space-8);
-		background: var(--faint);
+		background: var(--glass-press);
 		pointer-events: none;
 	}
+}
+
+.sill-wordmark {
+	display: inline-block;
+	font-family: Georgia, "Times New Roman", serif;
+	font-weight: 400;
+	font-style: normal;
+	letter-spacing: -0.02em;
+	line-height: 1;
+	flex: none;
 }
 
 /* Sill · cards · shared source
@@ -2086,7 +2182,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	font-weight: calc(500 + var(--content-weight-add, 0));
 }
 .event-relative {
-	color: var(--accent);
+	color: var(--muted);
 	font-weight: calc(500 + var(--content-weight-add, 0));
 }
 /* A reminder shows the source's time: muted until it comes due, then amber. */
@@ -2136,7 +2232,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	overflow: hidden;
 	margin: 0;
 	font-size: calc(var(--text-summary) * var(--content-text-scale, 1));
-	line-height: 1.5;
+	line-height: calc(22 / 14);
 	color: var(--muted);
 }
 .card-summary.clamp-2 {
@@ -2180,7 +2276,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 /* On a card, key points read at the summary size (A type: 14/22). */
 .feed-card .key-points li {
 	font-size: calc(var(--text-summary) * var(--content-text-scale, 1));
-	line-height: 1.5;
+	line-height: calc(22 / 14);
 }
 .key-points li span {
 	min-width: 0;
@@ -2281,9 +2377,10 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	align-items: center;
 	gap: var(--space-10);
 }
+/* Name and time share one baseline: the bold name is larger, so centering left the time high. */
 .sender > span:last-child {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	gap: var(--space-8);
 	min-width: 0;
 	overflow: hidden;
@@ -2446,7 +2543,7 @@ button.ref:active {
 	width: 20px;
 	height: 20px;
 	flex: 0 0 20px;
-	border: 1.6px solid var(--line-hover);
+	border: 1.6px solid var(--check-border);
 	border-radius: 50%;
 	color: var(--fixed-white);
 }
@@ -3325,9 +3422,10 @@ dialog::backdrop {
 	align-items: center;
 	gap: var(--space-10);
 }
+/* Name and time share one baseline, as on the card. */
 .preview-sender > span:last-child {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	gap: var(--space-8);
 	min-width: 0;
 	overflow: hidden;
@@ -4018,112 +4116,6 @@ button.detail-row:active {
 	flex: none;
 	max-width: 100%;
 	pointer-events: none;
-}
-
-/* Video tabs follow ui-lab's sliding underline and pointer highlight. */
-.is-video .media-tab-header .media-tabs {
-	position: relative;
-	gap: 2px;
-	padding-inline: 2px;
-}
-.is-video .media-tabs button {
-	position: relative;
-	z-index: 1;
-	display: flex;
-	align-items: center;
-	min-height: 44px;
-	padding: 0 16px;
-	border: 0;
-	border-radius: 8px;
-	color: #6b6b6b;
-	font-size: 15px;
-	font-weight: 500;
-}
-.is-video .media-tabs [aria-selected="true"],
-.is-video .media-tabs button:hover {
-	color: #171717;
-}
-.is-video .video-tab-hover {
-	position: absolute;
-	top: 6px;
-	bottom: 6px;
-	left: 0;
-	width: 1px;
-	opacity: 0;
-	transform-origin: left;
-	border-radius: 6px;
-	background: #f5f5f5;
-	pointer-events: none;
-}
-.is-video .video-tab-label {
-	position: relative;
-}
-.is-video .media-tabs button:focus-visible {
-	outline: 2px solid currentColor;
-	outline-offset: -4px;
-}
-.is-video .media-tab-header {
-	border-color: #e5e5e5;
-}
-[data-theme="dark"] .is-video .media-tab-header {
-	border-color: #262626;
-}
-.is-video .video-tab-indicator {
-	position: absolute;
-	z-index: 2;
-	inset: auto 0 -1px;
-	height: 2px;
-	background: #171717;
-	pointer-events: none;
-}
-.video-tab-panels {
-	display: grid;
-}
-.video-tab-exit {
-	pointer-events: none;
-}
-.video-tab-panel {
-	grid-area: 1 / 1;
-	min-width: 0;
-}
-[data-theme="dark"] .is-video .media-tabs button {
-	color: #8f8f8f;
-}
-[data-theme="dark"] .is-video .media-tabs [aria-selected="true"],
-[data-theme="dark"] .is-video .media-tabs button:hover {
-	color: #ededed;
-}
-[data-theme="dark"] .is-video .video-tab-hover {
-	background: #161616;
-}
-[data-theme="dark"] .is-video .video-tab-indicator {
-	background: #ededed;
-}
-@media (max-width: 650px) {
-	.is-video .media-tabs button {
-		padding-inline: 10px;
-		font-size: 14px;
-	}
-}
-
-.is-video .media-tabs button {
-	gap: var(--space-8);
-	border-radius: var(--pill-radius);
-	font-size: var(--text-control);
-	font-weight: 400;
-	color: var(--muted);
-}
-.is-video .media-tabs button .icon {
-	width: var(--space-16);
-	height: var(--space-16);
-}
-.is-video .media-tabs button[aria-selected="true"] {
-	background: var(--surface);
-	color: var(--ink);
-}
-.is-video .video-tab-indicator,
-.is-video .video-tab-hover {
-	display: none;
 }
 
 /* Panels: a sheet with a title, rows and quiet actions. */
@@ -4819,6 +4811,12 @@ body.has-open-search #feed-grid {
 	}
 }
 
+.settings-reset {
+	display: block;
+	margin-inline-start: auto;
+	margin-top: var(--space-4);
+}
+
 /* Phone card suggestions: one-line rows like the Web Combobox, shown only while the keyboard is up. */
 .search-suggest {
 	display: none;
@@ -5008,7 +5006,8 @@ body.has-open-search #feed-grid {
 		caret-color: transparent;
 	}
 	/* Editing owns the capsule until the user cancels, including keyboard dismissal. */
-	body:has(:is(#modal, .phone-layer).search.search-editing[open]) #dock {
+	body.has-search-editing #dock,
+	body.has-search-editing #dock > * {
 		visibility: hidden !important;
 		pointer-events: none;
 	}

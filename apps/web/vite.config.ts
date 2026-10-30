@@ -18,6 +18,23 @@ const escapeHtml = (value: string) =>
 function pageMetadata(cloud: boolean): Plugin {
 	return {
 		name: "sill-page-metadata",
+		configureServer(server) {
+			const assets = new Map([
+				["/manifest.webmanifest", ["deploy/web-manifest.json", "application/manifest+json"]],
+				["/assets/sill-icon.png", ["assets/sill-icon.png", "image/png"]],
+			]);
+			server.middlewares.use(async (request, response, next) => {
+				const asset = assets.get(request.url?.split("?")[0] || "");
+				if (!asset) return next();
+				try {
+					response.setHeader("Content-Type", asset[1]);
+					response.setHeader("Cache-Control", "no-cache");
+					response.end(await readFile(resolve(repositoryRoot, asset[0])));
+				} catch (error) {
+					next(error);
+				}
+			});
+		},
 		transformIndexHtml: {
 			order: "pre",
 			async handler(html, context) {

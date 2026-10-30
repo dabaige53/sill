@@ -3,7 +3,7 @@ import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
-import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
+import { resetPhoneSearch, syncPhoneSearchKeyboard } from "../interactions/phone-search-motion.ts";
 import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { armLastTag } from "../interactions/tag-input-motion.ts";
 import type { AppController } from "./app.ts";
@@ -207,8 +207,8 @@ export const appPanelsMethods = {
 			{ passive: true },
 		);
 	},
-	suspendSearch(this: AppController) {
-		resetPhoneSearch(this.dialog);
+	suspendSearch(this: AppController, preserveNavigation = true) {
+		resetPhoneSearch(this.dialog, preserveNavigation);
 		if (this.searchTimer) {
 			clearTimeout(this.searchTimer);
 			this.searchTimer = 0;
@@ -254,6 +254,7 @@ export const appPanelsMethods = {
 		this.dialog.querySelector<HTMLElement>("h1").id = "modal-title";
 		this.searchBackground = undefined;
 		this.modalKind = "search";
+		if (!this.desktop()) syncPhoneSearchKeyboard(this.dialog, false);
 		this.panelReturn = null;
 		const opened = this.currentId;
 		this.currentId = "";

@@ -115,8 +115,8 @@ function prepareBackground(app: AppController) {
 	const main = background.querySelector<HTMLElement>("main");
 	const translate = main?.style.translate || "";
 	const minHeight = document.body.style.minHeight;
-	document.body.style.minHeight = `${document.documentElement.scrollHeight}px`;
 	const scroll = window.scrollY;
+	document.body.style.minHeight = `${window.innerHeight}px`;
 	background.classList.add("is-drawer-background");
 	if (main) {
 		main.style.translate = `0 ${-scroll}px`;
@@ -128,11 +128,11 @@ function prepareBackground(app: AppController) {
 			`${Math.max(0, rect.bottom - window.innerHeight)}px`,
 		);
 	}
-	// The document stays as tall as the page so its offset survives, so it must not scroll. Vaul
-	// locks it only when the user agent says Safari, and a home-screen app's does not: a finger on
-	// the drawer then scrolled the hidden document and iOS dropped the tap as a scroll.
+	// Keep the saved position in main's translation, not in the scrollable document. Vaul checks
+	// ancestor scroll offsets before allowing a downward drag, including the hidden page.
 	const overflow = document.documentElement.style.overflow;
 	document.documentElement.style.overflow = "hidden";
+	window.scrollTo({ top: 0, behavior: "instant" });
 	// Flush the frozen geometry once; otherwise WebKit can combine it with Vaul's target frame.
 	background.getBoundingClientRect();
 	return () => {

@@ -7,7 +7,7 @@ import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 export const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {PanelViews} from './apps/web/interactions/panels-components.tsx'; export {MotionEngine} from './apps/web/interactions/motion.ts'; export {renderContent} from './apps/web/views/react-renderer.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {PanelViews} from './apps/web/interactions/panels-components.tsx'; export {MotionEngine} from './apps/web/interactions/motion.ts'; export {renderContent} from './apps/web/views/react-renderer.ts'; export {focusPhoneField} from './apps/web/views/app-lifecycle.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},

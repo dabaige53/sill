@@ -19,6 +19,22 @@ import { applyAppearance } from "./appearance.ts";
 import { renderView } from "./react-renderer.ts";
 import { AccountRing, WorkspaceShell } from "./shell.tsx";
 
+/** Keyboard avoidance owns the page position; initial focus must not scroll it a second time. */
+export function focusPhoneField(event: TargetEvent<PointerEvent>) {
+	const field = event.target
+		.closest?.<HTMLElement>(".search-header .search-pill, .ai-composer")
+		?.querySelector<HTMLInputElement | HTMLTextAreaElement>("#filter-search, #ai-local-draft");
+	if (
+		!field ||
+		event.target.closest?.("button") ||
+		(document.activeElement === field && event.target === field)
+	)
+		return false;
+	event.preventDefault();
+	field.focus({ preventScroll: true });
+	return true;
+}
+
 export const appLifecycleMethods = {
 	init(this: AppController) {
 		MotionEngine.bind();
@@ -135,24 +151,8 @@ export const appLifecycleMethods = {
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
 			// A chip's × removes it without taking the caret out of the tag field.
 			if (e.target.closest?.("#editor-tags .tag-pill button")) e.preventDefault();
-			const phoneSearch = e.target.closest?.<HTMLElement>(".search-header .search-pill");
-			// The first tap on the field itself is focused here too: iOS's own focus scrolled the field
-			// into view from where it sat before the bar moved up, and once the keyboard settled the
-			// page shifted up a little more. A tap in a focused field still places the caret natively.
-			const firstTap =
-				e.target.id === "filter-search" && document.activeElement?.id !== "filter-search";
-			if (
-				phoneSearch &&
-				!this.desktop() &&
-				!e.target.closest?.("button") &&
-				(firstTap || !e.target.closest?.("input"))
-			) {
-				e.preventDefault();
-				phoneSearch
-					.querySelector<HTMLInputElement>("#filter-search")
-					?.focus({ preventScroll: true });
-				return;
-			}
+			// A tap in the already focused field keeps native caret placement and text selection.
+			if (!this.desktop() && focusPhoneField(e)) return;
 			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock-row");
 			if (!capsule) {
 				this.openHomeSearch(false);
@@ -297,7 +297,10 @@ export const appLifecycleMethods = {
 					dialog.style.setProperty("--kb", value);
 			if (kb === last) return;
 			last = kb;
-			document.body.classList.toggle("keyboard-open", kb > 120);
+			// Browser chrome can change the viewport slightly; once a keyboard is open, keep its
+			// controls hidden through the closing frames instead of revealing them below 120px.
+			const open = kb > 120 || (kb > 0 && document.body.classList.contains("keyboard-open"));
+			document.body.classList.toggle("keyboard-open", open);
 		};
 		const schedule = () => {
 			if (!frame) frame = requestAnimationFrame(sync);

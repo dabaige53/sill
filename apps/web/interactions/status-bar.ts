@@ -19,6 +19,11 @@ export function markOpenPage() {
 		!!document.querySelector(":is(#modal, .phone-layer, #search-background)[open].page"),
 	);
 	body.classList.toggle("has-open-search", !!document.querySelector("dialog.search[open]"));
+	body.classList.toggle(
+		"has-search-editing",
+		!!document.querySelector("dialog.search.search-editing[open]") &&
+			!document.querySelector(":is(#modal, .phone-layer)[open].page:not(.search)"),
+	);
 }
 
 /** Navigation updates visibility marks, never the system chrome color. */

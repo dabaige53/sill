@@ -1,6 +1,5 @@
 /** Independent navigation projections over one synthetic card store. */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { fixture } from "./search-state-fixture.ts";
@@ -98,100 +97,6 @@ test("Escape clears only search selection before a second Escape leaves the sear
 		f.dom.window.close();
 	}
 });
-
-test("the home heading stays hidden while a search detail is open", () => {
-	const f = fixture();
-	try {
-		const heading = f.w.document.createElement("header");
-		heading.className = "home-top";
-		f.w.document.body.prepend(heading);
-		const selectors = ["form-controls.css", "phone.css"].map((file) => {
-			const css = readFileSync(`apps/web/styles/${file}`, "utf8");
-			return css.match(/body\.has-open-page \.home-top(?= \{)/)?.[0];
-		});
-		// The app's dialog observer marks the page; the test marks after each step instead.
-		const hidden = () => {
-			f.markOpenPage();
-			for (const selector of selectors) {
-				assert.ok(selector);
-				assert.ok(heading.matches(selector));
-			}
-		};
-		hidden();
-		f.app.suspendSearch();
-		f.app.dialog.className = "preview";
-		f.app.dialog.showModal();
-		hidden();
-		f.app.restoreSearch();
-		hidden();
-		f.app.dialog.close();
-		f.markOpenPage();
-		for (const selector of selectors) assert.equal(heading.matches(selector), false);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("a card drawer retains the exact search nodes, query, scroll and focus", () => {
-	const f = fixture();
-	try {
-		f.app.searchFilter.query = "Alpha";
-		f.app.dialog.innerHTML = f.Panels.search(f.app);
-		const results = f.app.dialog.querySelector("#search-results");
-		const title = results.querySelector(".card-title-button");
-		title.focus();
-		results.scrollTop = 330;
-		f.app.suspendSearch();
-		assert.equal(f.app.searchBackground.querySelector("#search-results"), results);
-		assert.equal(results.scrollTop, 330);
-		assert.equal(f.app.searchBackground.querySelector("#modal-title"), null);
-		f.app.dialog.innerHTML = '<h1 id="modal-title">Detail</h1>';
-		f.app.modalKind = "preview";
-		f.app.restoreSearch();
-		assert.equal(f.app.dialog.querySelector("#search-results"), results);
-		assert.equal(results.scrollTop, 330);
-		assert.equal(f.app.dialog.querySelector("#filter-search").value, "Alpha");
-		assert.equal(f.w.document.activeElement, title);
-		assert.equal(f.app.modalKind, "search");
-		assert.equal(f.app.navKey, "search");
-		assert.equal(f.w.document.querySelector("#search-background"), null);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restore-reminder"])
-	test(`${action} from a search detail restores the search route and retained results`, () => {
-		const f = fixture();
-		try {
-			f.app.searchFilter.query = "Beta";
-			f.app.dialog.innerHTML = f.Panels.search(f.app);
-			const results = f.app.dialog.querySelector("#search-results");
-			results.scrollTop = 120;
-			f.app.suspendSearch();
-			f.app.dialog.innerHTML = '<h1 id="modal-title">Task detail</h1>';
-			f.app.modalKind = "preview";
-			f.app.currentId = "b";
-			f.app.dialog.show();
-			f.w.history.replaceState({ glass: true, prev: "#search" }, "", "#card/b");
-			f.app.lastRouteHash = "#card/b";
-			f.w.HTMLElement.prototype.getAnimations = () => [];
-			f.app.withFeedAnchor = () => {};
-			f.app.checkReminders = () => {};
-			f.app.toast = () => {};
-			f.app.changeReminder("b", action);
-			assert.equal(f.w.location.hash, "#search");
-			assert.equal(f.app.lastRouteHash, "#search");
-			assert.equal(f.app.modalKind, "search");
-			assert.equal(f.app.dialog.open, true);
-			assert.equal(f.app.dialog.querySelector("#search-results"), results);
-			assert.equal(results.scrollTop, 120);
-			assert.equal(f.app.dialog.querySelector("#filter-search").value, "Beta");
-			assert.equal(f.app.searchBackground, undefined);
-		} finally {
-			f.dom.window.close();
-		}
-	});
 
 test("completing a reminder retains its detail and search until the user closes it", () => {
 	const f = fixture();

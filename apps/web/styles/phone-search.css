@@ -29,13 +29,18 @@
 		inset: 0;
 		/* The top row sits right under the safe area, like home and AI (ADR 0048). */
 		padding: env(safe-area-inset-top) var(--margin-sm)
-			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+			calc(
+				var(--kb, 0px) +
+				var(--search-bottom, calc(var(--rail-bottom) + var(--rail-row) + var(--space-16)))
+			);
 		gap: var(--space-16);
 	}
-	/* Give the nested results viewport a definite share of the page height on WebKit. */
+	/* One bounded row fills the remaining page; only the results inside it scroll. */
 	:is(:is(#modal, .phone-layer), #search-background).page.search .search-results-region {
-		flex: 1 1 auto;
-		height: 0;
+		flex: 1 1 0;
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
+		min-height: 0;
 	}
 	/* Keyboard, pages and photos */
 	:is(#modal, .phone-layer, #tag-layer).panel,
@@ -69,17 +74,17 @@
 		opacity: 0;
 		visibility: hidden;
 	}
-	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
+	/* The page always covers the desk, including frames while the keyboard closes. */
 	:is(#modal, .phone-layer).page,
 	:is(#modal, .phone-layer).page.panel,
 	:is(#modal, .phone-layer).page.panel.wide,
 	:is(#modal, .phone-layer).page.panel.narrow {
 		position: fixed;
-		inset: 0 0 var(--kb, 0px);
+		inset: 0;
 		z-index: 40;
 		width: 100%;
 		max-width: 100%;
-		height: auto;
+		height: 100dvh;
 		max-height: none;
 		margin: 0;
 		border: 0;
@@ -90,7 +95,7 @@
 		display: none;
 	}
 	:is(#modal, .phone-layer).page.panel .sheet {
-		height: 100%;
+		height: calc(100% - var(--kb, 0px));
 		max-height: none;
 		border-radius: 0;
 		box-shadow: none;
@@ -108,7 +113,7 @@
 	}
 	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding: env(safe-area-inset-top) var(--space-12)
-			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
+			calc(var(--space-12) + max(0px, var(--rail-bottom) + var(--rail-row) - var(--kb, 0px)));
 		background: var(--card);
 	}
 	.lightbox-stage > .icon-button {
@@ -151,20 +156,11 @@
 	) {
 		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
-	body.keyboard-open :is(#modal, .phone-layer).page.panel .ai-conversation {
-		padding-bottom: var(--space-12);
+	/* Editing owns the hidden rail even under a card. Reserve only the actual keyboard height. */
+	:is(:is(#modal, .phone-layer), #search-background).page.search.search-editing {
+		--search-bottom: 0px;
 	}
-	body.keyboard-open :is(:is(#modal, .phone-layer), #search-background).page.search {
-		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
-	}
-	/* Editing hides the capsule (search-suggestions.css). Its place stood empty under the results
-	   and cut the last cards off mid-card; the results now run to the screen foot instead. */
-	body:not(.keyboard-open) :is(#modal, .phone-layer).page.search.search-editing[open] {
-		padding-bottom: 0;
-	}
-	body:not(.keyboard-open)
-		:is(#modal, .phone-layer).page.search.search-editing[open]
-		.search-results {
+	:is(:is(#modal, .phone-layer), #search-background).page.search.search-editing .search-results {
 		padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-24));
 	}
 	.search-card-grid {
