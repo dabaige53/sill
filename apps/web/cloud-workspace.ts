@@ -80,6 +80,7 @@ export function clearCloud({ retainDrafts = false }: any = {}) {
 	app.homeSelected.clear();
 	app.searchSelected.clear();
 	app.aiSelectionIds = [];
+	app.pendingCards = [];
 	app.aiDraft = "";
 	app.renderAIDock?.();
 	app.selectAnchor = "";
@@ -249,6 +250,21 @@ function drawnState(cards: any[], items: any, preferences: any) {
 		preferences: { ...Store.fresh().preferences, ...preferences },
 	};
 }
+/** Cards written elsewhere while the reader is away from the top wait behind the new-content pill. */
+function holdArrivals(records: any[]) {
+	const live = new Set(records.filter((c: any) => !c.deleted).map((c: any) => c.id));
+	app.pendingCards = app.pendingCards.filter((c: any) => live.has(c.id));
+	const away = scrollY >= 40 || app.dialog.open;
+	if (!Cloud.booting && Cloud.records.size && away && Store.pref("newHint") !== "off")
+		for (const record of records)
+			if (
+				live.has(record.id) &&
+				!Cloud.records.has(record.id) &&
+				!app.pendingCards.some((c: any) => c.id === record.id)
+			)
+				app.pendingCards.push(cloudCard(record));
+	app.paintPending();
+}
 export function adoptWorkspace(value: any) {
 	// A save response that confirms the page's optimistic state keeps the mounted cards and detail.
 	const changed =
@@ -269,6 +285,7 @@ export function adoptWorkspace(value: any) {
 		editingIds.map((id) => [id, clone(Store.state.items[id] || {})]),
 	);
 	const editingTags = new Map(editingIds.map((id) => [id, Cloud.records.get(id)?.tags]));
+	holdArrivals(value.state.cards);
 	Cloud.records = new Map(value.state.cards.map((c: any) => [c.id, c]));
 	Store.state.items = clone(value.state.items);
 	Store.state.preferences = { ...Store.fresh().preferences, ...value.state.preferences };

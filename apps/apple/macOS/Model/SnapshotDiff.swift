@@ -31,7 +31,9 @@ struct SnapshotDiff: Sendable {
       guard let json = try? card.raw else { continue }
       raw[card.id] = json
       order.append(card.id)
-      if baseline.raw[card.id] != json, let model = try? CardModel(card: card) {
+      if baseline.raw[card.id] != json,
+        let model = try? CardModel(card: card, createdAt: snapshot.createdAt[card.id])
+      {
         models.append(model)
       }
     }

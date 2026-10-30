@@ -1,6 +1,6 @@
 import { contractVersion } from "./card.ts";
 
-const cardFormat = `Card contract ${contractVersion}: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision; scheduling timestamps use Unix milliseconds; media offsets and durations use seconds.`;
+const cardFormat = `Card contract ${contractVersion}: type selects the card kind; summary is plain text for the card face; body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.`;
 const writeRules =
 	"Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.";
 
@@ -12,7 +12,7 @@ export const toolDescriptions = {
 		"Read one authorized card by its real ID before editing. Preserve its revision, structured facts and personal state. " +
 		cardFormat,
 	sill_createContent:
-		"Create one card with body:{type,title,...fields}; its nested body is Markdown. Prefer typed fields for tasks, meetings, files (including mail attachments), images, media chapters/transcript and PR snapshots. Unknown or removed fields are rejected. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. " +
+		"Create one card with body:{type,title,...fields}; its nested body is Markdown. An imported article keeps the complete original text, not a summary or excerpt, minus ads and site chrome; fill url, authors, publishedAt and cover images the source provides. Prefer typed fields for tasks, meetings, files (including mail attachments), images, media chapters/transcript and PR snapshots. Unknown or removed fields are rejected. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. " +
 		cardFormat +
 		" " +
 		writeRules,

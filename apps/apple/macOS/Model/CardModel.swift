@@ -97,7 +97,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
       && body.joined(separator: "\n").count < 160 && body.count <= 1 && summary.count < 280
   }
 
-  init(card: Card) throws {
+  init(card: Card, createdAt: Double? = nil) throws {
     let value = card.value
     let raw = try card.raw
     rich = CardRichFields(raw: raw)
@@ -119,7 +119,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
     tags = value.tags ?? []
     images = value.images ?? []
     url = value.url.flatMap(URL.init(string:))
-    time = value.time ?? 0
+    time = value.time ?? createdAt ?? 0
     priority = value.priority ?? 0
     isQuote = value.form == .quote
     project = value.project?.name

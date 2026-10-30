@@ -433,7 +433,13 @@ enum FeedEntry: Identifiable, Equatable {
     // Saves, pagination and catalog updates keep existing cards in their current order.
     let ranked = FeedPolicy.sort(
       workspace.cards, mode: workspace.preferences.feedSort, state: state, now: now)
-    for card in ranked where order[card.id] == nil { order[card.id] = order.count }
+    // The first pass ranks everything; later arrivals go above the cards already in place.
+    let arrivals = ranked.filter { order[$0.id] == nil }
+    var top = order.values.min() ?? arrivals.count
+    for card in arrivals.reversed() {
+      top -= 1
+      order[card.id] = top
+    }
     let matched = workspace.cards.filter { card in
       let s = state(card.id)
       // Searching reaches archived cards; browsing shows only the desk.

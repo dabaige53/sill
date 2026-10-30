@@ -94,7 +94,9 @@ export const appFeedUpdatesMethods = {
 		let count = 0;
 		window.scrollTo({ top: 0, behavior: "instant" });
 		this.withFeedAnchor(() => {
-			count = Store.insert(this.pendingCards);
+			// Cloud arrivals are already stored and only waited behind the pill.
+			count = new Set(this.pendingCards.map((c) => c.id)).size;
+			Store.insert(this.pendingCards);
 			this.pendingCards = [];
 			for (const id of this.pendingReminders) {
 				const c = Store.card(id);

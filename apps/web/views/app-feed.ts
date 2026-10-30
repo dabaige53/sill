@@ -111,11 +111,19 @@ export const appFeedMethods = {
 			this.feedOrderSort = this.sort;
 		}
 		const ranked = FeedPolicy.sort(Store.state.cards, this.sort, Store.state.items, this.feedNow);
-		for (const card of ranked) {
-			if (!this.feedOrder.has(card.id)) this.feedOrder.set(card.id, this.feedOrder.size);
+		const arrivals = ranked.filter((card) => !this.feedOrder.has(card.id));
+		// The first pass ranks everything; later arrivals go above the cards already in place.
+		if (arrivals.length) {
+			let top = this.feedOrder.size ? Math.min(...this.feedOrder.values()) : arrivals.length;
+			for (const card of arrivals.reverse()) this.feedOrder.set(card.id, --top);
 		}
+		// Cards waiting behind the new-content pill stay out until the reader brings them in.
+		const waiting = new Set(
+			Store.pref("newHint") === "off" ? [] : this.pendingCards.map((c: Card) => c.id),
+		);
 		return Store.state.cards
 			.filter((c?: Card) => {
+				if (waiting.has(c.id)) return false;
 				const s = Store.item(c.id);
 				// Searching reaches every shelf; browsing shows only the desk.
 				if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;

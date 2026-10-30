@@ -74,6 +74,8 @@
 | 代码 | 修正 |
 | --- | --- |
 | `invalid_event_range` | 日程需要 `end > start > 0`，单位是毫秒 |
+| `timestamp_not_unix_milliseconds` | `start`、`end`、`due`、`time` 传成了秒或其他单位。改成 13 位 Unix 毫秒，按用户时区换算 |
+| `missing_reminder_due` | 新建提醒要有 `due`。没有具体时刻的事项改用 task |
 | `invalid_task_ids` | 待办至少要有一项 `tasks`，且每项 `id` 不重复 |
 | `missing_video_image` | 视频要有 `images`。没有真实封面时，可用内置素材并在正文里注明是示意图 |
 | `missing_images` | 照片要有 `images` |

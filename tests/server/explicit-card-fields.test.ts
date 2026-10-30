@@ -31,8 +31,19 @@ const otherCards = [
 		tasks: [{ id: "step", text: "Check" }],
 		project: { name: "Project", url: "https://example.com/project" },
 	},
-	{ type: "reminder", title: "Project reminder", project: { name: "Project" } },
-	{ type: "event", title: "Meeting", start: 1000, end: 2000, people: ["Reader"] },
+	{
+		type: "reminder",
+		title: "Project reminder",
+		due: 1792375200000,
+		project: { name: "Project" },
+	},
+	{
+		type: "event",
+		title: "Meeting",
+		start: 1792375200000,
+		end: 1792378800000,
+		people: ["Reader"],
+	},
 	{
 		type: "media",
 		title: "Chapters",

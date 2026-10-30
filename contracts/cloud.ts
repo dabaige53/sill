@@ -5,6 +5,24 @@ import { CardState, Preferences } from "./local.ts";
 
 export { id };
 export const revision = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
+const scheduleFields = ["start", "end", "due", "time"] as const;
+// Unix milliseconds between 1973 and 2100; seconds or microseconds fall outside.
+const unixMilliseconds = (value: number) => value >= 1e11 && value < 4102444800000;
+/** Write-only checks on new or changed values, so stored cards keep loading and saving. */
+export function writeIssues(
+	card: Record<string, unknown>,
+	before?: Record<string, unknown> | null,
+) {
+	const issues: { path: string[]; message: string }[] = [];
+	for (const field of scheduleFields) {
+		const value = card[field];
+		if (typeof value === "number" && value !== before?.[field] && !unixMilliseconds(value))
+			issues.push({ path: [field], message: "timestamp_not_unix_milliseconds" });
+	}
+	if (!before && card.type === "reminder" && card.due === undefined)
+		issues.push({ path: ["due"], message: "missing_reminder_due" });
+	return issues;
+}
 export const cloudState = CardState.extend({
 	done: z.boolean().optional(),
 	archived: z.boolean().optional(),
@@ -68,7 +86,18 @@ export const workspaceBatch = z
 			.max(5000),
 		expectedRevision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 	})
-	.strict();
+	.strict()
+	.superRefine((batch, context) => {
+		batch.operations.forEach((operation, index) => {
+			if (operation.op !== "card.upsert") return;
+			for (const issue of writeIssues(operation.card, operation.before))
+				context.addIssue({
+					code: "custom",
+					message: issue.message,
+					path: ["operations", index, "card", ...issue.path],
+				});
+		});
+	});
 const { id: cardId, ...cardFields } = Card.shape;
 export const changes = z
 	.object(cardFields)
@@ -98,6 +127,8 @@ export const create = changes.required({ title: true, type: true }).superRefine(
 		title: card.title!,
 	}))
 		context.addIssue({ code: "custom", message });
+	for (const issue of writeIssues(card))
+		context.addIssue({ code: "custom", message: issue.message, path: issue.path });
 });
 export const metadata = z
 	.object({
@@ -112,7 +143,16 @@ export const update = z
 		changes: changes.optional(),
 		metadata: metadata.optional(),
 	})
-	.strict();
+	.strict()
+	.superRefine((value, context) => {
+		// An update is never a new card: only the timestamps it sends are checked.
+		for (const issue of writeIssues(value.changes ?? {}, {}))
+			context.addIssue({
+				code: "custom",
+				message: issue.message,
+				path: ["changes", ...issue.path],
+			});
+	});
 export const event = z
 	.object({
 		event_id: id,

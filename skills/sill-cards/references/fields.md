@@ -18,7 +18,7 @@
 | `tags` | 内容标签，最多 100 项，每项最多 100 字；用户编辑标签就是编辑卡片 |
 | `related` | 最多 100 个 Sill 卡片 ID，不传 URL 或标题 |
 | `priority` | 0–10 数字，按用户要求或明确依据填写 |
-| `time` | 卡片时间线使用的 Unix 毫秒，不替代原文日期或服务端时间 |
+| `time` | 卡片时间线使用的 Unix 毫秒，不替代原文日期或服务端时间。省略时按写入时间排序 |
 
 ## 专属结构
 
@@ -26,8 +26,8 @@
 | --- | --- |
 | `tasks` | 待办子任务，1–100 个 {id,text}；id 规则同卡片且唯一稳定，text 1–2000 字。完成情况写个人状态 `taskDone` |
 | `project` | 待办、提醒所属项目 {name,url?}，name 1–300 字，URL 为 HTTP(S) |
-| `start`、`end` | 日程 Unix 毫秒，必须 end > start > 0 |
-| `due` | 待办/提醒到期时刻，Unix 毫秒 |
+| `start`、`end` | 日程必填，13 位 Unix 毫秒，必须 end > start |
+| `due` | 待办/提醒到期时刻，13 位 Unix 毫秒；新建提醒必填 |
 | `location` | 已知日程或照片地点，最多 300 字 |
 | `meeting` | 现有会议 {name,url,code?}，name 1–100 字，url 为 HTTP(S)，code 最多 100 字；不得包含秘密 |
 | `people` | 仅日程：已知参会人，最多 100 项，每项最多 100 字 |

@@ -299,8 +299,10 @@ test("priority, unread and time sorts are stable, immutable and deduplicated", (
 		{ id: "c", type: "article", time: 2 },
 	];
 	assert.deepEqual(ids(p.sort(cards, "priority", {}, now())), ["b", "a", "c"]);
-	assert.deepEqual(ids(p.sort(cards, "unread", { a: { read: true } }, now())), ["b", "c", "a"]);
+	assert.deepEqual(ids(p.sort(cards, "unread", { a: { read: true } }, now())), ["c", "b", "a"]);
 	assert.deepEqual(ids(p.sort(cards, "time", {}, now())), ["a", "c", "b"]);
+	// Stored order is oldest first; equal scores still show the newest write first.
+	assert.deepEqual(ids(p.sort([cards[2], cards[0]], "priority", {}, now())), ["a", "c"]);
 	assert.deepEqual(ids(cards), ["a", "b", "c"]);
 	assert.equal(p.sort([...cards, cards[0]], "priority", {}, now()).length, 3);
 });

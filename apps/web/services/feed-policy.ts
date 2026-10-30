@@ -100,9 +100,11 @@ const FeedPolicy: Record<string, any> = {
 				const x = items[a.c.id] || {},
 					y = items[b.c.id] || {};
 				if (!!x.lessLike !== !!y.lessLike) return Number(!!x.lessLike) - Number(!!y.lessLike);
-				if (mode === "time") return (b.c.time || 0) - (a.c.time || 0) || a.index - b.index;
-				if (mode === "unread") return Number(!!x.read) - Number(!!y.read) || a.index - b.index;
-				return this.score(b.c, y, now) - this.score(a.c, x, now) || a.index - b.index;
+				// Every mode falls back to the newest card first, then the stored order.
+				const newest = (b.c.time || 0) - (a.c.time || 0) || a.index - b.index;
+				if (mode === "time") return newest;
+				if (mode === "unread") return Number(!!x.read) - Number(!!y.read) || newest;
+				return this.score(b.c, y, now) - this.score(a.c, x, now) || newest;
 			})
 			.map((x?: any) => x.c);
 	},

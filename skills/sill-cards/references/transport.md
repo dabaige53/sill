@@ -60,7 +60,9 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 
 ## 日期、单位与大小
 
-- 日程 `start/end`、待办/提醒 `due`、卡片 `time` 及个人状态时间均为 Unix **毫秒**，按用户时区换算。
+- 日程 `start/end`、待办/提醒 `due`、卡片 `time` 及个人状态时间均为 Unix **毫秒**，按用户时区换算。当前时间附近的毫秒值是 13 位数字；10 位数字是秒，会被拒绝（`timestamp_not_unix_milliseconds`）。
+- 换算先写出带时区的 ISO 时间，再转毫秒。例如北京时间 2026-10-19 10:00 写作 `2026-10-19T10:00:00+08:00`，对应 `1792375200000`。宿主能运行代码时用代码换算（JavaScript `Date.parse("2026-10-19T10:00:00+08:00")`），不要心算；写入后按[导入细节](import.md#核对与汇报)换算回来核对。
+- 新建提醒必须有 `due`（`missing_reminder_due`），日程必须有 `start` 和 `end`。来源里的时间写进这些字段，不能只写在正文里。
 - 原文、邮件或照片的 `publishedAt`、文件 `modifiedAt` 为 YYYY-MM-DD 或带时区 ISO 时间；只有日期就保留日期。PR `observedAt` 必须是带时区 ISO 时刻。
 - `duration`、`chapters[].start`、`transcript[].start`、`state.playbackPosition` 和 `reading.add.seconds` 均为**秒**，用途彼此独立；`progress` 为 0–1 比例。
 - `sizeBytes` 是非负安全整数字节数，不传 "2 MB"。MIME 使用标准类型字符串，不用扩展名代替。

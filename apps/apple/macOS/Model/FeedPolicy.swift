@@ -67,15 +67,17 @@ import SillKit
       let x = state(a.card.id)
       let y = state(b.card.id)
       if x.lessLike != y.lessLike { return !x.lessLike }
+      // Every mode falls back to the newest card first, then the stored order.
+      let newest = a.card.time != b.card.time ? a.card.time > b.card.time : a.index < b.index
       switch mode {
       case .time:
-        return a.card.time != b.card.time ? a.card.time > b.card.time : a.index < b.index
+        return newest
       case .unread:
-        return x.read != y.read ? !x.read : a.index < b.index
+        return x.read != y.read ? !x.read : newest
       case .priority:
         let sx = score(a.card, state: x, now: now)
         let sy = score(b.card, state: y, now: now)
-        return sx != sy ? sx > sy : a.index < b.index
+        return sx != sy ? sx > sy : newest
       }
     }.map(\.card)
   }

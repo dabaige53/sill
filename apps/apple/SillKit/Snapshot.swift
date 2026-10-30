@@ -4,6 +4,8 @@ public struct Snapshot: Sendable {
   public var json: JSONValue
   public let revision: Int
   public let cards: [Card]
+  /// Server write time per card in Unix milliseconds, the timeline time when a card has none.
+  public let createdAt: [String: Double]
   public var items: [String: JSONValue] { json["state"]?["items"]?.object ?? [:] }
 
   public init(json input: JSONValue) throws {
@@ -20,6 +22,13 @@ public struct Snapshot: Sendable {
     else {
       throw StoreError.invalidSnapshot
     }
+    createdAt = values.reduce(into: [:]) { result, value in
+      if let id = value["id"]?.string, let text = value["created_at"]?.string,
+        let date = Self.serverDate(text)
+      {
+        result[id] = date.timeIntervalSince1970 * 1000
+      }
+    }
     // Cloud cards carry server fields beside the card facts; the card keeps only its facts.
     cards = try values.map { value in
       var card = value
@@ -33,6 +42,14 @@ public struct Snapshot: Sendable {
   }
 
   static let serverFields = ["revision", "state", "created_at", "updated_at", "deleted"]
+
+  static func serverDate(_ text: String) -> Date? {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let date = formatter.date(from: text) { return date }
+    formatter.formatOptions = [.withInternetDateTime]
+    return formatter.date(from: text)
+  }
 
   static var emptyState: JSONValue {
     .object([
