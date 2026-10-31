@@ -5,7 +5,7 @@
     "audioUrl": {
       "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
       "type": "string",
-      "pattern": "^https?:\\/\\/"
+      "pattern": "^https?:[/][/]"
     },
     "chapters": {
       "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -107,7 +107,7 @@
               },
               "url": {
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "decision": {
                 "type": "string",
@@ -161,7 +161,7 @@
               },
               "url": {
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               }
             },
             "required": [
@@ -234,7 +234,7 @@
           },
           "url": {
             "type": "string",
-            "pattern": "^https?:\\/\\/"
+            "pattern": "^https?:[/][/]"
           }
         },
         "required": [
@@ -261,7 +261,7 @@
         },
         "url": {
           "type": "string",
-          "pattern": "^https?:\\/\\/"
+          "pattern": "^https?:[/][/]"
         }
       },
       "required": [
@@ -304,7 +304,7 @@
     "url": {
       "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
       "type": "string",
-      "pattern": "^https?:\\/\\/"
+      "pattern": "^https?:[/][/]"
     },
     "sources": {
       "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -347,7 +347,7 @@
         },
         "url": {
           "type": "string",
-          "pattern": "^https?:\\/\\/"
+          "pattern": "^https?:[/][/]"
         },
         "code": {
           "type": "string",
@@ -405,7 +405,7 @@
           },
           "url": {
             "type": "string",
-            "pattern": "^https?:\\/\\/"
+            "pattern": "^https?:[/][/]"
           }
         },
         "required": [

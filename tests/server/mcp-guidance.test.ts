@@ -7,7 +7,13 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import formats from "ajv-formats";
 import { z } from "zod/v4";
 import { Card, cardTypes, contractVersion } from "../../contracts/card.ts";
-import { cloudPreferences, cloudState, create, toolInputs } from "../../contracts/cloud.ts";
+import {
+	agentCardIssues,
+	cloudPreferences,
+	cloudState,
+	create,
+	toolInputs,
+} from "../../contracts/cloud.ts";
 import { toolDescriptions } from "../../contracts/mcp-guidance.ts";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { A, resource } from "./helpers/boundary-fixture.ts";
@@ -49,12 +55,68 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	].map((match) => JSON.parse(match[1]));
 	assert.deepEqual(toolInputs.sill_createContent.parse(transport[0]), transport[0]);
 	assert.deepEqual(toolInputs.sill_updateContent.parse(transport[1]), transport[1]);
+	for (const match of operations.matchAll(/```json\n([\s\S]*?)\n```/g)) {
+		const args = JSON.parse(match[1]);
+		for (const operation of args.body?.operations || []) {
+			if (operation.op !== "card.upsert" || operation.before !== null) continue;
+			const { id: _, ...card } = operation.card;
+			assert.deepEqual(create.parse(card), card);
+			assert.deepEqual(agentCardIssues(card), []);
+		}
+	}
 	assert.ok(transport[0].body.body.includes("\n\n"));
 	assert.equal(catalog.contractVersion, contractVersion);
 	for (const tool of catalog.tools) {
 		assert.equal(tool.description, toolDescriptions[tool.name]);
 		assert.deepEqual(tool.inputSchema, z.toJSONSchema(toolInputs[tool.name], { io: "input" }));
 	}
+});
+
+test("published URL schemas avoid escaped slashes and keep HTTP(S) validation", () => {
+	const validator = new Ajv2020({ strict: false });
+	(formats as unknown as (validator: Ajv2020) => void)(validator);
+	const validate = new Map<string, ReturnType<Ajv2020["compile"]>>(
+		catalog.tools.map((tool: any) => [tool.name, validator.compile(tool.inputSchema)]),
+	);
+	const card = {
+		type: "file",
+		title: "Source document",
+		summary: "Complete source metadata",
+		body: "A real source address must not be dropped to pass validation.",
+		url: "https://docs.example.com/document/source?view=full",
+		files: [{ name: "Source document", url: "https://docs.example.com/document/source" }],
+	};
+	for (const url of [
+		"https://readwise.io/open/123",
+		"https://docs.example.com/document/source?view=full",
+		"http://example.com/source",
+	]) {
+		const body = { ...card, url, files: [{ ...card.files[0], url }] };
+		const single = { idempotency_key: "schema-single", body };
+		const batch = {
+			idempotency_key: "schema-batch",
+			body: { operations: [{ op: "card.upsert", card: { id: "source", ...body }, before: null }] },
+		};
+		assert.ok(validate.get("sill_createContent")!(single));
+		assert.ok(validate.get("sill_applyOperations")!(batch));
+		assert.deepEqual(toolInputs.sill_createContent.parse(single), single);
+		assert.deepEqual(toolInputs.sill_applyOperations.parse(batch), batch);
+	}
+	for (const url of ["mailto:reader@example.com", "javascript:alert(1)", "not a url"]) {
+		const args = { idempotency_key: "schema-invalid", body: { ...card, url } };
+		assert.equal(validate.get("sill_createContent")!(args), false);
+		assert.equal(toolInputs.sill_createContent.safeParse(args).success, false);
+	}
+	const patterns: string[] = [];
+	const visit = (value: any) => {
+		if (!value || typeof value !== "object") return;
+		if (typeof value.pattern === "string" && value.pattern.startsWith("^https?"))
+			patterns.push(value.pattern);
+		for (const child of Object.values(value)) visit(child);
+	};
+	visit(catalog);
+	assert.ok(patterns.length > 0);
+	assert.ok(patterns.every((pattern) => pattern === "^https?:[/][/]"));
 });
 
 test("skill recipes round trip through discovered MCP tools, including batch and retry", async () => {

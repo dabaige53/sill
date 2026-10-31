@@ -359,7 +359,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					return result(value);
 				} catch (error) {
 					return {
-						content: [{ type: "text", text: JSON.stringify(safeError(error)) }],
+						...result(safeError(error)),
 						isError: true,
 					};
 				}
