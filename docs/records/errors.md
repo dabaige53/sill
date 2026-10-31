@@ -7,7 +7,7 @@
 | 2026-10-31 | MCP 工作台入口 | 首次未能显示 sill、重试恢复、1.2.21、网络证据未取得 | [工作台首次加载再次失败](2026-10-31-production-acceptance/diagnosis.md#工作台首次加载再次失败) |
 | 2026-10-31 | 卡片类型与来源 | missing_video_image、invalid_authors_type、播客全文超时、Drive 元数据非全文 | [新增类型校验与来源缺口](2026-10-31-production-acceptance/diagnosis.md#新增类型校验与来源缺口) |
 | 2026-10-31 | 插件包装与发布 | tar、AppleDouble、._ 文件、插件与云端版本差异 | [生产发布与包装清理](2026-10-31-production-acceptance/release.md#1220-实际发布与复验) |
-| 2026-10-31 | 生产 MCP、skills 与工作台 | INVALID_ARGUMENT、冲突原因缺失、旧游标、回执截断、搜索工具发现、summary 示例、控件超时、来源认证 | [生产流程与兼容性](2026-10-31-production-acceptance/diagnosis.md) |
+| 2026-10-31 | 生产 MCP、skills 与工作台 | INVALID_ARGUMENT、冲突原因缺失、旧游标、回执截断、搜索工具发现、summary 示例、控件超时、日程下载回执、来源认证 | [生产流程与兼容性](2026-10-31-production-acceptance/diagnosis.md) |
 | 2026-10-31 | CI 与测试 | main 持续变红、PR 继承失败、排序断言、新卡在顶部、打开即已读、missing_summary、下拉取样、Date.now 平局 | [main CI 失败诊断](2026-10-31-main-ci-tests/diagnosis.md) |
 | 2026-10-31 | MCP 写入与卡片跳转 | 目录误开外链、全屏首击定位偏差、defaultPrevented、封面未显示、链接写不进去、HTTPS pattern、connector schema validation、files url、去原文打不开、加入会议无效、openLinks、mailto、sources url、missing_summary | [卡片链接写入与跳转](2026-10-31-card-links/diagnosis.md) |
 | 2026-10-30 | 设置画板生成 | ERR_UNKNOWN_FILE_EXTENSION、avatar.png、window is not defined、AIDock、previews.ts | [设置画板生成修正](2026-10-30-settings-about-backup/README.md#检查) |

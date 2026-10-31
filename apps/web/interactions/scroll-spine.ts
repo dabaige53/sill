@@ -37,9 +37,11 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 		}
 	};
 	const measure = () => {
-		const top = region.getBoundingClientRect().top;
+		const rect = region.getBoundingClientRect();
+		// Panel transitions scale screen coordinates, but scrollTop uses layout pixels.
+		const scale = rect.height / region.offsetHeight || 1;
 		offsets = sections.map((section) =>
-			section ? section.getBoundingClientRect().top - top + region.scrollTop : 0,
+			section ? (section.getBoundingClientRect().top - rect.top) / scale + region.scrollTop : 0,
 		);
 		bands = links.map((link) => ({ top: link.offsetTop, height: link.offsetHeight }));
 		update(true);
