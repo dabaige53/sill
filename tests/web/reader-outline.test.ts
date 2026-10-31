@@ -12,13 +12,21 @@ import {createRoot} from 'react-dom/client';
 import {flushSync} from 'react-dom';
 import {ReaderLayout} from './apps/web/interactions/reader-layout.tsx';
 import {markdownHeadings} from './apps/web/atoms/markdown.ts';
+import {appInputMethods} from './apps/web/views/app-input.ts';
 export function mount(host) {
+ const external = [];
+ window.__SILL_HOST__ = {};
+ const click = event => appInputMethods.click.call({openExternal:(_, url) => external.push(url)}, event);
+ document.addEventListener('click', click);
  const body = '## First\\nFirst text\\n## Second\\nSecond text';
  const headings = markdownHeadings(body);
  const root = createRoot(host);
  flushSync(() => root.render(h(ReaderLayout, {kind:'article', body},
   h('article', null, headings.map(item => h('h2', {key:item.id, id:item.id}, item.title))))));
- return {flush:fn => flushSync(fn), close:() => flushSync(() => root.unmount())};
+ return {external, flush:fn => flushSync(fn), close:() => {
+  document.removeEventListener('click', click);
+  flushSync(() => root.unmount());
+ }};
 }`,
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "tsx",
@@ -80,6 +88,7 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 			assert.equal(links[1].getAttribute("aria-current"), "location");
 			assert.equal(nav.scrollTop, 174);
 			assert.equal(w.location.hash, "#read/example");
+			assert.deepEqual([...api.external], [], "embedded host must not open local outline links");
 		}
 		region.scrollTop = 1000;
 		measure();

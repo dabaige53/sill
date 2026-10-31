@@ -24,6 +24,7 @@ export const appInputMethods = {
 		else transitionPhoneSearch(this.dialog, editing, captured, typing);
 	},
 	click(this: AppController, e?: TargetEvent<MouseEvent>) {
+		if (e.defaultPrevented) return;
 		const link = e.target.closest?.<HTMLAnchorElement>(".markdown a[href]");
 		const route = link && internalCardRoute(link.href, location.href);
 		if (route && Store.card(route.slice(route.indexOf("/") + 1))) {
