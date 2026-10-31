@@ -56,6 +56,7 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 		const index = link ? links.indexOf(link) : -1;
 		if (index < 0) return;
 		event.preventDefault();
+		measure();
 		region.scrollTop = Math.max(0, offsets[index] - config.jumpOffset);
 		clicked = { index, scrollTop: region.scrollTop };
 		update(event.detail === 0);
