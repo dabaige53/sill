@@ -1,6 +1,6 @@
 {
 	"name": "sill",
-	"version": "1.2.21",
+	"version": "1.2.22",
 	"private": true,
 	"description": "AI-assisted personal card workspace for reading, tasks, and schedules",
 	"scripts": {
