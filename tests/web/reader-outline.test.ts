@@ -66,8 +66,9 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		});
 		region.getBoundingClientRect = () => ({ top: 100 });
 		const sections = region.querySelectorAll("h2");
+		let secondTop = 716;
 		sections[0].getBoundingClientRect = () => ({ top: 116 - region.scrollTop });
-		sections[1].getBoundingClientRect = () => ({ top: 716 - region.scrollTop });
+		sections[1].getBoundingClientRect = () => ({ top: secondTop - region.scrollTop });
 		const nav = w.document.querySelector(".reader-outline");
 		Object.defineProperty(nav, "clientHeight", { value: 400 });
 		Object.defineProperty(nav.querySelector(".reader-outline-links"), "offsetTop", { value: 30 });
@@ -83,12 +84,14 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 				links[1].dispatchEvent(
 					new w.MouseEvent("click", { bubbles: true, cancelable: true, detail }),
 				);
-				assert.equal(region.scrollTop, 600);
+				assert.equal(region.scrollTop, secondTop - 116);
 			});
 			assert.equal(links[1].getAttribute("aria-current"), "location");
 			assert.equal(nav.scrollTop, 174);
 			assert.equal(w.location.hash, "#read/example");
 			assert.deepEqual([...api.external], [], "embedded host must not open local outline links");
+			// Layout can move after measurement, before ResizeObserver delivers another callback.
+			secondTop += 100;
 		}
 		region.scrollTop = 1000;
 		measure();
