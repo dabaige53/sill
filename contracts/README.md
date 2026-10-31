@@ -10,7 +10,7 @@
 - `mcp-guidance.ts`：每个 MCP 工具的用途与传输规则；运行时工具发现和导出目录共用，版本取自 card.ts。导出响应只携带该工具用到的定义。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `fixtures.json` 与 `media-fixtures.json`：按核心字段、媒体与图片拆分的合法和非法合成样例；Node 通过 `card-fixtures.ts` 合并，Swift 读取两份文件，每个写入端执行同一批样例。
-- `design/`：从原 `docs/examples/v1/` 迁入的接口设计材料。类型名改为 Card，不表示未实现的接口已上线。
+- `design/`：接口设计材料，不表示未实现的接口已上线。
 - `design/openapi-source.json` 保存人工维护的接口说明与路由；Schema 仍来自 `cloud.ts`。`scripts/export-design.ts` 合成原路径的 `design/openapi.json`，不要直接修改生成文件。
 
 JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务校验在 TypeScript 和 Swift 中执行，不能仅用结构检查代替。
@@ -65,4 +65,4 @@ Card 的 created_at / updated_at / revision 等仍由服务端控制，不接受
 
 ## 助手制作与传输
 
-随插件交付两个 skill。`sill-cards` 负责卡片制作：[类型配方](../skills/sill-cards/references/types.md) 覆盖 12 种类型及其卡面与详情展示；[字段字典](../skills/sill-cards/references/fields.md) 说明所有顶层字段与专属结构；[传输规则](../skills/sill-cards/references/transport.md) 说明 Markdown、JSON、时间单位、请求大小和确认方式。`sill-operations` 负责读写协议、偏好、备份与排障，见[操作协议](../skills/sill-operations/references/operations.md)。MCP 参数直接复用本目录字段，不维护另一套数据结构。512 KiB 请求体上限与字段字数上限同时适用。构建插件或导出工具不代表线上部署或宿主刷新完成。
+随插件交付两个 skill。`sill-cards` 负责卡片制作：[类型配方](../skills/sill-cards/references/types.md) 覆盖 12 种类型及其卡面与详情展示；[字段字典](../skills/sill-cards/references/fields.md) 说明所有顶层字段与专属结构；[传输规则](../skills/sill-cards/references/transport.md) 说明 Markdown、JSON、时间单位、请求大小和确认方式。`sill-operations` 负责读写协议、偏好、备份与排障，见[操作协议](../skills/sill-operations/references/operations.md)。MCP 参数直接复用本目录字段，不维护另一套数据结构。512 KiB 请求体上限与字段字数上限同时适用。

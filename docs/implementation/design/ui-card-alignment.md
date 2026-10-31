@@ -1,6 +1,6 @@
 # 卡片实现对照
 
-更新：2026-10-30。本文记录卡片在各端的接入范围与差异；交互要求见[设计规范](../../agent/DESIGN.md)，历史窗口验收见[事件记录](../../records/README.md)。源码接入不等于窗口验收。
+更新：2026-10-30。本文记录卡片在各端的接入范围与差异；交互要求见[设计规范](../../agent/DESIGN.md)，历史窗口验收见[事件记录](../../records/README.md)。
 
 ## 信息流与卡片
 
@@ -37,4 +37,4 @@
 
 Web 与 Mac 均有按类型组织的卡面和详情。来源标记共用素材和匹配规则，未知品牌使用通用标记。摘要卡的概览和正文、任务清单、媒体章节、文件与 PR 字段按[卡片内容规范](../../specs/design/card-content.md)组织。
 
-主要实现入口：Web `apps/web/cards/`、`apps/web/views/reader-layout.tsx`、`apps/web/styles/reader-layout.css`；Mac `apps/apple/macOS/Reader/` 与 `apps/apple/macOS/Reader/PhotoLightbox.swift`。更新时核对对应组件和样式，数值以设计变量与手册为准。
+主要实现入口：Web `apps/web/cards/`、`apps/web/interactions/reader-layout.tsx`、`apps/web/styles/reader-layout.css`；Mac `apps/apple/macOS/Reader/` 与 `apps/apple/macOS/Reader/PhotoLightbox.swift`。更新时核对对应组件和样式，数值以设计变量与手册为准。

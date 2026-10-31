@@ -2,7 +2,7 @@
 
 更新：2026-10-27。
 
-本文说明如何编写 PR 正文。具体变更的正文写在对应 PR 中，不覆盖本指南。仅在用户要求编写或更新 PR 正文时使用。
+仅在用户要求编写或更新 PR 正文时使用。
 
 正文采用 [PR 模板](../../.github/pull_request_template.md) 的三个部分：Summary、Evidence、Merge Danger。省略开场说明，文字简短，业务术语遵循 [GLOSSARY.md](../../GLOSSARY.md)。
 

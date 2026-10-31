@@ -20,4 +20,4 @@
 
 2026-10-23 经用户批准，`hooks/file-size-baseline.json` 记录当前既有超限文件的字节上限；新增文件仍限 20,000 bytes，已有文件不得超过记录的基线。清单不自动刷新，改名后的新路径不继承旧上限。后续拆小文件时可降低或移除对应基线。`design-system/boards/settings/content.html` 为生成页面，补入输出豁免。
 
-2026-10-26 经用户批准，文档类型豁免大小限制；`design-system/motion/workbench/messages.json` 无需拆分，按当前 24,703 bytes 加入单文件基线。其他 JSON 源文件仍按原规则检查，该文件继续增长时仍受基线上限约束。
+2026-10-26 经用户批准，文档类型豁免大小限制。

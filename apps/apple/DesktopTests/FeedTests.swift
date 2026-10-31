@@ -58,7 +58,8 @@ import Testing
         ]), before: .null)
     ])
     await until { workspace.queue.idle && workspace.cards.count == 48 }
-    #expect(Array(feed.cardOrder.prefix(2)) == ["task", "reminder"])
+    // An arrival goes above the cards in place; completed cards keep their order below it.
+    #expect(Array(feed.cardOrder.prefix(3)) == ["new", "task", "reminder"])
     feed.refreshMembership(reorder: true)
     #expect(!feed.cardOrder.prefix(2).contains("task"))
     #expect(!feed.cardOrder.prefix(2).contains("reminder"))

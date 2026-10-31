@@ -37,7 +37,7 @@ export async function runCardActions({
 			assert.equal(await page.locator('[data-card="article-01"]').count(), 1);
 			await openCard(page, "article-01");
 			assert.equal((await state(page, "article-01")).seen, true);
-			assert.equal((await state(page, "article-01")).read, false);
+			assert.equal((await state(page, "article-01")).read, true, "opening a card reads it");
 			await page.locator('#modal [data-action="bookmark"]').click();
 			assert.equal((await state(page, "article-01")).bookmarked, true);
 			assert.equal(await page.locator("#toast").isVisible(), false, "a single flag needs no toast");
@@ -249,7 +249,7 @@ export async function runCardActions({
 				`closing a card moved its origin ${after.top - before.top}px`,
 			);
 			assert.equal(after.focused, true, "preview should return focus to its title trigger");
-			assert.equal((await state(page, "article-03")).read, false);
+			assert.equal((await state(page, "article-03")).read, true, "opening a card reads it");
 			await page.keyboard.press("Enter");
 			await page.waitForFunction(() => window.__app.modalKind === "preview");
 			await page.goBack();

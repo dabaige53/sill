@@ -171,6 +171,7 @@ try {
 			body: {
 				type: "note",
 				title: "Cloud plugin fixture",
+				summary: "Stored through MCP",
 				body: "Stored through the real MCP and SQL boundary",
 			},
 		},
@@ -298,6 +299,7 @@ try {
 				body: {
 					type: "mail",
 					title: "Synthetic linked mail",
+					summary: "Synthetic mail with a link",
 					body: "Keep this mail unread until navigation is acknowledged.",
 					url: "https://mail.example/message/1",
 				},
@@ -343,6 +345,7 @@ try {
 				body: {
 					type: "photo",
 					title: "Synthetic photo recovery",
+					summary: "Synthetic photo for recovery",
 					images: ["coast", "mountain"],
 				},
 			},

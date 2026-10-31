@@ -46,8 +46,10 @@ test("desk pull coalesces moves into one frame and measures only at gesture star
 		const target = f.document.querySelector("main p");
 		f.fire(target, "touchstart");
 		f.fire(target, "touchmove", 120, 203);
+		// The pull starts once the move passes the slop; that start is the one layout read.
+		f.fire(target, "touchmove", 120, 206);
 		const initialReads = reads;
-		for (let i = 2; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
+		for (let i = 3; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
 		assert.equal(reads, initialReads, "layout is read only when the pull starts");
 		assert.equal(f.frames.size, 1);
 		assert.equal(f.document.querySelector("main").style.translate, "");

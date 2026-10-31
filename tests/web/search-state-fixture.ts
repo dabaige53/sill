@@ -43,17 +43,19 @@ export function fixture() {
 	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { AppController, Store, Panels, cardHTML, markOpenPage } = w.SearchTest;
+	// One shared time keeps the stored order as the tie-break, whatever the clock does.
+	const now = Date.now();
 	Store.state = {
 		cards: [
-			{ id: "a", type: "article", title: "Alpha", body: "Article", time: Date.now() },
+			{ id: "a", type: "article", title: "Alpha", body: "Article", time: now },
 			{
 				id: "b",
 				type: "task",
 				title: "Beta",
 				tasks: [{ id: "one", text: "Task" }],
-				time: Date.now(),
+				time: now,
 			},
-			{ id: "old", type: "article", title: "Archived Alpha", body: "Article", time: Date.now() },
+			{ id: "old", type: "article", title: "Archived Alpha", body: "Article", time: now },
 		],
 		items: { old: { archived: true } },
 		preferences: {},

@@ -135,9 +135,13 @@ try {
 				await page.waitForTimeout(500);
 				await screenshot("detail");
 				const buttons = page.locator("#modal .float-bar .icon-button");
-				const before = await page.evaluate(() =>
-					JSON.stringify(window.__store.item("review-event")),
-				);
+				// Reading progress saves on its own timer after opening; card actions change the rest.
+				const actionState = () =>
+					page.evaluate(() => {
+						const { progress, ...rest } = window.__store.item("review-event");
+						return JSON.stringify(rest);
+					});
+				const before = await actionState();
 				const session = await context.newCDPSession(page);
 				const tips = [];
 				for (const [edge, button] of [
@@ -181,11 +185,7 @@ try {
 					assert.ok(tip.left >= 0 && tip.right <= width, JSON.stringify(tip));
 					assert.equal(tip.selection, "none", "long presses cannot select toolbar text");
 				}
-				assert.equal(
-					await page.evaluate(() => JSON.stringify(window.__store.item("review-event"))),
-					before,
-					"long press and release perform no card action",
-				);
+				assert.equal(await actionState(), before, "long press and release perform no card action");
 				assert.equal(
 					await page.locator('.sheet-head [data-action="reader"]').count(),
 					0,

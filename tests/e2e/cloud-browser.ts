@@ -173,6 +173,7 @@ try {
 			body: {
 				type: "note",
 				title: "Agent wrote this",
+				summary: "Written by the agent through MCP",
 				body: "Visible in the same web workspace",
 			},
 		},

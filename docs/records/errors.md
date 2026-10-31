@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-31 | CI 与测试 | main 持续变红、PR 继承失败、排序断言、新卡在顶部、打开即已读、missing_summary、下拉取样、Date.now 平局 | [main CI 失败诊断](2026-10-31-main-ci-tests/diagnosis.md) |
 | 2026-10-30 | 设置画板生成 | ERR_UNKNOWN_FILE_EXTENSION、avatar.png、window is not defined、AIDock、previews.ts | [设置画板生成修正](2026-10-30-settings-about-backup/README.md#检查) |
 | 2026-10-30 | MCP 写入与信息流排序 | 导入缺时间、提醒没有 due、秒级时间、1970、正文被精简、广告没删、新卡在底部、没有新内容提示、排序乱 | [导入缺时间与新卡沉底](2026-10-30-import-time-feed-order/diagnosis.md) |
 | 2026-10-30 | Mac 启动与资源包 | 打开即崩溃、EXC_BREAKPOINT、NSBundle.module、Cover.image、Sill_Sill.bundle、头像体积 | [Mac 资源包定位与头像压缩](2026-10-30-macos-resource-bundle/README.md) |

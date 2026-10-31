@@ -51,7 +51,6 @@
 
 ## 6. 设计 tokens 与文案
 
-- 修改或审查动画、滚动、抽屉和手势时，按[动效开发与排查](motion-development.md)核对真实入口、参考差异、输入与运动归属、状态保持和验收证据。
 - 颜色、间距、圆角、字号和动效只引用共享设计变量生成的 CSS 变量或 Swift 常量，不在代码中直接写数值。设计变量源文件按类别放在 `design-system/tokens/*.json`，生成兼容文件 `tokens.json`。
 - 用户可见文字按职责放在 `design-system/copy/zh-Hans/*.json`，生成供各端读取的 `design-system/copy/zh-Hans.json`。key 使用英文点分格式，例如 `card.type.article`。运行 `npm run contracts:generate` 更新生成文件，`contracts:check` 检查是否过期。
 - Web 端在构建时读取文案文件。Apple 端在构建时生成 String Catalog，并通过生成的常量引用，key 写错时编译失败。
@@ -67,8 +66,6 @@
 ## 8. 秘密与配置
 
 - 秘密只放在宿主或 MCP 的安全配置、不提交的 `.env`、部署平台 secret 或系统钥匙串中。
-- 秘密不写入代码、卡片、日志、错误信息、模型上下文和浏览器持久化存储。
-- 外部工具与内容来源遵循 [PRODUCT.md](PRODUCT.md) 的产品边界。
 - 配置示例只写变量名和非秘密的默认值。
 
 ## 9. 测试
@@ -76,9 +73,7 @@
 - 测试按端放在 `tests/web/`、`tests/apple/`、`tests/server/`、`tests/contracts/`；跨端流程放 `tests/e2e/`。Apple 端也可以把单元测试放在 Swift Package 的测试 target 中，由 `swift test` 运行。
 - 修改契约时，必须同时更新合法与非法样例，并通过每一端的契约测试。
 - 修改写入逻辑时，必须覆盖版本冲突和结果未知两种情况。
-- 修改界面时，按 [测试与验证](test.md) 选择获准的检查；未获授权的界面验证标为未验证。证据保存位置见文件管理规范第 5 节。
-- 测试只使用合成数据，不读取真实卡片、真实账号或秘密。
-- 删除代码时，同时删除对应测试。
+- 界面验证证据的保存位置见文件管理规范第 5 节。
 
 ## 10. 格式与检查
 
@@ -102,10 +97,10 @@
 - 产品版本只写在根目录 `package.json`。Info.plist、MCP 服务版本和插件包版本由构建脚本写入。
 - Apple 构建号由构建脚本自动生成，只增不减。
 - 契约版本写在 `contracts/` 中，只随接口变化升级。
-- 构建产物放在 `dist/<端>/`。构建只生成本地文件，不代表安装、发布或线上验收。
+- 构建产物放在 `dist/<端>/`。
 
 ## 13. 提交与 PR
 
-- PR 正文使用 [PR 模板](../../.github/pull_request_template.md)，按 Summary、Evidence、Merge Danger 填写；只把实际运行过的检查写为通过。
+- PR 正文按 [PR 编写指南](pr.md) 填写。
 - 一个 PR 只做一类改动。移动文件、修改行为和整体格式化分开提交。
-- 迁移按端分批；每批按 [测试与验证](test.md) 选择直接受影响的检查，不默认运行完整测试。
+- 迁移按端分批。

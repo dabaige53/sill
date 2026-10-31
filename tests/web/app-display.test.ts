@@ -91,9 +91,14 @@ test("media opens without body or playback state and ignores obsolete playback a
 		Store.state.cards = [card];
 		Store.state.items = { media: { seen: true, read: false, progress: 0.25 } };
 		Store.item(card.id);
-		const before = JSON.stringify(Store.state);
-		Store.patch = () => {
-			throw new Error("Preview must not write playback state");
+		const patches: any[] = [];
+		const patch = Store.patch.bind(Store);
+		// Opening reads the card; playback fields stay untouched.
+		Store.patch = (id: string, values: any) => {
+			if ("playbackPosition" in values || "progress" in values)
+				throw new Error("Preview must not write playback state");
+			patches.push(values);
+			return patch(id, values);
 		};
 		app.previewTrail = [];
 		app.currentId = "";
@@ -115,7 +120,9 @@ test("media opens without body or playback state and ignores obsolete playback a
 		for (const name of ["media-play", "media-next", "media-prev", "podcast-play", "podcast-seek"]) {
 			app.action(name, "media");
 		}
-		assert.equal(JSON.stringify(Store.state), before);
+		assert.equal(JSON.stringify(patches), JSON.stringify([{ seen: true, read: true }]));
+		assert.equal(Store.item(card.id).progress, 0.25);
+		assert.equal(Store.item(card.id).playbackPosition, undefined);
 	} finally {
 		f.dom.window.close();
 	}

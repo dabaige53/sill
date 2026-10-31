@@ -15,17 +15,6 @@ export function cloudCard(record: CloudRecord) {
 	return card;
 }
 
-export function cloudCardState(record: CloudRecord) {
-	const state = record.state as { read?: boolean; done?: boolean } | undefined;
-	return {
-		read: !!state?.read,
-		reminderDone: record.type === "reminder" && !!state?.done,
-		...(record.type === "task" && state?.done
-			? { taskDone: (record.tasks || []).map((task) => task.id) }
-			: {}),
-	};
-}
-
 /** The editor owns only these fields; omitted fields remain owned by the stored record. */
 export function cloudCardChanges(
 	record: CloudRecord,

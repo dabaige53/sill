@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
 import { cardHTML } from "../../apps/web/cards/templates.ts";
-import { cloudCard, cloudCardChanges, cloudCardState } from "../../apps/web/data/cloud-card.ts";
+import { cloudCard, cloudCardChanges } from "../../apps/web/data/cloud-card.ts";
 
 const rich = {
 	id: "synthetic-rich",
@@ -86,24 +86,17 @@ test("cloud timeline does not turn update or source publication time into creati
 	assert.equal(cloudCard(record).publishedAt, record.publishedAt);
 });
 
-test("cloud done state presents recorded task and reminder state without changing tasks", () => {
-	assert.deepEqual(cloudCardState(rich), { read: false, reminderDone: false, taskDone: ["step"] });
-	assert.equal(cloudCardState({ ...rich, type: "reminder" }).reminderDone, true);
-	assert.equal(cloudCardState({ ...rich, state: { done: false } }).taskDone, undefined);
-	assert.equal("done" in rich.tasks[0], false);
-});
-
 test("projected rich cards render authors, task state, and reminder state", () => {
 	const article = cloudCard({ ...rich, type: "article" });
-	const rendered = new JSDOM(cardHTML(article, { state: cloudCardState(article) })).window.document;
+	const rendered = new JSDOM(cardHTML(article, { state: { read: false } })).window.document;
 	assert.match(rendered.body.textContent, /Independent summary/);
 	assert.match(rendered.body.textContent, /Sender/);
 	assert.ok(rendered.querySelector(".card-cover"));
-	const task = new JSDOM(cardHTML(rich, { state: cloudCardState(rich) })).window.document;
+	const task = new JSDOM(cardHTML(rich, { state: { taskDone: ["step"] } })).window.document;
 	assert.equal(task.querySelector(".done-row"), null);
 	assert.ok(task.querySelector('.check-item[aria-checked="true"]'));
 	const reminder = { ...rich, type: "reminder" };
-	const renderedReminder = new JSDOM(cardHTML(reminder, { state: cloudCardState(reminder) })).window
+	const renderedReminder = new JSDOM(cardHTML(reminder, { state: { reminderDone: true } })).window
 		.document;
 	assert.ok(renderedReminder.querySelector('[data-action="restore-reminder"]'));
 	assert.equal(renderedReminder.querySelector('[data-action="complete-reminder"]'), null);
