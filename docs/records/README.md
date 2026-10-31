@@ -8,7 +8,9 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [生产功能与扩展压力验收](2026-10-31-production-acceptance/README.md)
 - [main 测试与功能提交不同步](2026-10-31-main-ci-tests/README.md)
+- [卡片链接写入与跳转排查](2026-10-31-card-links/README.md)
 - [设置关于与备份页面完善](2026-10-30-settings-about-backup/README.md)
 
 - [Mac 启动崩溃与共享头像压缩](2026-10-30-macos-resource-bundle/README.md)

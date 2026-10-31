@@ -113,6 +113,7 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 			},
 		});
 		assert.equal(noSummary.isError, true);
+		assert.deepEqual(noSummary.structuredContent, JSON.parse(noSummary.content[0].text));
 		assert.deepEqual(JSON.parse(noSummary.content[0].text).error.issues, [
 			{ path: "body.summary", message: "missing_summary" },
 		]);
@@ -307,11 +308,46 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 		});
 		assert.equal(stale.isError, true);
 		assert.equal(JSON.parse(stale.content[0].text).error.code, "revision_conflict");
+		assert.deepEqual(stale.structuredContent, JSON.parse(stale.content[0].text));
+		const beforeBatch = (
+			await client.callTool({ name: "sill_getContent", arguments: { id: one.id } })
+		).structuredContent;
+		const failedBatch = await client.callTool({
+			name: "sill_applyOperations",
+			arguments: {
+				idempotency_key: "mcp-atomic-conflict",
+				body: {
+					operations: [
+						{
+							op: "item.patch",
+							id: one.id,
+							values: { bookmarked: true },
+							before: { bookmarked: false },
+						},
+						{
+							op: "item.patch",
+							id: one.id,
+							values: { later: false },
+							before: { later: true },
+						},
+					],
+				},
+			},
+		});
+		assert.equal(failedBatch.isError, true);
+		assert.equal(failedBatch.structuredContent.error.code, "revision_conflict");
+		assert.deepEqual(failedBatch.structuredContent, JSON.parse(failedBatch.content[0].text));
+		assert.deepEqual(
+			(await client.callTool({ name: "sill_getContent", arguments: { id: one.id } }))
+				.structuredContent,
+			beforeBatch,
+		);
 		const bad = await client.callTool({
 			name: "sill_createContent",
 			arguments: { ...args, body: { ...args.body, owner_id: A } },
 		});
 		assert.equal(bad.isError, true);
+		assert.deepEqual(bad.structuredContent, JSON.parse(bad.content[0].text));
 		// Agents must see which field was rejected, not only invalid_request.
 		const rejected = JSON.parse(bad.content[0].text).error;
 		assert.equal(rejected.code, "invalid_request");

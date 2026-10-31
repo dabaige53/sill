@@ -34,7 +34,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/CardPage",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/CardPage"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "CardPage": {
             "type": "object",
@@ -47,7 +54,7 @@
                     "audioUrl": {
                       "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     },
                     "chapters": {
                       "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -149,7 +156,7 @@
                               },
                               "url": {
                                 "type": "string",
-                                "pattern": "^https?:\\/\\/"
+                                "pattern": "^https?:[/][/]"
                               },
                               "decision": {
                                 "type": "string",
@@ -203,7 +210,7 @@
                               },
                               "url": {
                                 "type": "string",
-                                "pattern": "^https?:\\/\\/"
+                                "pattern": "^https?:[/][/]"
                               }
                             },
                             "required": [
@@ -270,7 +277,7 @@
                           },
                           "url": {
                             "type": "string",
-                            "pattern": "^https?:\\/\\/"
+                            "pattern": "^https?:[/][/]"
                           }
                         },
                         "required": [
@@ -297,7 +304,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -339,7 +346,7 @@
                     "url": {
                       "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     },
                     "sources": {
                       "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -382,7 +389,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "code": {
                           "type": "string",
@@ -440,7 +447,7 @@
                           },
                           "url": {
                             "type": "string",
-                            "pattern": "^https?:\\/\\/"
+                            "pattern": "^https?:[/][/]"
                           }
                         },
                         "required": [
@@ -662,6 +669,81 @@
               "sync_cursor"
             ],
             "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -701,7 +783,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/SearchPage",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/SearchPage"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "SearchPage": {
             "type": "object",
@@ -737,7 +826,7 @@
                     "url": {
                       "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     },
                     "sources": {
                       "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -837,6 +926,81 @@
               "total"
             ],
             "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -868,7 +1032,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Card",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Card"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Card": {
             "type": "object",
@@ -876,7 +1047,7 @@
               "audioUrl": {
                 "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "chapters": {
                 "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -978,7 +1149,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "decision": {
                           "type": "string",
@@ -1032,7 +1203,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -1099,7 +1270,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -1126,7 +1297,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   }
                 },
                 "required": [
@@ -1168,7 +1339,7 @@
               "url": {
                 "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "sources": {
                 "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -1211,7 +1382,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "code": {
                     "type": "string",
@@ -1269,7 +1440,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -1470,6 +1641,81 @@
               "deleted"
             ],
             "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -1500,7 +1746,7 @@
               "audioUrl": {
                 "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "chapters": {
                 "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -1602,7 +1848,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "decision": {
                           "type": "string",
@@ -1656,7 +1902,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -1736,7 +1982,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -1763,7 +2009,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   }
                 },
                 "required": [
@@ -1806,7 +2052,7 @@
               "url": {
                 "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "sources": {
                 "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -1849,7 +2095,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "code": {
                     "type": "string",
@@ -1907,7 +2153,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -2090,7 +2336,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Card",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Card"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Card": {
             "type": "object",
@@ -2098,7 +2351,7 @@
               "audioUrl": {
                 "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "chapters": {
                 "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -2200,7 +2453,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "decision": {
                           "type": "string",
@@ -2254,7 +2507,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -2321,7 +2574,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -2348,7 +2601,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   }
                 },
                 "required": [
@@ -2390,7 +2643,7 @@
               "url": {
                 "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "sources": {
                 "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -2433,7 +2686,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "code": {
                     "type": "string",
@@ -2491,7 +2744,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -2692,6 +2945,81 @@
               "deleted"
             ],
             "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -2734,7 +3062,7 @@
                   "audioUrl": {
                     "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "chapters": {
                     "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -2836,7 +3164,7 @@
                             },
                             "url": {
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "decision": {
                               "type": "string",
@@ -2890,7 +3218,7 @@
                             },
                             "url": {
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             }
                           },
                           "required": [
@@ -2970,7 +3298,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -2997,7 +3325,7 @@
                       },
                       "url": {
                         "type": "string",
-                        "pattern": "^https?:\\/\\/"
+                        "pattern": "^https?:[/][/]"
                       }
                     },
                     "required": [
@@ -3040,7 +3368,7 @@
                   "url": {
                     "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "sources": {
                     "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -3083,7 +3411,7 @@
                       },
                       "url": {
                         "type": "string",
-                        "pattern": "^https?:\\/\\/"
+                        "pattern": "^https?:[/][/]"
                       },
                       "code": {
                         "type": "string",
@@ -3141,7 +3469,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -3354,7 +3682,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Card",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Card"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Card": {
             "type": "object",
@@ -3362,7 +3697,7 @@
               "audioUrl": {
                 "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "chapters": {
                 "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -3464,7 +3799,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "decision": {
                           "type": "string",
@@ -3518,7 +3853,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -3585,7 +3920,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -3612,7 +3947,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   }
                 },
                 "required": [
@@ -3654,7 +3989,7 @@
               "url": {
                 "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "sources": {
                 "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -3697,7 +4032,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "code": {
                     "type": "string",
@@ -3755,7 +4090,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -3954,6 +4289,81 @@
               "created_at",
               "updated_at",
               "deleted"
+            ],
+            "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
             ],
             "additionalProperties": false
           }
@@ -4009,7 +4419,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Card",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Card"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Card": {
             "type": "object",
@@ -4017,7 +4434,7 @@
               "audioUrl": {
                 "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "chapters": {
                 "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -4119,7 +4536,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "decision": {
                           "type": "string",
@@ -4173,7 +4590,7 @@
                         },
                         "url": {
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         }
                       },
                       "required": [
@@ -4240,7 +4657,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -4267,7 +4684,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   }
                 },
                 "required": [
@@ -4309,7 +4726,7 @@
               "url": {
                 "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                 "type": "string",
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https?:[/][/]"
               },
               "sources": {
                 "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -4352,7 +4769,7 @@
                   },
                   "url": {
                     "type": "string",
-                    "pattern": "^https?:\\/\\/"
+                    "pattern": "^https?:[/][/]"
                   },
                   "code": {
                     "type": "string",
@@ -4410,7 +4827,7 @@
                     },
                     "url": {
                       "type": "string",
-                      "pattern": "^https?:\\/\\/"
+                      "pattern": "^https?:[/][/]"
                     }
                   },
                   "required": [
@@ -4609,6 +5026,81 @@
               "created_at",
               "updated_at",
               "deleted"
+            ],
+            "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
             ],
             "additionalProperties": false
           }
@@ -4681,7 +5173,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Event",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Event"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Event": {
             "type": "object",
@@ -4767,6 +5266,81 @@
               "updated_at",
               "result_revision",
               "summary"
+            ],
+            "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
             ],
             "additionalProperties": false
           }
@@ -4800,7 +5374,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Event",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Event"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Event": {
             "type": "object",
@@ -4888,6 +5469,81 @@
               "summary"
             ],
             "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -4916,7 +5572,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/WorkspaceRead",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/WorkspaceRead"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "WorkspaceRead": {
             "anyOf": [
@@ -4939,7 +5602,7 @@
                             "audioUrl": {
                               "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "chapters": {
                               "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -5041,7 +5704,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       },
                                       "decision": {
                                         "type": "string",
@@ -5095,7 +5758,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -5162,7 +5825,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -5189,7 +5852,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 }
                               },
                               "required": [
@@ -5231,7 +5894,7 @@
                             "url": {
                               "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "sources": {
                               "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -5274,7 +5937,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "code": {
                                   "type": "string",
@@ -5332,7 +5995,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -5816,7 +6479,7 @@
                             "audioUrl": {
                               "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "pullRequest": {
                               "description": "Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, reviewers, checks and statistics reflect observed evidence. Only completed checks may have conclusion. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
@@ -5868,7 +6531,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       },
                                       "decision": {
                                         "type": "string",
@@ -5922,7 +6585,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -5989,7 +6652,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -6016,7 +6679,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 }
                               },
                               "required": [
@@ -6054,7 +6717,7 @@
                             "url": {
                               "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "sources": {
                               "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -6097,7 +6760,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "code": {
                                   "type": "string",
@@ -6155,7 +6818,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -6623,6 +7286,81 @@
                 "additionalProperties": false
               }
             ]
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -6669,7 +7407,7 @@
                             "audioUrl": {
                               "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "chapters": {
                               "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -6771,7 +7509,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       },
                                       "decision": {
                                         "type": "string",
@@ -6825,7 +7563,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -6898,7 +7636,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -6925,7 +7663,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 }
                               },
                               "required": [
@@ -6968,7 +7706,7 @@
                             "url": {
                               "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "sources": {
                               "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -7011,7 +7749,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "code": {
                                   "type": "string",
@@ -7069,7 +7807,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -7166,7 +7904,7 @@
                                 "audioUrl": {
                                   "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "chapters": {
                                   "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -7268,7 +8006,7 @@
                                           },
                                           "url": {
                                             "type": "string",
-                                            "pattern": "^https?:\\/\\/"
+                                            "pattern": "^https?:[/][/]"
                                           },
                                           "decision": {
                                             "type": "string",
@@ -7322,7 +8060,7 @@
                                           },
                                           "url": {
                                             "type": "string",
-                                            "pattern": "^https?:\\/\\/"
+                                            "pattern": "^https?:[/][/]"
                                           }
                                         },
                                         "required": [
@@ -7395,7 +8133,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -7422,7 +8160,7 @@
                                     },
                                     "url": {
                                       "type": "string",
-                                      "pattern": "^https?:\\/\\/"
+                                      "pattern": "^https?:[/][/]"
                                     }
                                   },
                                   "required": [
@@ -7465,7 +8203,7 @@
                                 "url": {
                                   "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "sources": {
                                   "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -7508,7 +8246,7 @@
                                     },
                                     "url": {
                                       "type": "string",
-                                      "pattern": "^https?:\\/\\/"
+                                      "pattern": "^https?:[/][/]"
                                     },
                                     "code": {
                                       "type": "string",
@@ -7566,7 +8304,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -7783,7 +8521,7 @@
                             "audioUrl": {
                               "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "chapters": {
                               "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -7885,7 +8623,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       },
                                       "decision": {
                                         "type": "string",
@@ -7939,7 +8677,7 @@
                                       },
                                       "url": {
                                         "type": "string",
-                                        "pattern": "^https?:\\/\\/"
+                                        "pattern": "^https?:[/][/]"
                                       }
                                     },
                                     "required": [
@@ -8012,7 +8750,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -8039,7 +8777,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 }
                               },
                               "required": [
@@ -8082,7 +8820,7 @@
                             "url": {
                               "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "sources": {
                               "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -8125,7 +8863,7 @@
                                 },
                                 "url": {
                                   "type": "string",
-                                  "pattern": "^https?:\\/\\/"
+                                  "pattern": "^https?:[/][/]"
                                 },
                                 "code": {
                                   "type": "string",
@@ -8183,7 +8921,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -8913,7 +9651,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "$ref": "#/$defs/Workspace",
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Workspace"
+          },
+          {
+            "$ref": "#/$defs/Error"
+          }
+        ],
         "$defs": {
           "Workspace": {
             "type": "object",
@@ -8934,7 +9679,7 @@
                         "audioUrl": {
                           "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "chapters": {
                           "description": "Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Never invent timestamps.",
@@ -9036,7 +9781,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   },
                                   "decision": {
                                     "type": "string",
@@ -9090,7 +9835,7 @@
                                   },
                                   "url": {
                                     "type": "string",
-                                    "pattern": "^https?:\\/\\/"
+                                    "pattern": "^https?:[/][/]"
                                   }
                                 },
                                 "required": [
@@ -9157,7 +9902,7 @@
                               },
                               "url": {
                                 "type": "string",
-                                "pattern": "^https?:\\/\\/"
+                                "pattern": "^https?:[/][/]"
                               }
                             },
                             "required": [
@@ -9184,7 +9929,7 @@
                             },
                             "url": {
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             }
                           },
                           "required": [
@@ -9226,7 +9971,7 @@
                         "url": {
                           "description": "Original HTTP(S) source link; video uses its platform page URL. Not an upload or fetch instruction.",
                           "type": "string",
-                          "pattern": "^https?:\\/\\/"
+                          "pattern": "^https?:[/][/]"
                         },
                         "sources": {
                           "description": "Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
@@ -9269,7 +10014,7 @@
                             },
                             "url": {
                               "type": "string",
-                              "pattern": "^https?:\\/\\/"
+                              "pattern": "^https?:[/][/]"
                             },
                             "code": {
                               "type": "string",
@@ -9327,7 +10072,7 @@
                               },
                               "url": {
                                 "type": "string",
-                                "pattern": "^https?:\\/\\/"
+                                "pattern": "^https?:[/][/]"
                               }
                             },
                             "required": [
@@ -9785,6 +10530,81 @@
             "required": [
               "revision",
               "state"
+            ],
+            "additionalProperties": false
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "invalid_request",
+                      "unauthenticated",
+                      "forbidden",
+                      "not_found",
+                      "revision_conflict",
+                      "idempotency_conflict",
+                      "cursor_expired",
+                      "rate_limited",
+                      "backup_auth_failed",
+                      "backup_unknown",
+                      "unavailable"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  "current_revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "issues": {
+                    "description": "Rejected input paths and reasons; present only for invalid_request.",
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "request_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "error"
             ],
             "additionalProperties": false
           }

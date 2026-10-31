@@ -10,7 +10,7 @@ const offsetDateTime = z
 const url = z
 	.string()
 	.url()
-	.regex(/^https?:\/\//);
+	.regex(/^https?:[/][/]/);
 const label = z.string().trim().min(1).max(300);
 const count = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 const person = z.object({ login: label, url: url.optional() }).strict();

@@ -128,12 +128,15 @@ for (const tool of catalog.tools) {
 		tool["x-required-scope"] = tool.name === "sill_getWorkspace" ? "content:read" : "content:write";
 	}
 	tool.inputSchema = z.toJSONSchema(toolInputs[tool.name], { io: "input" });
+	const successRef = normalize(tool.outputSchema.$ref || tool.outputSchema.anyOf[0].$ref);
 	tool.outputSchema = {
 		type: "object",
-		$ref: normalize(tool.outputSchema.$ref),
-		$defs: responseDefinitions(tool.outputSchema.$ref.replace("#/components/schemas/", "#/$defs/")),
+		anyOf: [{ $ref: successRef }, { $ref: "#/$defs/Error" }],
+		$defs: {
+			...responseDefinitions(successRef),
+			...responseDefinitions("#/$defs/Error"),
+		},
 	};
-	tool.outputSchema.$ref = tool.outputSchema.$ref.replace("#/components/schemas/", "#/$defs/");
 }
 for (const [file, value] of Object.entries({
 	"openapi.json": spec,
