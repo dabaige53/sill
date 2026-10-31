@@ -231,8 +231,13 @@ test("only explicit archive removes cards from home, without rewriting existing 
 });
 test("completed tasks and reminders keep their order until a user refresh", () => {
 	const f = fixture();
-	const task = { ...f.Store.card("task-01"), due: f.now() - 1, priority: 10 };
-	const reminder = { ...f.Store.card("reminder-01"), due: f.now() - 1, priority: 5 };
+	const task = { ...f.Store.card("task-01"), due: f.now() - 1, priority: 10, time: f.now() - 2000 };
+	const reminder = {
+		...f.Store.card("reminder-01"),
+		due: f.now() - 1,
+		priority: 5,
+		time: f.now() - 1000,
+	};
 	const article = { ...f.Store.card("article-01"), priority: 0 };
 	f.Store.state.cards = [article, task, reminder];
 	f.Store.state.items = {};
@@ -251,7 +256,8 @@ test("completed tasks and reminders keep their order until a user refresh", () =
 	f.app.filter.type = "all";
 	assert.deepEqual(ids(f.app.filtered()), before);
 	f.app.refreshFeedOrder();
-	assert.deepEqual(ids(f.app.filtered()), [article.id, task.id, reminder.id]);
+	// Once both are done their scores tie, so the newer reminder comes first.
+	assert.deepEqual(ids(f.app.filtered()), [article.id, reminder.id, task.id]);
 });
 test("finishing and restoring tasks stays silent", () => {
 	const f = fixture();

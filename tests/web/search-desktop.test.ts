@@ -13,9 +13,17 @@ function desktopFixture() {
 			title: "Alpha mail",
 			body: "Mail",
 			tags: ["Work"],
-			time: Date.now(),
+			// Written after the shared cards, so newest-first places it on top.
+			time: Date.now() + 1000,
 		},
-		{ id: "n", type: "note", title: "Gamma", body: "Note", tags: ["Work"], time: Date.now() },
+		{
+			id: "n",
+			type: "note",
+			title: "Gamma",
+			body: "Note",
+			tags: ["Work"],
+			time: Date.now() + 1000,
+		},
 	);
 	f.Store.state.items = { ...f.Store.state.items, m: { bookmarked: true } };
 	f.w.document.body.insertAdjacentHTML(
@@ -58,7 +66,7 @@ test("desktop search: text ending in # lists statuses and tags, and picking one 
 		// The # fragment never filters the text; searching reaches put-away cards too.
 		assert.deepEqual(
 			f.app.filtered().map((c: any) => c.id),
-			["a", "old", "m"],
+			["m", "a", "old"],
 		);
 		f.key("ArrowDown");
 		f.key("Enter");
@@ -176,7 +184,7 @@ test("desktop search suggests the cards it finds, keeps the query on reopen, and
 			);
 		assert.deepEqual(
 			extras(),
-			["card:a", "card:old", "card:m"],
+			["card:m", "card:a", "card:old"],
 			"without # the field suggests cards only",
 		);
 		f.type("Alpha #");
