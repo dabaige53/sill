@@ -63,12 +63,16 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		Object.defineProperties(region, {
 			scrollHeight: { value: 1400 },
 			clientHeight: { value: 400 },
+			offsetHeight: { value: 400 },
 		});
-		region.getBoundingClientRect = () => ({ top: 100 });
+		let scale = 1;
+		region.getBoundingClientRect = () => ({ top: 100, height: 400 * scale });
 		const sections = region.querySelectorAll("h2");
 		let secondTop = 716;
-		sections[0].getBoundingClientRect = () => ({ top: 116 - region.scrollTop });
-		sections[1].getBoundingClientRect = () => ({ top: secondTop - region.scrollTop });
+		sections[0].getBoundingClientRect = () => ({ top: 100 + (16 - region.scrollTop) * scale });
+		sections[1].getBoundingClientRect = () => ({
+			top: 100 + (secondTop - 100 - region.scrollTop) * scale,
+		});
 		const nav = w.document.querySelector(".reader-outline");
 		Object.defineProperty(nav, "clientHeight", { value: 400 });
 		Object.defineProperty(nav.querySelector(".reader-outline-links"), "offsetTop", { value: 30 });
@@ -80,11 +84,12 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		assert.equal(links[0].style.height, "", "outline rows keep natural height");
 		for (const detail of [1, 0]) {
 			region.scrollTop = 0;
+			scale = detail === 1 ? 0.88 : 0.96;
 			api.flush(() => {
 				links[1].dispatchEvent(
 					new w.MouseEvent("click", { bubbles: true, cancelable: true, detail }),
 				);
-				assert.equal(region.scrollTop, secondTop - 116);
+				assert.ok(Math.abs(region.scrollTop - (secondTop - 116)) < 0.001);
 			});
 			assert.equal(links[1].getAttribute("aria-current"), "location");
 			assert.equal(nav.scrollTop, 174);
@@ -93,6 +98,7 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 			// Layout can move after measurement, before ResizeObserver delivers another callback.
 			secondTop += 100;
 		}
+		scale = 1;
 		region.scrollTop = 1000;
 		measure();
 		assert.equal(links[1].getAttribute("aria-current"), "location");
