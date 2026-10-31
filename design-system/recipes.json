@@ -104,10 +104,8 @@
 					"status": "taskCount"
 				},
 				"title",
-				{
-					"block": "checklist",
-					"limit": 3
-				}
+				"schedule",
+				"checklist"
 			],
 			"detail": {
 				"head": [
@@ -115,7 +113,12 @@
 						"block": "source",
 						"line": "task"
 					},
-					"title"
+					{
+						"block": "title",
+						"bare": true
+					},
+					"schedule",
+					"tags"
 				],
 				"body": [
 					"facts",
@@ -128,8 +131,7 @@
 			"card": [
 				{
 					"block": "source",
-					"line": "reminder",
-					"status": "reminderClock"
+					"line": "reminder"
 				},
 				{
 					"group": "reminderRow",
@@ -138,6 +140,7 @@
 						"title"
 					]
 				},
+				"schedule",
 				{
 					"block": "summary",
 					"fallback": false,
@@ -160,6 +163,7 @@
 							}
 						]
 					},
+					"schedule",
 					"tags"
 				],
 				"body": [
@@ -409,5 +413,8 @@
 				]
 			}
 		}
+	},
+	"content": {
+		"summaryCharacters": 120
 	}
 }

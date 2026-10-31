@@ -4,8 +4,6 @@ import {
 	duration,
 	eventRelative,
 	eventTimely,
-	reminderClock,
-	shortDay,
 	timeString,
 } from "../atoms/primitives.ts";
 import { Avatar, Avatars, CheckItem, CheckMark, Icon } from "../atoms/react-primitives.tsx";
@@ -14,16 +12,17 @@ import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
 	cardCover,
+	cardDateLabel,
 	cardReadingTime,
 	cardSender,
 	cardSource,
+	cardSummaryText,
 	contentDay,
 	detailDate,
 	fileDescription,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
-import { FeedPolicy } from "../services/feed-policy.ts";
 import {
 	type BlockProps,
 	type Card,
@@ -35,6 +34,7 @@ import {
 	sourceLine,
 	Title,
 } from "./card-blocks.tsx";
+import { CardSchedule } from "./card-schedule.tsx";
 import { PullRequest } from "./pull-request.tsx";
 import { cardRecipe, type Entry, entryName, entryOptions } from "./recipes.ts";
 
@@ -100,27 +100,16 @@ const lines: Record<string, (c: Card, ctx: Context, options: Options) => ReactNo
 					? contentDay(c.publishedAt)
 					: null,
 		),
-	task: (c) => (
-		<>
-			{c.project?.name || copy("web.task")}
-			{c.due !== undefined && (
-				<>
-					{" "}
-					·{" "}
-					<span className="task-due">
-						{copy("web.card.dueShort")} {dateLabel(c.due)}
-					</span>
-				</>
-			)}
-		</>
-	),
-	reminder: (c) => [...new Set([copy("web.reminder"), cardSource(c)].filter(Boolean))].join(" · "),
+	task: () => copy("web.task"),
+	reminder: () => copy("web.reminder"),
 	eventDate: (c) => dateLabel(c.start),
 	photo: (c) => {
-		const taken = contentDay(c.publishedAt);
-		return [c.location, taken ? shortDay(taken.getTime()) : ""].filter(Boolean).join(" · ");
+		return [c.location, cardDateLabel(c)].filter(Boolean).join(" · ");
 	},
-	file: (c) => [copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · "),
+	file: (c) =>
+		[copy("web.file"), cardSource(c), cardDateLabel(c), cardReadingTime(c)]
+			.filter(Boolean)
+			.join(" · "),
 };
 
 /** The one status item on the right of the source line, by the recipe's `status` option. */
@@ -144,14 +133,6 @@ const statuses: Record<string, (c: Card, ctx: Context) => ReactNode> = {
 	relative: (c, ctx) => {
 		const relative = eventRelative(c, ctx.now);
 		return relative ? <span className="event-relative">{relative}</span> : null;
-	},
-	reminderClock: (c, ctx) => {
-		const when = FeedPolicy.reminderTime(c, ctx.state, ctx.now);
-		return when ? (
-			<span className={`reminder-label num ${when.due ? "is-due" : ""}`}>
-				{reminderClock(when.at, ctx.now)}
-			</span>
-		) : null;
 	},
 	relatedCount: (c) =>
 		c.related?.length ? (
@@ -246,7 +227,7 @@ const blocks: Record<string, Block> = {
 					<b>{sender}</b>
 					<small>
 						{cardSource(c) || copy("web.mail")}
-						{c.publishedAt ? ` · ${detailDate(c.publishedAt, true)}` : ""}
+						{cardDateLabel(c) ? ` · ${cardDateLabel(c)}` : ""}
 						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
 					</small>
 				</span>
@@ -254,11 +235,7 @@ const blocks: Record<string, Block> = {
 		) : (
 			<Head
 				card={c}
-				text={[
-					cardSource(c) || copy("web.mail"),
-					detailDate(c.publishedAt, true),
-					cardReadingTime(c),
-				]
+				text={[cardSource(c) || copy("web.mail"), cardDateLabel(c), cardReadingTime(c)]
 					.filter(Boolean)
 					.join(" · ")}
 			/>
@@ -269,45 +246,42 @@ const blocks: Record<string, Block> = {
 	summary: (c, _ctx, o) => {
 		if (o.fallback === false)
 			return c.summary ? (
-				<p className={`card-summary ${o.indent ? "indent" : ""}`}>{c.summary}</p>
+				<p className={`card-summary ${o.indent ? "indent" : ""}`}>{cardSummaryText(c.summary)}</p>
 			) : null;
-		return <Summary card={c} short={!!o.short} />;
+		return <Summary card={c} />;
 	},
+	schedule: (c, ctx) => <CardSchedule card={c} state={ctx.state} now={ctx.now} />,
 	checklist: (c, ctx, o) => {
 		const tasks = ctx.tasks;
 		if (!tasks.length) return null;
-		const limit = o.limit ?? tasks.length,
-			byId = new Map(tasks.map((t) => [t.id, t])),
+		const byId = new Map(tasks.map((t) => [t.id, t])),
 			held = [...new Set(ctx.taskPreviewOrder)]
 				.map((id) => byId.get(id))
 				.filter((t): t is Card => !!t),
 			ordered = [...tasks.filter((t) => !t.done), ...tasks.filter((t) => t.done)],
-			visible = [...held, ...ordered.filter((t) => !held.includes(t))].slice(0, limit);
+			visible = [...held, ...ordered.filter((t) => !held.includes(t))];
 		return (
-			<>
-				<div className="checklist">
-					{visible.map((t) =>
-						ctx.passive ? (
-							<div
-								key={t.id}
-								className={`check-item ${t.done ? "is-done" : ""}`}
-								role="img"
-								aria-label={`${t.text}：${t.done ? copy("web.templates.f28461bb49c8") : copy("web.templates.6707de42c29d")}`}
-							>
-								<CheckMark done={!!t.done} />
-								<span>{t.text}</span>
-							</div>
-						) : (
-							<CheckItem
-								key={t.id}
-								cardId={c.id}
-								task={t as { id: string; text: string; done?: boolean }}
-							/>
-						),
-					)}
-				</div>
-				{tasks.length > limit && more(tasks.length - limit, "web.templates.f9d529eacdf3")}
-			</>
+			<div className="checklist">
+				{visible.map((t) =>
+					ctx.passive ? (
+						<div
+							key={t.id}
+							className={`check-item ${t.done ? "is-done" : ""}`}
+							role="img"
+							aria-label={`${t.text}：${t.done ? copy("web.templates.f28461bb49c8") : copy("web.templates.6707de42c29d")}`}
+						>
+							<CheckMark done={!!t.done} />
+							<span>{t.text}</span>
+						</div>
+					) : (
+						<CheckItem
+							key={t.id}
+							cardId={c.id}
+							task={t as { id: string; text: string; done?: boolean }}
+						/>
+					),
+				)}
+			</div>
 		);
 	},
 	reminderMark: (c, ctx) => (

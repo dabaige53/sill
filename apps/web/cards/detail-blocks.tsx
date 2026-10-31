@@ -1,5 +1,4 @@
 import type { Card } from "../../../contracts/card.ts";
-import { dateLabel } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { detailDate, fileDescription } from "../data/card-source.ts";
@@ -79,7 +78,10 @@ export function FileList({ files = [] }: { files?: Card["files"] }) {
 
 export function TaskFacts({ card }: { card: Card }) {
 	const rows = [
-		card.due !== undefined ? ["clock", copy("web.card.due"), dateLabel(card.due)] : null,
+		card.sources?.length
+			? ["link", copy("web.card.source"), card.sources.map((source) => source.name).join(" · ")]
+			: null,
+		card.project ? ["folder", copy("web.metadata.project"), card.project.name] : null,
 		card.priority !== undefined ? ["flag", copy("web.card.priority"), String(card.priority)] : null,
 	].filter(Boolean);
 	return rows.length ? (

@@ -46,7 +46,7 @@ import SillKit
     for task in tasks.filter({ !$0.done }) + tasks.filter(\.done)
     where !taskOrder.contains(task.id) { taskOrder.append(task.id) }
     let byID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
-    return taskOrder.prefix(3).compactMap { byID[$0] }
+    return taskOrder.compactMap { byID[$0] }
   }
 
   init(id: String) { self.id = id }

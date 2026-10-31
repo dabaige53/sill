@@ -1,6 +1,6 @@
 # 产品行为规范
 
-更新：2026-10-29。本文规定页面与卡片的行为；产品目的见 [PRODUCT.md](../agent/PRODUCT.md)，实际平台支持与验证状态见[功能矩阵](../implementation/feature-matrix.md)。
+更新：2026-10-31。本文规定页面与卡片的行为；产品目的见 [PRODUCT.md](../agent/PRODUCT.md)，实际平台支持与验证状态见[功能矩阵](../implementation/feature-matrix.md)。
 
 ## 页面
 
@@ -20,7 +20,9 @@
 
 卡面用标题、摘要、来源与必要的专属字段帮助用户判断；详情文字统一写入 Markdown body，要点放在正文列表。任务、日程、附件、章节、文字稿和 PR 快照保留各自结构。字段含义与上限见 [跨端数据约定](../../contracts/README.md)，写作规则见 [卡片内容设计规范](design/card-content.md)。
 
-标题、摘要的显示行数与截断规则按卡片类型和平台处理，统一见 [字体](../../design-system/handbook/foundation.md#字体)与[文字长度](../../design-system/handbook/foundation.md#文字长度)。详情保留完整正文。
+标题沿用各端布局；摘要按最多 120 个文字字符显示并自然增高，详情独立展示完整概要。其他截断规则统一见 [字体](../../design-system/handbook/foundation.md#字体)与[文字长度](../../design-system/handbook/foundation.md#文字长度)。详情保留完整正文。
+
+待办和提醒按真实卡片类型命名，来源名称单独显示；待办清单数量不改变类型。两处的截止文案统一为“截止”，时间放在标题下、标签上；提醒时间与截止时间分别说明。每张新待办最多 6 项，卡面全部展示，历史超量卡片另行整理。
 
 ## 信息流
 

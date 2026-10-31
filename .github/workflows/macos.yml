@@ -18,6 +18,11 @@ on:
   pull_request:
     paths: *apple-inputs
   workflow_dispatch:
+    inputs:
+      card_content:
+        description: Verify shared card content without browser automation
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -38,6 +43,14 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Check Apple formatting
         run: npm run lint:apple
+      - name: Verify shared card content
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.card_content }}
+        run: |
+          npm run contracts:check
+          npm run lint:web
+          npm run typecheck
+          npm run build
+          node --import tsx --test tests/web/card.test.ts tests/web/card-metadata.test.ts tests/web/card-content.test.ts tests/web/cloud-card.test.ts tests/contracts/card.test.ts tests/server/card-display-policy.test.ts
       - name: Run Swift tests without UI automation
         if: ${{ !cancelled() }}
         run: node tests/apple/run.ts

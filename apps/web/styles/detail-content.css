@@ -650,3 +650,30 @@
 		justify-content: flex-start;
 	}
 }
+
+/* Shared summary and schedule, with no card-face clamp in a detail. */
+.detail-summary {
+	display: grid;
+	gap: var(--rhythm-close);
+	padding: var(--space-16);
+	border-radius: var(--control-radius);
+	background: var(--surface);
+}
+.detail-summary-label {
+	font-size: var(--text-meta);
+	font-weight: 600;
+	color: var(--muted);
+}
+.detail-summary p {
+	margin: 0;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.card-schedule {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4) var(--space-12);
+	font-size: var(--text-meta);
+	color: var(--muted);
+	overflow-wrap: anywhere;
+}

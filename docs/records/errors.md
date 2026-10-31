@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-31 | 卡片内容一致性 | summary 裁剪、详情概要、待办/提醒名称、截止位置、缺时间、6 项清单 | [第一批定位与修改](2026-10-31-card-content-consistency/README.md) |
 | 2026-10-31 | MCP 工作台入口 | 首次未能显示 sill、重试恢复、1.2.21、网络证据未取得 | [工作台首次加载再次失败](2026-10-31-production-acceptance/diagnosis.md#工作台首次加载再次失败) |
 | 2026-10-31 | 卡片类型与来源 | missing_video_image、invalid_authors_type、播客全文超时、Drive 元数据非全文 | [新增类型校验与来源缺口](2026-10-31-production-acceptance/diagnosis.md#新增类型校验与来源缺口) |
 | 2026-10-31 | 插件包装与发布 | tar、AppleDouble、._ 文件、插件与云端版本差异 | [生产发布与包装清理](2026-10-31-production-acceptance/release.md#1220-实际发布与复验) |

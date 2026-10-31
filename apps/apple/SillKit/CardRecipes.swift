@@ -49,6 +49,17 @@ public struct DetailRecipe: Equatable, Sendable {
 }
 
 public enum CardRecipes {
+  public static let summaryCharacters: Int = {
+    let root = try? JSONValue.decode(Data(CardRecipeData.json.utf8))
+    return Int(root?["content"]?["summaryCharacters"]?.number ?? 120)
+  }()
+
+  public static func faceSummary(_ text: String) -> String {
+    let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    let characters = value.unicodeScalars
+    return characters.count > summaryCharacters
+      ? String(String.UnicodeScalarView(characters.prefix(summaryCharacters - 1))) + "…" : value
+  }
   private static let types: [String: JSONValue] = {
     let root = try? JSONValue.decode(Data(CardRecipeData.json.utf8))
     return root?.object?["types"]?.object ?? [:]

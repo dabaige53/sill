@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
 import { JSDOM } from "jsdom";
 import { cardHTML } from "../../apps/web/cards/templates.ts";
@@ -44,7 +43,7 @@ test("keys holding undefined count as absent, as they do once saved as JSON", ()
 });
 test("unknown card types cannot inject attributes or call renderer helper methods", () => {
 	Store.state = Store.fresh();
-	for (const type of ["__proto__", "constructor", "head", 'future\" onpointerenter=\"alert(1)']) {
+	for (const type of ["__proto__", "constructor", "head", 'future" onpointerenter="alert(1)']) {
 		const card = parseCard({ id: "future", type, title: "Future" });
 		const document = new JSDOM(cardHTML(card)).window.document;
 		assert.equal(document.querySelector("article").getAttribute("onpointerenter"), null);
@@ -74,7 +73,7 @@ test("digest face shows the summary or plain Markdown text without invented week
 	);
 });
 
-test("task preview exposes unfinished work beyond the first three without reordering stored tasks", () => {
+test("task preview exposes all unfinished and completed work without reordering stored tasks", () => {
 	Store.state = Store.fresh();
 	const tasks = [
 		{ id: "done-1", text: "Completed one" },
@@ -90,7 +89,7 @@ test("task preview exposes unfinished work beyond the first three without reorde
 	).window.document;
 	assert.deepEqual(
 		[...document.querySelectorAll(".check-item")].map((node) => node.getAttribute("data-extra")),
-		["next-1", "next-2", "done-1"],
+		["next-1", "next-2", "done-1", "done-2", "done-3"],
 	);
 	assert.equal(document.querySelector(".task-count").textContent, "3/5");
 	assert.deepEqual(card, before);
@@ -139,11 +138,13 @@ test("keyboard task previews keep their positions without changing the stored or
 		"one",
 		"two",
 		"three",
+		"four",
+		"done",
 	]);
-	assert.deepEqual(previewIds({ state }), ["one", "three", "four"]);
+	assert.deepEqual(previewIds({ state }), ["one", "three", "four", "done", "two"]);
 	assert.deepEqual(
 		previewIds({ state, taskPreviewOrder: ["missing", "two", "two", "one", "three", "four"] }),
-		["two", "one", "three"],
+		["two", "one", "three", "four", "done"],
 	);
 	assert.deepEqual(card, before);
 });

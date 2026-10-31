@@ -117,7 +117,7 @@ struct CardSummary: View {
   var query = ""
   var indent: CGFloat = 0
   var body: some View {
-    Highlighted(text: text, query: query)
+    Highlighted(text: CardRecipes.faceSummary(text), query: query)
       .textStyle(
         AppleMetrics.font14, leading: AppleMetrics.cardSummaryLineHeight / AppleMetrics.font14
       )
@@ -135,6 +135,46 @@ struct SummaryBlock: View {
   var query = ""
   var body: some View {
     if !summary.isEmpty { CardSummary(text: summary, query: query) }
+  }
+}
+
+struct SummaryOverview: View {
+  let card: CardModel
+  var body: some View {
+    if !card.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
+        Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
+          .foregroundStyle(AppleColors.secondary)
+        Text(card.summary).textStyle(AppleMetrics.font15)
+          .fixedSize(horizontal: false, vertical: true)
+          .textSelection(.enabled)
+      }
+      .padding(AppleMetrics.space16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(RoundedRectangle(cornerRadius: AppleMetrics.space12).fill(AppleColors.surface))
+    }
+  }
+}
+
+struct CardScheduleLine: View {
+  let card: CardModel
+  let state: CardState
+  var now = Format.milliseconds()
+  var body: some View {
+    VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+      if card.kind == .task, let due = card.due {
+        Text(Copy.text("web.card.due") + " · " + Format.dateLabel(due))
+      }
+      if card.kind == .reminder || state.snoozedUntil > 0,
+        let when = FeedPolicy.reminderTime(card, state: state, now: now)
+      {
+        Text(Copy.text("web.reminder") + " · " + Format.dateLabel(when.at))
+      } else if card.due == nil {
+        Text(card.displayDate)
+      }
+    }
+    .textStyle(AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
+    .fixedSize(horizontal: false, vertical: true)
   }
 }
 

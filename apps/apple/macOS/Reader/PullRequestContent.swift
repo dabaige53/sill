@@ -17,6 +17,7 @@ struct PullRequestContent: View {
           CardHead(
             card: card,
             text: "\(pr.repository) #\(pr.number)"
+              + (card.displayDate.isEmpty ? "" : " · " + card.displayDate)
               + (detail
                 ? " · \(Copy.text("pr.observed")) \(ReaderContent.fullDate(pr.observedAt) ?? pr.observedAt)"
                 : "")
@@ -54,6 +55,7 @@ struct PullRequestContent: View {
           }
         }
         if detail {
+          SummaryOverview(card: card)
           details(pr)
         } else {
           if !card.summary.isEmpty {

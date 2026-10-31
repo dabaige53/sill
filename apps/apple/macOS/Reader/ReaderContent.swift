@@ -68,6 +68,7 @@ struct ReaderContent: View {
             .padding(.top, -AppleMetrics.space16)
         }
         head
+        SummaryOverview(card: card)
         ForEach(Array(recipe.body.enumerated()), id: \.offset) { index, entry in
           bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
         }
@@ -126,17 +127,11 @@ struct ReaderContent: View {
       } else {
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
           title
-          if entry.flag("publication") == false {
-            ReaderTags(tags: state.tags(of: card))
-          } else if !state.tags(of: card).isEmpty || card.detailDate != nil {
-            VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-              ReaderTags(tags: state.tags(of: card))
-              PublicationRows(card: card)
-            }
-          }
+          ReaderTags(tags: state.tags(of: card))
         }
       }
     case "tags": ReaderTags(tags: state.tags(of: card))
+    case "schedule": CardScheduleLine(card: card, state: state)
     case "reminderRow":
       HStack(alignment: .top, spacing: AppleMetrics.space12) {
         ReminderCheck(card: card, state: state, large: true)
@@ -169,33 +164,27 @@ struct ReaderContent: View {
     switch entry.string("line") {
     case "digest":
       [
-        card.sourceName.nilIfEmpty,
+        card.sourceName.nilIfEmpty, card.displayDate.nilIfEmpty, card.readingTime.nilIfEmpty,
         card.related.isEmpty ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
       ].compactMap { $0 }.joined(separator: " · ")
-    case "task":
-      [card.sourceName, card.project ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
-    case "reminder":
-      [
-        Copy.text("web.reminder"), card.sourceName,
-        FeedPolicy.reminderTime(card, state: state, now: Format.milliseconds()).map {
-          Format.reminderClock($0.at, now: Format.milliseconds())
-        } ?? "",
-      ].filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
+    case "task": Copy.text("web.task")
+    case "reminder": Copy.text("web.reminder")
     default:
       switch card.kind {
       case .article:
         [
           card.publicationName.nilIfEmpty ?? card.kind.label,
-          card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
+          card.displayDate, card.readingTime,
         ].filter { !$0.isEmpty }.joined(separator: " · ")
       case .event: card.sourceName
       case .file:
         Copy.text("web.preview.fileSourcePrefix")
-          + [card.sourceName, card.readingTime].filter { !$0.isEmpty }.joined(separator: " · ")
+          + [card.sourceName, card.displayDate, card.readingTime].filter { !$0.isEmpty }.joined(
+            separator: " · ")
       default:
         [
           [.note, .suggestion].contains(card.kind) ? card.publicationName : card.sourceName,
-          [.note, .suggestion].contains(card.kind) ? card.publicationDate ?? "" : "",
+          card.displayDate,
           card.readingTime,
         ].filter { !$0.isEmpty }.joined(separator: " · ")
       }
@@ -210,7 +199,7 @@ struct ReaderContent: View {
           Text(sender).lineLimit(1).textStyle(AppleMetrics.font15, .bold).foregroundStyle(
             AppleColors.primary)
           Text(
-            [card.sourceName, card.publishedAt.flatMap(Self.fullDate) ?? "", card.readingTime]
+            [card.sourceName, card.displayDate, card.readingTime]
               .filter { !$0.isEmpty }
               .joined(separator: " · ")
           )
@@ -305,10 +294,11 @@ struct ReaderContent: View {
     case "facts":
       if hasFacts {
         VStack(alignment: .leading, spacing: 0) {
-          if let due = card.due {
-            DetailRow(
-              icon: "clock", title: Copy.text("web.card.due") + " " + Format.dateLabel(due),
-              tone: AppleColors.warning)
+          if !card.sourceName.isEmpty {
+            DetailRow(icon: "link", title: Copy.text("web.card.source") + " · " + card.sourceName)
+          }
+          if let project = card.project {
+            DetailRow(icon: "folder", title: Copy.text("web.metadata.project") + " · " + project)
           }
           if card.raw["priority"]?.number != nil {
             DetailRow(
@@ -365,7 +355,7 @@ struct ReaderContent: View {
   }
 
   private var hasFacts: Bool {
-    card.due != nil || card.raw["priority"]?.number != nil
+    !card.sourceName.isEmpty || card.project != nil || card.raw["priority"]?.number != nil
   }
 
   /// A small grey section title over its content (Web `.detail-section`).

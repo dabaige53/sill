@@ -25,8 +25,9 @@ struct PodcastDetail: View {
           }
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-          if let date = card.publicationDate {
-            Text(date).font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+          if !card.displayDate.isEmpty {
+            Text(card.displayDate).font(.number(AppleMetrics.font13)).foregroundStyle(
+              AppleColors.secondary)
           }
           Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
           if let url = card.url {
@@ -44,6 +45,7 @@ struct PodcastDetail: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.trailing, AppleMetrics.space32)
       }
+      SummaryOverview(card: card)
       HStack(spacing: AppleMetrics.space8) {
         Icon("headphones", size: AppleMetrics.space16)
         Text(Copy.text("web.media.listening"))

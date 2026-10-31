@@ -1,22 +1,13 @@
 import { cloneElement, type ReactElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
-import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
+import { eventTimely } from "../atoms/primitives.ts";
+import { DetailSummary, sourceLine } from "../cards/card-blocks.tsx";
 import { DetailText } from "../cards/markdown.tsx";
 import { PhotoCarousel } from "../cards/photo-carousel.tsx";
-import { publicationName } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import {
-	articleDate,
-	cardDate,
-	cardDates,
-	cardReadingTime,
-	cardSourceKind,
-	contentDay,
-	detailDate,
-	detailSource,
-} from "../data/card-source.ts";
-import { CardTypes, SourceKinds } from "../data/cards.ts";
+import { cardDateLabel, cardSourceKind } from "../data/card-source.ts";
+import { SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -44,30 +35,11 @@ export const panelCard = {
 		);
 	},
 	meta(this: PanelRenderers, c?: Card) {
-		// An article names its date here, short (昨天, 10/18), instead of in the publication line.
-		const date =
-			c.type === "article"
-				? articleDate(c)
-				: ["note", "file", "suggestion"].includes(c.type)
-					? contentDay(c.publishedAt)
-					: null;
 		return (
-			<>
-				<div className={"preview-meta"}>
-					{sourceIcon(c, 15)}
-					<span>
-						{[
-							(["article", "media", "note", "suggestion"].includes(c.type)
-								? publicationName(c)
-								: detailSource(c)) || (CardTypes[c.type] || CardTypes.note).label,
-							date ? shortDay(date.getTime()) : "",
-							cardReadingTime(c),
-						]
-							.filter(Boolean)
-							.join(" · ")}
-					</span>
-				</div>
-			</>
+			<div className="preview-meta">
+				{sourceIcon(c, 15)}
+				<span>{sourceLine(c)}</span>
+			</div>
 		);
 	},
 	tags(this: PanelRenderers, c?: Card) {
@@ -90,29 +62,9 @@ export const panelCard = {
 			""
 		);
 	},
-	publication(this: PanelRenderers, c?: Card) {
-		const date = [
-			"article",
-			"media",
-			"mail",
-			"event",
-			"task",
-			"reminder",
-			"note",
-			"file",
-			"suggestion",
-		].includes(c.type)
-			? null
-			: cardDates(c).published;
-		const label = date ? detailDate(date.datetime) : "";
-		if (!date) return null;
-		return (
-			<div className="preview-published">
-				<time dateTime={date.datetime} title={date.text}>
-					{label}
-				</time>
-			</div>
-		);
+	publication() {
+		// Dates live in the shared source line on both surfaces.
+		return null;
 	},
 	bookmark(this: PanelRenderers, c?: Card, s?: CardItem) {
 		return cloneElement(
@@ -278,14 +230,12 @@ export const panelCard = {
 			return <VideoSurface key={c.id} card={c} app={app} renderers={this} />;
 		const s = Store.item(c.id);
 		const body = loading ? (
-			<>
-				<div className={"skeleton-lines"} aria-hidden={"true"}>
-					<i></i>
-					<i></i>
-					<i></i>
-					<i></i>
-				</div>
-			</>
+			<div className={"skeleton-lines"} aria-hidden={"true"}>
+				<i></i>
+				<i></i>
+				<i></i>
+				<i></i>
+			</div>
 		) : (
 			<DetailText body={c.body} />
 		);
@@ -363,6 +313,7 @@ export const panelCard = {
 					{button("x", copy("web.photo.close"), "close")}
 				</div>
 				{"\n   "}
+				<DetailSummary card={c} />
 				<div className={"lightbox-stage"}>
 					{photos.length > 1 && (
 						<button
@@ -401,8 +352,7 @@ export const panelCard = {
 				</div>
 				{"\n   "}
 				<div className="lightbox-caption">
-					{c.summary}
-					<small>{[c.location, detailDate(c.publishedAt)].filter(Boolean).join(" · ")}</small>
+					<small>{[c.location, cardDateLabel(c)].filter(Boolean).join(" · ")}</small>
 				</div>
 				<div className={"lightbox-thumbs"}>
 					{keyed(

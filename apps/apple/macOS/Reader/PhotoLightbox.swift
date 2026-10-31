@@ -20,18 +20,9 @@ struct PhotoLightbox: View {
     let current = min(max(0, index), max(0, photos.count - 1))
     VStack(spacing: 0) {
       top
+      SummaryOverview(card: card).padding(.horizontal, AppleMetrics.photoPageGutter)
       stage(photos, current: current)
-      if !card.summary.isEmpty {
-        Text(card.summary)
-          .font(.sans(AppleMetrics.font14))
-          .foregroundStyle(AppleColors.secondary)
-          .multilineTextAlignment(.leading)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.top, AppleMetrics.space12)
-          .padding(.bottom, AppleMetrics.space4)
-          .padding(.horizontal, AppleMetrics.photoPageGutter)
-      }
-      let metadata = [card.location, card.publicationDate]
+      let metadata = [card.location, card.displayDate]
         .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
       if !metadata.isEmpty {
         Text(metadata)
