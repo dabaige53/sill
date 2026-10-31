@@ -22,7 +22,11 @@
 
 平台重新读取确认：当前仍为 `v1.2.19`、源码 `9494b6e545c720c64708ac6d14e0125e5b1f7869`，Worker 部署 `35c37146-d95a-48be-9514-b41c269248e8`，版本 `277348ba-c7e0-4b24-bfb1-3495a3327cab`，流量 100%。保留此版本为回退依据。
 
-Supabase 正常连接重新列出 18 项迁移，末项 `20261029130036 workspace_conditional_read`，尚无 `sill_keyword_search`。仓库已有 `20261030120000_sill_keyword_search.sql`，新增授权范围内的搜索函数，不更新卡片行或清空内容。实际迁移回执、候选检查、发布及生产复验结果在执行后原位追加。
+Supabase 初次列出 18 项迁移，末项 `20261029130036 workspace_conditional_read`，没有 `sill_keyword_search`。取得授权后，通过正常 Supabase 插件执行仓库已有 `20261030120000_sill_keyword_search.sql`，返回 `success:true`；重新列出 19 项，新增 `20261031025034 sill_keyword_search`。线上版本号由执行服务分配，与本地文件时间不同，内容使用原迁移全文。迁移新增既有授权范围内的搜索函数，没有更新卡片行或清空内容。实际搜索能力仍待新后端部署后从原宿主验证。
+
+## 发布检查
+
+候选提交 `92dd6eb23c93a3e1aecfe471594242d911a06123`，PR #87。服务端集成、账号数据、授权检查与 Swift 后台检查通过。Web 检查 `41161850850` 在 `pagination-keeps-card-focus` 中途重置分页时超时，未发布。原日志和截图保存在任务专用 `/private/tmp` 目录；诊断与修正见[CI 原诊断](../2026-10-31-main-ci-tests/diagnosis.md#分页场景中途重置超时2026-10-31)。
 
 ## 工作区边界
 

@@ -99,6 +99,23 @@ async function geometry(page: any) {
 		}),
 	);
 }
+async function preparePagination(page: any) {
+	await page.evaluate((now: number) => {
+		window.__store.insert(
+			Array.from({ length: 33 }, (_, index) => ({
+				id: `pagination-${index}`,
+				type: "article",
+				title: `后续阅读 ${index + 1}`,
+				summary: "用于验证真实滚动加载的合成卡片，新增内容应保留正在操作的卡片及其键盘焦点。",
+				time: now - (index + 10) * 3600000,
+			})),
+		);
+		// Rank the fixture as one initial feed, not as arrivals above the focus targets.
+		window.__app.feedOrder = null;
+		window.__app.renderCurrent(false);
+	}, reviewTime);
+	assert.equal(await page.locator(".feed-card").count(), 40);
+}
 async function noOverflow(page: any, width: number) {
 	const boxes = await geometry(page);
 	assert.ok(
@@ -277,21 +294,10 @@ try {
 		);
 	});
 	await run("pagination-keeps-card-focus", { width: 1320, height: 720 }, async (page) => {
-		await page.evaluate(() => {
-			window.__store.insert(
-				Array.from({ length: 33 }, (_, index) => ({
-					id: `pagination-${index}`,
-					type: "article",
-					title: `后续阅读 ${index + 1}`,
-					summary: "用于验证真实滚动加载的合成卡片，新增内容应保留正在操作的卡片及其键盘焦点。",
-					time: Date.now() - (index + 10) * 3600000,
-				})),
-			);
-			window.__app.renderCurrent(false);
-		});
-		assert.equal(await page.locator(".feed-card").count(), 40);
+		await preparePagination(page);
 		const title = page.locator('[data-card="review-note"] .card-title-button');
 		await title.focus();
+		assert.equal(await page.locator(".feed-card").count(), 40);
 		await page.mouse.wheel(0, 3000);
 		await page.waitForFunction(() => document.querySelectorAll(".feed-card").length === 42);
 		assert.equal(await page.evaluate(() => window.__app.pageLimit), 80);
@@ -301,18 +307,15 @@ try {
 			"loading the next page lost the existing card title's focus",
 		);
 		assert.ok(await page.evaluate(() => scrollY > 0), "restoring focus jumped back to the card");
-		await page.evaluate(() => {
-			window.scrollTo({ top: 0, behavior: "instant" });
-			window.__app.pageLimit = 40;
-			window.__app.renderCurrent(false);
-		});
-		await page.waitForFunction(
-			() => scrollY === 0 && document.querySelectorAll(".feed-card").length === 40,
-		);
+	});
+	await run("pagination-keeps-task-focus", { width: 1320, height: 720 }, async (page) => {
+		await preparePagination(page);
+		const title = page.locator('[data-card="review-note"] .card-title-button');
 		const task = page.locator('[data-card="review-task"]');
 		await task.locator('[data-action="task"][data-extra="next-a"]').focus();
 		await page.keyboard.press("Space");
 		assert.equal(await task.locator(".task-count").innerText(), "4/5");
+		assert.equal(await page.locator(".feed-card").count(), 40);
 		await page.mouse.wheel(0, 3000);
 		await page.waitForFunction(() => document.querySelectorAll(".feed-card").length === 42);
 		assert.equal(await page.evaluate(() => window.__app.pageLimit), 80);
