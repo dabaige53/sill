@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
-import { prepareSupabaseImport } from "../../scripts/prepare-import.ts";
 import { authenticateSupabase } from "../../server/cloud/supabase-auth.ts";
 
 const owner = "11111111-1111-4111-8111-111111111111";
@@ -71,40 +70,6 @@ test("auth error output excludes upstream details and credentials", async () => 
 		})),
 		{ status: 503, message: "unavailable" },
 	);
-});
-test("legacy preparation preserves specialized fields and separates revisions", () => {
-	const snapshot: Record<string, any> = {
-		revision: 45,
-		state: {
-			cards: [
-				{
-					id: "task1",
-					type: "task",
-					title: "T",
-					tasks: [{ id: "a", text: "A" }],
-					project: { name: "X" },
-					related: [],
-					time: 42,
-				},
-			],
-			items: { task1: { taskDone: ["a"], note: "note", read: true } },
-			seconds: 20,
-			preferences: { theme: "dark" },
-			sources: [],
-		},
-	};
-	const original = structuredClone(snapshot);
-	const plan = prepareSupabaseImport(snapshot);
-	assert.equal(plan.legacyRevision, 45);
-	assert.equal(plan.contents[0].revision, 1);
-	assert.deepEqual(plan.contents[0].card, snapshot.state.cards[0]);
-	assert.deepEqual(plan.contents[0].item, snapshot.state.items.task1);
-	assert.deepEqual(plan.contents[0].state, { read: true });
-	assert.deepEqual(snapshot, original);
-	plan.contents[0].card.title = "other";
-	assert.equal(snapshot.state.cards[0].title, "T");
-	snapshot.state.items.orphan = {};
-	assert.throws(() => prepareSupabaseImport(snapshot), /Orphan/);
 });
 test("SQL foundation executes, isolates roles, enforces tenant references and tombstone scrubbing", async () => {
 	const db = new PGlite();

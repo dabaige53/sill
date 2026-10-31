@@ -21,7 +21,7 @@ npm run test:macos
 npm run lint:apple
 ```
 
-`npm test` 包含 Web 构建与核心、约定、服务端测试；Swift 测试使用临时数据和模拟 HTTP。以上通过不代表真实窗口已验收。macOS 系统工具受沙盒限制时申请沙盒外执行，不因此修改产品代码。
+`npm test` 包含 Web 构建与核心、约定、服务端测试；Swift 测试使用临时数据和模拟 HTTP。macOS 系统工具受沙盒限制时申请沙盒外执行，不因此修改产品代码。
 
 ## 2. 创建两份独立样例
 

@@ -12,4 +12,4 @@
 | MCP 授权 | 云端网页提供授权页面，Mac 独立应用不提供该页面 |
 | 性能追踪 | Mac 菜单提供本机诊断工具，Web 不适用 |
 
-主要入口为 `apps/web/views/panel-settings.tsx`、Mac `SettingsView` 和 `server/cloud/http.ts`。备份与系统提醒见[对应操作说明](../operations/backup-and-reminders.md)。当前页面不把开发备注或未接入能力作为用户设置项。
+主要入口为 `apps/web/interactions/panel-settings.tsx`、Mac `SettingsView` 和 `server/cloud/http.ts`。备份与系统提醒见[对应操作说明](../operations/backup-and-reminders.md)。当前页面不把开发备注或未接入能力作为用户设置项。

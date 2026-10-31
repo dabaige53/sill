@@ -1,6 +1,6 @@
 # 脚本目录
 
-状态：操作说明。更新：2026-10-21。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/agent/file-management.md)。构建只生成本地文件，不代表安装、发布或线上验收。
+状态：操作说明。更新：2026-10-21。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/agent/file-management.md)。
 
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
