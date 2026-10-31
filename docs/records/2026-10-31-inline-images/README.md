@@ -2,7 +2,7 @@
 
 ## 问题与状态
 
-2026-10-31，Issue #83。源码已修改，等待 GitHub Actions 验证与设备体验确认，未发布。
+2026-10-31，Issue #83。源码修复及相关合成回归通过，两端编译通过；完整工作流仍因基线已有失败而未通过，设备体验未确认，未合并或发布。
 
 ## 环境与触发
 
@@ -25,5 +25,13 @@
 ## 验证与后续
 
 - 新增合成回归覆盖图文顺序、重复图片、URL 参数、安全协议、加载失败、查看与关闭大图时正文节点和滚动保持，以及独立网页与宿主链接路径。
-- 程序测试与 Web/Mac 构建由 GitHub Actions 执行，运行结果另行补充。本地只做生成产物、格式、文件和差异检查。
+- 本地文案与设计产物已生成，修改文件格式检查无错误，文件管理与差异检查通过。没有本地运行程序测试或发布构建。
 - 未进行本地浏览器自动化、Safari/PWA 真机、Mac 窗口或真实宿主验收。真实卡片 URL 检查和剩余 Readwise 导入另行确认范围，Issue 暂不关闭。
+
+### GitHub Actions：源码 `bae2c860`
+
+- [集成检查 41153927863](https://github.com/dabaige53/sill/actions/runs/41153927863)：Web 构建、类型检查与 52 项契约检查通过。Web 核心 493 项中 488 项通过；新增图片顺序、协议、加载失败、大图节点及滚动保持、原文入口回归通过。
+- 剩余 5 项失败分别是媒体预览写状态、完成后排序、刷新布局测量，以及两项桌面搜索排序。在同一基线 `b2adee7f` 的[main 检查 41062608683](https://github.com/dabaige53/sill/actions/runs/41062608683)中，这 5 项已按相同原因失败（487 项中 482 项通过）。本轮不修改这些无关实现或放宽断言。
+- [Mac 检查 41153969763](https://github.com/dabaige53/sill/actions/runs/41153969763)：Apple 格式检查、全部源码编译及 MarkdownBodyTests 通过。159 项中 158 项通过，唯一失败为 `FeedTests.completionKeepsOrderUntilExplicitRefresh`。同基线的[main 检查 41062608669](https://github.com/dabaige53/sill/actions/runs/41062608669)同样失败（158 项中 157 项通过，实际卡片顺序一致）。
+- [云端检查 41153927892](https://github.com/dabaige53/sill/actions/runs/41153927892)：两项浏览器创建检查失败于 `cloud-browser.ts:180` 与 `cloud-app-browser.ts:178`，同基线的[main 检查 41062608947](https://github.com/dabaige53/sill/actions/runs/41062608947)同样失败；不是本次图片或链接修复引入。后续浏览器步骤未执行，不能标成通过。
+- [授权检查 41153927861](https://github.com/dabaige53/sill/actions/runs/41153927861)通过。没有执行部署或真实账号写入。
