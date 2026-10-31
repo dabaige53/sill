@@ -116,7 +116,19 @@ test("published URL schemas avoid escaped slashes and keep HTTP(S) validation", 
 	};
 	visit(catalog);
 	assert.ok(patterns.length > 0);
-	assert.ok(patterns.every((pattern) => pattern === "^https?:[/][/]"));
+	for (const pattern of patterns) {
+		for (const url of [
+			"https://readwise.io/open/123",
+			"https://docs.example.com/document/source?view=full#section",
+			"http://example.com/source",
+		]) {
+			assert.equal(
+				new RegExp(pattern).exec(url)?.[0],
+				url,
+				"URL patterns must also support hosts that validate the whole string",
+			);
+		}
+	}
 });
 
 test("skill recipes round trip through discovered MCP tools, including batch and retry", async () => {
