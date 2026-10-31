@@ -96,17 +96,23 @@ export class AgentHandoff {
 	}
 }
 
+export function cardLink(value?: string): URL | null {
+	try {
+		const url = new URL(value || "");
+		return ["https:", "http:", "mailto:"].includes(url.protocol) ? url : null;
+	} catch {
+		return null;
+	}
+}
+
 /** The host owns navigation in an MCP App; browser popups are only for independent pages. */
 export async function openCardLink(
 	value: string,
 	host: { openLink?: (url: string) => Promise<void> } | undefined,
 	openWindow: (url: string) => unknown,
 ) {
-	let url: URL;
-	try {
-		url = new URL(value);
-		if (!["https:", "http:", "mailto:"].includes(url.protocol)) throw new Error();
-	} catch {
+	const url = cardLink(value);
+	if (!url) {
 		throw agentFailure("invalid_link", copy("web.agent.invalidLink"));
 	}
 	if (host) {

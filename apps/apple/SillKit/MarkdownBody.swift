@@ -1,7 +1,7 @@
 import Foundation
 import Markdown
 
-/// Parsed once with each card. Views only draw these values; body links never load images.
+/// Parsed once with each card. Only authored HTTPS images can become image views.
 public struct MarkdownBody: Equatable, Sendable {
   public struct Run: Equatable, Sendable {
     public var text: String
@@ -10,6 +10,7 @@ public struct MarkdownBody: Equatable, Sendable {
     public var code = false
     public var strike = false
     public var link: URL?
+    public var image: URL?
   }
 
   public struct Block: Equatable, Sendable {
@@ -38,6 +39,14 @@ public struct MarkdownBody: Equatable, Sendable {
     return url
   }
 
+  public static func imageURL(_ destination: String?) -> URL? {
+    guard let destination, let url = URL(string: destination),
+      url.scheme?.lowercased() == "https", url.host?.isEmpty == false,
+      url.user == nil, url.password == nil
+    else { return nil }
+    return url
+  }
+
   private static func runs(in node: any Markup) -> [Run] {
     if let text = node as? Markdown.Text { return [Run(text: text.string)] }
     if let code = node as? InlineCode { return [Run(text: code.code, code: true)] }
@@ -45,7 +54,9 @@ public struct MarkdownBody: Equatable, Sendable {
     if node is SoftBreak { return [Run(text: " ")] }
     if node is LineBreak { return [Run(text: "\n")] }
     let children = node.children.flatMap { runs(in: $0) }
-    if node is Image { return [Run(text: children.map(\.text).joined())] }
+    if let image = node as? Markdown.Image {
+      return [Run(text: children.map(\.text).joined(), image: imageURL(image.source))]
+    }
     if let link = node as? Markdown.Link {
       guard let url = safeURL(link.destination) else {
         return [Run(text: "[\(children.map(\.text).joined())](\(link.destination ?? ""))")]
@@ -67,7 +78,21 @@ public struct MarkdownBody: Equatable, Sendable {
 
   private static func blocks(in node: any Markup, depth: Int = 0, quote: Int = 0) -> [Block] {
     if let paragraph = node as? Paragraph {
-      return [Block(runs: runs(in: paragraph), quoteDepth: quote, depth: depth)]
+      var result: [Block] = []
+      var pending: [Run] = []
+      for run in runs(in: paragraph) {
+        if run.image != nil {
+          if !pending.isEmpty {
+            result.append(Block(runs: pending, quoteDepth: quote, depth: depth))
+            pending = []
+          }
+          result.append(Block(runs: [run], quoteDepth: quote, depth: depth))
+        } else {
+          pending.append(run)
+        }
+      }
+      if !pending.isEmpty { result.append(Block(runs: pending, quoteDepth: quote, depth: depth)) }
+      return result
     }
     if let heading = node as? Heading {
       return [

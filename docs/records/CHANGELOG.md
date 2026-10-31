@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-暂无条目。
+- Web/PWA 与 Mac 支持 Markdown 正文 HTTPS 图片、加载与失败反馈和大图查看；独立网页原文入口使用原生链接。未发布，验证范围见[修复记录](2026-10-31-inline-images/README.md)。
 
 ## 1.2.19 — 2026-10-30
 

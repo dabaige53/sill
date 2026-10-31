@@ -62,7 +62,7 @@ chapters 与 transcript 各自按 start 严格递增，不能超过已知 durati
 | `form` | 仅笔记：quote 把标题显示为引文；其他情况省略。不生成 HTML/CSS/JS |
 | `images` | 1–50 项，内置素材 ID（architecture/coast/mountain/botanical）或 HTTPS 图片地址。第一项为封面，照片卡显示全部；视频卡和照片卡必填。不能用来上传照片 |
 
-类型与字段共同决定显示；不是每个字段都会出现在卡面。正文中的图片语法不加载图片，原始 HTML 按文字显示。
+类型与字段共同决定显示；不是每个字段都会出现在卡面。正文 Markdown 图片支持无内嵌凭据的 HTTPS 地址，按原位置加载；原始 HTML 按文字显示。`url` 是底部原文入口的地址，不从正文链接推断。
 
 ## 个人状态与服务端字段
 

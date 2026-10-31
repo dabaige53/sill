@@ -19,6 +19,7 @@ import {
 import { CardTypes, SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
+import { cardLink } from "../services/agent-handoff.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { PanelRenderers, PreviewApp, PreviewCard, ToolbarAction } from "./panel-contract.ts";
 import {
@@ -173,7 +174,22 @@ export const panelCard = {
 	own(this: PanelRenderers, c?: Card): ToolbarAction[] {
 		const s = Store.item(c.id);
 		const openButton = button("external", this.externalLabel(c), "external", c.id);
-		const open = c.url ? openButton : cloneElement(openButton, { disabled: true });
+		const url = cardLink(c.url);
+		const open = url ? (
+			<a
+				className="icon-button"
+				href={url.href}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label={this.externalLabel(c)}
+				data-action="external"
+				data-id={c.id}
+			>
+				{icon("external")}
+			</a>
+		) : (
+			cloneElement(openButton, { disabled: true })
+		);
 		const reminder: ToolbarAction = FeedPolicy.supports(c)
 			? // A finished reminder is restored by its own circle, so the toolbar does not repeat it.
 				s.dismissed || s.snoozedUntil || (s.reminderDone && c.type !== "reminder")
@@ -186,7 +202,7 @@ export const panelCard = {
 				[
 					"reply",
 					cloneElement(button("reply", copy("web.preview.reply"), "external", c.id), {
-						disabled: !c.url,
+						disabled: !url,
 					}),
 				],
 			];

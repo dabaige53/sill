@@ -33,6 +33,15 @@ export const appInputMethods = {
 			return;
 		}
 		const externalLink = e.target.closest?.<HTMLAnchorElement>("a[href]");
+		// Standalone source links use the browser's native navigation, not popup heuristics.
+		if (externalLink?.dataset.action === "external") {
+			if (window.__SILL_HOST__) {
+				e.preventDefault();
+				e.stopPropagation();
+				this.action("external", externalLink.dataset.id);
+			}
+			return;
+		}
 		if (externalLink && window.__SILL_HOST__ && /^(https?:|mailto:)/.test(externalLink.href)) {
 			e.preventDefault();
 			e.stopPropagation();

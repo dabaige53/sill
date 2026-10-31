@@ -1,0 +1,59 @@
+.markdown-image {
+	display: inline-grid;
+	width: 100%;
+	max-width: 100%;
+	background: var(--surface);
+	border-radius: var(--space-8);
+	overflow: hidden;
+}
+.markdown-image img {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	margin-inline: auto;
+	cursor: zoom-in;
+}
+.markdown-image[data-image-state="loading"] {
+	min-height: var(--space-64);
+}
+.markdown-image-loading,
+.markdown-image-error {
+	padding: var(--space-12);
+	color: var(--secondary);
+}
+.markdown-image-error,
+.markdown-image:not([data-image-state="loading"]) .markdown-image-loading {
+	display: none;
+}
+.markdown-image[data-image-state="error"] .markdown-image-error {
+	display: block;
+}
+.markdown-image[data-image-state="error"] img {
+	cursor: default;
+}
+.markdown-image-viewer {
+	border: none;
+	padding: var(--space-24);
+	margin: auto;
+	max-width: calc(100vw - var(--space-24));
+	max-height: calc(100dvh - var(--space-24));
+	background: var(--card);
+	color: var(--ink);
+	border-radius: var(--space-12);
+}
+.markdown-image-viewer::backdrop {
+	background: var(--fixed-black-55);
+}
+.markdown-image-viewer > img {
+	display: block;
+	max-width: 100%;
+	max-height: calc(100dvh - var(--space-64));
+	object-fit: contain;
+}
+.markdown-image-close {
+	position: absolute;
+	top: var(--space-4);
+	right: var(--space-4);
+	background: var(--card);
+}

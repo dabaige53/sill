@@ -1,9 +1,30 @@
 import MarkdownIt from "markdown-it";
+import { copy } from "../copy.ts";
 
-// One renderer for all detail text (ADR 0063): no raw HTML, no image loading, only http(s) and mailto links.
+// Raw HTML stays escaped. Authored images load only from HTTPS destinations.
 const md = new MarkdownIt({ html: false, linkify: false, typographer: false });
 md.validateLink = (url) => /^(https?:|mailto:)/i.test(url.trim());
-md.renderer.rules.image = (tokens, index) => md.utils.escapeHtml(tokens[index].content);
+const renderImage = md.renderer.rules.image!;
+md.renderer.rules.image = (tokens, index, options, env, self) => {
+	const token = tokens[index];
+	let url: URL;
+	try {
+		url = new URL(token.attrGet("src") || "");
+		if (url.protocol !== "https:" || url.username || url.password) throw new Error();
+	} catch {
+		return md.utils.escapeHtml(token.content);
+	}
+	token.attrSet("loading", "lazy");
+	token.attrSet("decoding", "async");
+	token.attrSet("referrerpolicy", "no-referrer");
+	token.attrSet("tabindex", "0");
+	token.attrSet("role", "button");
+	token.attrSet(
+		"aria-label",
+		copy("web.markdown.openImage") + (token.content ? `: ${token.content}` : ""),
+	);
+	return `<span class="markdown-image" data-image-state="loading">${renderImage(tokens, index, options, env, self)}<span class="markdown-image-loading">${md.utils.escapeHtml(copy("web.markdown.loadingImage"))}</span><span class="markdown-image-error" role="status">${md.utils.escapeHtml(copy("web.markdown.failedImage"))}</span></span>`;
+};
 md.renderer.rules.link_open = (tokens, index, options, _env, self) => {
 	tokens[index].attrSet("target", "_blank");
 	tokens[index].attrSet("rel", "noopener noreferrer");

@@ -118,7 +118,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
       : ""
     tags = value.tags ?? []
     images = value.images ?? []
-    url = value.url.flatMap(URL.init(string:))
+    url = value.url.flatMap(MarkdownBody.safeURL)
     time = value.time ?? createdAt ?? 0
     priority = value.priority ?? 0
     isQuote = value.form == .quote

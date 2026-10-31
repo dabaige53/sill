@@ -50,7 +50,7 @@ test("local API body reaches preview, reader, summary fallback and search after 
 					"Searchable heading",
 				);
 				assert.equal(dom.window.document.querySelectorAll(".markdown ol li").length, 2);
-				assert.equal(dom.window.document.querySelectorAll(".markdown img").length, 0);
+				assert.equal(dom.window.document.querySelectorAll(".markdown img").length, 1);
 			} finally {
 				dom.window.close();
 			}

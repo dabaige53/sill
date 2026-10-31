@@ -9,6 +9,7 @@
 	"apps/web/styles/overlays.css",
 	"apps/web/styles/preview-media.css",
 	"apps/web/styles/detail-content.css",
+	"apps/web/styles/markdown-images.css",
 	"apps/web/styles/detail-podcast.css",
 	"apps/web/styles/panels.css",
 	"apps/web/styles/search-suggestions.css",

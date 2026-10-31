@@ -1,4 +1,4 @@
-/** Detail text renders through one Markdown renderer without HTML, image loading or unsafe links (ADR 0063). */
+/** Detail text escapes HTML, limits image protocols and preserves authored block order. */
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
@@ -39,13 +39,15 @@ test("common Markdown blocks render as structure", () => {
 	assert.equal(doc.querySelector("code")?.textContent, "code");
 });
 
-test("raw HTML stays text, images are not loaded and only safe links open", () => {
+test("raw HTML stays text, HTTPS images load and only safe links open", () => {
 	const doc = render(
 		'<script>alert(1)</script> <img src="https://example.com/x.png">\n\n![Alt](https://example.com/y.png)\n\n[Safe](https://example.com) [Mail](mailto:a@example.com) [Bad](javascript:alert(1)) [File](file:///etc/passwd)',
 	);
-	assert.equal(doc.querySelectorAll("script, img").length, 0);
+	assert.equal(doc.querySelectorAll("script").length, 0);
+	assert.equal(doc.querySelectorAll("img").length, 1);
+	assert.equal(doc.querySelector("img")?.getAttribute("src"), "https://example.com/y.png");
 	assert.match(doc.body.textContent, /<script>alert\(1\)<\/script>/);
-	assert.match(doc.body.textContent, /Alt/);
+	assert.equal(doc.querySelector("img")?.alt, "Alt");
 	const links = [...doc.querySelectorAll("a")];
 	assert.deepEqual(
 		links.map((link) => link.getAttribute("href")),
@@ -54,6 +56,45 @@ test("raw HTML stays text, images are not loaded and only safe links open", () =
 	for (const link of links) {
 		assert.equal(link.getAttribute("target"), "_blank");
 		assert.equal(link.getAttribute("rel"), "noopener noreferrer");
+	}
+});
+
+test("inline images retain order, repeated URLs, escaped labels and complete query strings", () => {
+	const url = "https://example.com/diagram.png?width=900&token=public#chart";
+	const doc = render(`Paragraph A\n\n![A & B](${url})\n\nParagraph B\n\n![Again](${url})`);
+	assert.deepEqual(
+		[...doc.querySelectorAll("p")].map(
+			(node) => node.querySelector("img")?.alt || node.textContent,
+		),
+		["Paragraph A", "A & B", "Paragraph B", "Again"],
+	);
+	for (const img of doc.querySelectorAll("img")) {
+		assert.equal(img.getAttribute("src"), url);
+		assert.equal(img.getAttribute("loading"), "lazy");
+		assert.equal(img.getAttribute("decoding"), "async");
+		assert.equal(img.getAttribute("referrerpolicy"), "no-referrer");
+		assert.equal(img.getAttribute("tabindex"), "0");
+	}
+	assert.equal(
+		render('![quote "](<https://example.com/image.png>)')
+			.querySelector("img")
+			?.hasAttribute("onerror"),
+		false,
+	);
+});
+
+test("body image loading rejects non-HTTPS and credential-bearing destinations", () => {
+	for (const url of [
+		"http://example.com/x.png",
+		"mailto:a@example.com",
+		"https://user:password@example.com/x.png",
+		"data:image/png;base64,AAAA",
+		"file:///tmp/x.png",
+		"/relative.png",
+	]) {
+		const doc = render(`![Alt](${url})`);
+		assert.equal(doc.querySelector("img"), null, url);
+		assert.match(doc.body.textContent, /Alt/);
 	}
 });
 

@@ -119,7 +119,7 @@ test("photo lightbox shows every shared tool despite legacy hidden preferences",
 			const document = dom.window.document;
 			const expected = ["bookmark", "edit", "later"];
 			assert.deepEqual(
-				[...document.querySelectorAll(".float-bar button")].map((n) =>
+				[...document.querySelectorAll(".float-bar .icon-button")].map((n) =>
 					n.getAttribute("data-action"),
 				),
 				expected,

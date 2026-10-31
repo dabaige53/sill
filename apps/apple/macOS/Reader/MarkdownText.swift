@@ -12,12 +12,14 @@ struct MarkdownText: View {
   @Environment(Workspace.self) private var workspace
 
   var body: some View {
-    VStack(
+    LazyVStack(
       alignment: .leading,
       spacing: AppleMetrics.rhythmItem * workspace.preferences.readerSpacing.scale
     ) {
       ForEach(Array(document.blocks.enumerated()), id: \.offset) { index, block in
-        if block.rule {
+        if block.runs.count == 1, let image = block.runs.first?.image {
+          MarkdownImage(url: image, alt: block.text, link: block.runs.first?.link)
+        } else if block.rule {
           Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
         } else if block.code {
           ScrollView(.horizontal) {
