@@ -44,7 +44,7 @@ export const timestamp = z.number().finite().min(0).max(8.64e15);
 export const httpUrl = z
 	.string()
 	.url()
-	.regex(/^https?:[/][/]/);
+	.regex(/^https?:[/][/].+$/);
 const strings = z.array(z.string().max(100)).max(100);
 const image = z
 	.string()
