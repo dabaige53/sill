@@ -677,3 +677,6 @@
 	color: var(--muted);
 	overflow-wrap: anywhere;
 }
+.detail-header > .card-schedule:not(:last-child) {
+	margin-bottom: var(--rhythm-item);
+}

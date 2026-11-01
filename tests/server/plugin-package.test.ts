@@ -29,9 +29,17 @@ test("Sill builds only the original App with its two skills and both sidebar too
 		"sill-cards": ["types", "writing", "fields", "transport", "import"],
 		"sill-operations": ["operations", "settings", "diagnosis"],
 	};
+	const displayNames = {
+		"sill-cards": "Sill Cards",
+		"sill-operations": "Sill Operations",
+	};
 	for (const [name, files] of Object.entries(references)) {
 		const skill = await readFile(resolve(dir, "skills", name, "SKILL.md"), "utf8");
 		assert.ok(skill.startsWith(`---\nname: ${name}\n`), name);
+		const metadataPath = resolve("skills", name, "agents/openai.yaml");
+		const metadata = await readFile(resolve(dir, metadataPath), "utf8");
+		assert.ok(metadata.includes(`display_name: "${displayNames[name]}"`), name);
+		assert.equal(metadata, await readFile(resolve(root, metadataPath), "utf8"));
 		for (const file of files) {
 			const path = `references/${file}.md`;
 			assert.ok(skill.includes(path), name + ":" + path);
