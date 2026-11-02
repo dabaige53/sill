@@ -91,18 +91,46 @@ test("legacy oversized lists retain their items and state while missing time use
 		// Simulate a pre-policy row in this isolated fixture, then restore the live write boundary.
 		await fixture.db.exec("alter table sill_private.contents disable trigger sill_card_check");
 		await identity(fixture.db);
-		const legacy = (await rpc(fixture.db, "sill_write_v1", ["create", null,
-			JSON.stringify({ type: "task", title: "Existing work", tasks: tasks(7), state: { taskDone: ["task-5"] } }), "legacy-display-create"])).body;
-		await fixture.db.exec("reset role;alter table sill_private.contents enable trigger sill_card_check");
+		const legacy = (
+			await rpc(fixture.db, "sill_write_v1", [
+				"create",
+				null,
+				JSON.stringify({
+					type: "task",
+					title: "Existing work",
+					tasks: tasks(7),
+					state: { taskDone: ["task-5"] },
+				}),
+				"legacy-display-create",
+			])
+		).body;
+		await fixture.db.exec(
+			"reset role;alter table sill_private.contents enable trigger sill_card_check",
+		);
 		await identity(fixture.db);
 		const read = await rpc(fixture.db, "sill_get_content", [legacy.id]);
 		assert.equal(read.time, Date.parse(read.created_at));
-		const changed = (await rpc(fixture.db, "sill_write_v1", ["update", read.id,
-			JSON.stringify({ expectedRevision: read.revision, changes: { title: "Renamed work" } }), "legacy-display-update"])).body;
+		const changed = (
+			await rpc(fixture.db, "sill_write_v1", [
+				"update",
+				read.id,
+				JSON.stringify({ expectedRevision: read.revision, changes: { title: "Renamed work" } }),
+				"legacy-display-update",
+			])
+		).body;
 		assert.deepEqual(changed.tasks, tasks(7));
 		assert.deepEqual(changed.state.taskDone, ["task-5"]);
 		assert.equal(changed.time, read.time);
-		await assert.rejects(rpc(fixture.db, "sill_write_v1", ["update", read.id,
-			JSON.stringify({ expectedRevision: changed.revision, changes: { tasks: tasks(8) } }), "legacy-display-more"]), /invalid_request/);
-	} finally { await fixture.db.close(); }
+		await assert.rejects(
+			rpc(fixture.db, "sill_write_v1", [
+				"update",
+				read.id,
+				JSON.stringify({ expectedRevision: changed.revision, changes: { tasks: tasks(8) } }),
+				"legacy-display-more",
+			]),
+			/invalid_request/,
+		);
+	} finally {
+		await fixture.db.close();
+	}
 });
