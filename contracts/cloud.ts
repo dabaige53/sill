@@ -21,6 +21,12 @@ export function writeIssues(
 	}
 	if (!before && card.type === "reminder" && card.due === undefined)
 		issues.push({ path: ["due"], message: "missing_reminder_due" });
+	if (
+		Array.isArray(card.tasks) &&
+		card.tasks.length > 6 &&
+		JSON.stringify(card.tasks) !== JSON.stringify(before?.tasks)
+	)
+		issues.push({ path: ["tasks"], message: "too_many_tasks_split_cards" });
 	return issues;
 }
 export const cloudState = CardState.extend({
@@ -173,7 +179,7 @@ export const update = z
 	})
 	.strict()
 	.superRefine((value, context) => {
-		// An update is never a new card: only the timestamps it sends are checked.
+		// Only values sent in this update are checked; untouched legacy fields remain valid.
 		for (const issue of writeIssues(value.changes ?? {}, {}))
 			context.addIssue({
 				code: "custom",

@@ -367,7 +367,7 @@
 	"web.metadata.project": "项目",
 	"web.card.relatedCount": " 张",
 	"web.card.digestRelated": "汇总的卡片",
-	"web.card.due": "截止时间",
+	"web.card.due": "截止",
 	"web.card.priority": "优先级",
 	"web.media.position": "播放位置",
 	"web.media.rate": "播放速度",
@@ -411,5 +411,8 @@
 	"web.media.duration": "时长",
 	"web.media.host": "主持人",
 	"web.media.excerpt": "节选",
-	"web.media.information": "信息"
+	"web.media.information": "信息",
+	"web.card.added": "加入",
+	"web.card.summary": "概要",
+	"web.card.source": "来源"
 }

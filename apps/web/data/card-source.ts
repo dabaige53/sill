@@ -1,4 +1,5 @@
 import type { Card } from "../../../contracts/card.ts";
+import recipes from "../../../design-system/recipes.json" with { type: "json" };
 import { markdownText } from "../atoms/markdown.ts";
 import { shortDay, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
@@ -50,6 +51,21 @@ export function detailDate(value: unknown, includeTime = false, now = Date.now()
 	);
 	const day = shortDay(date.getTime(), now);
 	return includeTime && parsed.datetime.length > 10 ? `${day} ${timeString(date.getTime())}` : day;
+}
+
+/** One date choice for the card and its detail. Source dates never become insertion dates. */
+export function cardDateLabel(card: Record<string, any>): string {
+	if (cardDate(card.publishedAt)) return detailDate(card.publishedAt, card.type === "mail");
+	const inserted = cardDate(card.created_at) ? card.created_at : card.time;
+	const label = detailDate(inserted, true);
+	return label ? `${copy("web.card.added")} · ${label}` : "";
+}
+
+/** Bound only the face text. The stored summary and detail retain every character. */
+export function cardSummaryText(text: string): string {
+	const characters = Array.from(text.trim());
+	const limit = recipes.content.summaryCharacters;
+	return characters.length > limit ? `${characters.slice(0, limit - 1).join("")}…` : text.trim();
 }
 
 export function cardDates(card: Record<string, any>) {

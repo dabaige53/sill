@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-30。按任务读取对应正文。分层、命名和维护方式见[文件管理规范](agent/file-management.md)。
+更新：2026-11-01。按任务读取对应正文。分层、命名和维护方式见[文件管理规范](agent/file-management.md)。
 
 ## 项目准则
 
@@ -47,6 +47,7 @@
 - [插件操作与排查](implementation/operations/plugin-runbook.md)
 - [快速发布](implementation/operations/release-runbook.md)
 - [测试操作说明](implementation/testing.md)
+- [CI 运行说明](implementation/CI.md)
 
 ## 计划
 

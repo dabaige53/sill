@@ -9,7 +9,7 @@
 | `id` | 单卡创建由服务端生成；批量新建才传。1–100 位字母、数字、下划线、连字符，禁用 __proto__/constructor/prototype |
 | `type` | article/pr/mail/note/task/event/reminder/media/digest/suggestion/photo/file；不是 MIME |
 | `title` | 1–1000 字的具体标题 |
-| `summary` | 最多 10000 字，纯文本卡面摘要；照片卡显示为照片说明 |
+| `summary` | 最多 10000 字，编辑目标 50–60 字；卡面最多显示 120 个文字字符，详情概要完整显示；照片卡显示为照片说明 |
 | `body` | 一个 CommonMark Markdown 字符串，最多 500000 字；段落用空行分隔，不传数组。阅读时长由客户端按正文计算 |
 | `url` | 原内容 HTTP(S) 地址，不是上传入口 |
 | `sources` | 最多 11 个 {name,kind}；name 1–300 字，kind 1–100 字。kind 可用 rss/readwise/youtube/twitter/podcast/web/mail/calendar/reminders/photos/folder/linear/github/capture/markdown/local/agent；这里只记录来源 |
@@ -24,7 +24,7 @@
 
 | 字段 | 类型、单位与用途 |
 | --- | --- |
-| `tasks` | 待办子任务，1–100 个 {id,text}；id 规则同卡片且唯一稳定，text 1–2000 字。完成情况写个人状态 `taskDone` |
+| `tasks` | 待办子任务，新建或修改清单为 1–6 个；更多按事项拆卡；历史清单最多 100 个，未整理前保留全部任务。每项为 {id,text}；id 规则同卡片且唯一稳定，text 1–2000 字。完成情况写个人状态 `taskDone` |
 | `project` | 待办、提醒所属项目 {name,url?}，name 1–300 字，URL 为 HTTP(S) |
 | `start`、`end` | 日程必填，13 位 Unix 毫秒，必须 end > start |
 | `due` | 待办/提醒到期时刻，13 位 Unix 毫秒；新建提醒必填 |

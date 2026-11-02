@@ -1,9 +1,11 @@
 # 脚本目录
 
-状态：操作说明。更新：2026-10-21。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/agent/file-management.md)。
+状态：操作说明。更新：2026-11-02。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/agent/file-management.md)。
 
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
+| CI 检查入口 | `npm run ci:*` 与现有 `test:*`、`build:*` | 任务命令、环境与工作流对应关系见 [CI 运行说明](../docs/implementation/CI.md) |
+| CI 文档分流 | `scripts/ci-changes.ts` | GitHub 事件与 Git 差异 → 产品/Apple 检查标记；纯文档保留文件检查，未知差异运行全部检查 |
 | 设计材料 | `scripts/design-init.sh` / `npm run design` | 变量、产品代码、画板 → 组件示例、画布索引、`dist/design/` 发布准备；命令见 [设计约束](../docs/implementation/design-system.md#命令) |
 | 文件管理检查 | `npm run files:check` | 根目录、导航、Git 文件清单 → 终端结果；只读 |
 | React 开发服务 | `npm run dev` / `scripts/dev.ts` | Vite + React Fast Refresh，5173；本地 API 代理到 4318 |

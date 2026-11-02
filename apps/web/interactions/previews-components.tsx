@@ -1,13 +1,9 @@
 import { type CSSProperties, Fragment, type ReactNode } from "react";
-import {
-	dateLabel,
-	eventRelative,
-	relativeDay,
-	reminderClock,
-	timeString,
-} from "../atoms/primitives.ts";
+import { dateLabel, eventRelative, relativeDay, timeString } from "../atoms/primitives.ts";
 import { Avatars } from "../atoms/react-primitives.tsx";
+import { DetailSummary } from "../cards/card-blocks.tsx";
 import { ReminderMark } from "../cards/card-face.tsx";
+import { CardSchedule } from "../cards/card-schedule.tsx";
 import { FileList, RelatedCards, TaskFacts } from "../cards/detail-blocks.tsx";
 import { DetailText } from "../cards/markdown.tsx";
 import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
@@ -25,14 +21,13 @@ import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import {
 	cardCover,
+	cardDateLabel,
 	cardReadingTime,
 	cardSender,
 	cardSource,
-	detailDate,
 } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
-import { FeedPolicy } from "../services/feed-policy.ts";
 import {
 	agentAction,
 	avatar,
@@ -175,22 +170,15 @@ const detailLines: Record<string, DetailBlock> = {
 			c,
 			[
 				cardSource(c),
+				cardDateLabel(c),
+				cardReadingTime(c),
 				c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
 			]
 				.filter(Boolean)
 				.join(" · "),
 		),
-	task: (c) => previewMeta(c, [cardSource(c), c.project?.name].filter(Boolean).join(" · "), 15),
-	reminder: (c, _o, { s }) => {
-		const when = FeedPolicy.reminderTime(c, s);
-		return previewMeta(
-			c,
-			[...new Set([copy("web.reminder"), cardSource(c), when ? reminderClock(when.at) : ""])]
-				.filter(Boolean)
-				.join(" · "),
-			15,
-		);
-	},
+	task: (c) => previewMeta(c, copy("web.task"), 15),
+	reminder: (c) => previewMeta(c, copy("web.reminder"), 15),
 };
 
 const detailBlocks: Record<string, DetailBlock> = {
@@ -205,9 +193,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 				<span>
 					<b>{sender}</b>
 					<small>
-						{[cardSource(c), detailDate(c.publishedAt, true), cardReadingTime(c)]
-							.filter(Boolean)
-							.join(" · ")}
+						{[cardSource(c), cardDateLabel(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
 					</small>
 				</span>
 			</div>
@@ -258,6 +244,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 	tags(c) {
 		return this.tags(c);
 	},
+	schedule: (c, _o, { s }) => <CardSchedule card={c} state={s} />,
 	reminderMark: (c, _o, { s }) => <ReminderMark card={c} done={!!s.reminderDone} />,
 	cover: (c, _o, { mode }) => (cardCover(c) && mode === "reader" ? coverImage(c) : null),
 	body: (c, o) =>
@@ -352,6 +339,7 @@ function detailContent(
 			<header className={`detail-header ${recipe.ruled ? "ruled-header" : ""}`}>
 				{renderDetail.call(this, recipe.head, c, scope)}
 			</header>
+			<DetailSummary card={c} />
 			{renderDetail.call(this, recipe.body, c, scope)}
 		</>
 	);

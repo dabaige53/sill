@@ -1,8 +1,9 @@
 import type { Card } from "../../../contracts/card.ts";
 import { Avatar, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { detailDate } from "../data/card-source.ts";
+import { cardDateLabel, cardSummaryText, detailDate } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
+import { DetailSummary } from "./card-blocks.tsx";
 import { DetailText } from "./markdown.tsx";
 import { SourceMark } from "./source-mark.tsx";
 
@@ -64,6 +65,7 @@ export function PullRequest({
 					<SourceMark card={card} />
 					<span className="card-src">
 						{pr ? `${pr.repository} #${pr.number}` : "GitHub"}
+						{cardDateLabel(card) ? ` · ${cardDateLabel(card)}` : ""}
 						{detail && pr ? ` · ${copy("pr.observed")} ${detailDate(pr.observedAt, true)}` : ""}
 					</span>
 					{!detail && <span className="card-head-right">{status}</span>}
@@ -104,7 +106,8 @@ export function PullRequest({
 					</div>
 				)}
 			</header>
-			{!detail && card.summary && <p className="card-summary">{card.summary}</p>}
+			{!detail && card.summary && <p className="card-summary">{cardSummaryText(card.summary)}</p>}
+			{detail && <DetailSummary card={card} />}
 			{!detail && pr && (
 				<div className="pr-footer">
 					<div className="pr-reviewers">

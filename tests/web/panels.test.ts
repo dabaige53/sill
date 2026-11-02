@@ -135,16 +135,15 @@ test("article preview puts the cover before its ruled header; reading puts it af
 	assert.ok(doc.querySelector(".preview-full.typeset"));
 	dom.window.close();
 	const reader = new JSDOM(Panels.reader({}, card));
-	assert.ok(
-		reader.window.document
-			.querySelector(".detail-header")
-			?.nextElementSibling?.matches(".preview-cover"),
-	);
+	const summary = reader.window.document.querySelector(".detail-header")?.nextElementSibling;
+	assert.ok(summary?.matches(".detail-summary"));
+	assert.equal(summary.querySelector("p")?.textContent, card.summary);
+	assert.ok(summary.nextElementSibling?.matches(".preview-cover"));
 	assert.ok(reader.window.document.querySelector(".preview-full.typeset"));
 	reader.window.close();
 });
 
-test("task detail shows the complete checklist before body without the card summary", () => {
+test("task detail shows the complete checklist before body with a separate summary", () => {
 	Store.state = Store.fresh();
 	const card = {
 		...SeedCards.find((c) => c.type === "task"),
@@ -154,6 +153,7 @@ test("task detail shows the complete checklist before body without the card summ
 	const dom = new JSDOM(Panels.preview({}, card));
 	const doc = dom.window.document;
 	assert.equal(doc.querySelector(".preview-lead"), null);
+	assert.equal(doc.querySelector(".detail-summary p")?.textContent, card.summary);
 	assert.ok(doc.querySelector(".detail-task-list")?.nextElementSibling?.matches(".preview-full"));
 	assert.equal(doc.querySelector(".preview-full.typeset"), null);
 	assert.equal(doc.querySelectorAll(".detail-task-list [role=checkbox]").length, card.tasks.length);
@@ -165,11 +165,11 @@ test("all detail types keep card summaries out of the authored body", () => {
 	for (const seed of cards) {
 		const card = { ...seed, summary: "CARD_ONLY_SENTINEL", body: "Authored detail body" };
 		const dom = new JSDOM(Panels.preview({}, card));
-		assert.equal(
-			dom.window.document.body.textContent?.includes("CARD_ONLY_SENTINEL"),
-			false,
-			card.type,
-		);
+		const summaries = dom.window.document.querySelectorAll(".detail-summary");
+		assert.equal(summaries.length, 1, card.type);
+		assert.equal(summaries[0].querySelector("p")?.textContent, card.summary, card.type);
+		for (const body of dom.window.document.querySelectorAll(".preview-full"))
+			assert.equal(body.textContent?.includes(card.summary), false, card.type);
 		dom.window.close();
 	}
 });

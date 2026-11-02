@@ -1,0 +1,3 @@
+interface:
+  display_name: "Sill Operations"
+  short_description: "操作 Sill（窗台）工作区、改设置、管理备份或排查问题时使用。"

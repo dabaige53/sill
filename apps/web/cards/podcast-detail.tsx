@@ -3,8 +3,9 @@ import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { detailDate } from "../data/card-source.ts";
+import { cardDateLabel, detailDate } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
+import { DetailSummary } from "./card-blocks.tsx";
 import { DetailText } from "./markdown.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
 
@@ -47,9 +48,7 @@ export function PodcastDetail({ card }: { card: Card }) {
 					</div>
 				)}
 				<div className="podcast-heading">
-					{card.publishedAt && (
-						<div className="podcast-date num">{detailDate(card.publishedAt)}</div>
-					)}
+					{cardDateLabel(card) && <div className="podcast-date num">{cardDateLabel(card)}</div>}
 					<h1 id="modal-title">{card.title}</h1>
 					{byline &&
 						(card.url ? (
@@ -79,6 +78,7 @@ export function PodcastDetail({ card }: { card: Card }) {
 					)}
 				</div>
 			</header>
+			<DetailSummary card={card} />
 			<p className="podcast-listening num">
 				<Icon name="headphones" size={16} />
 				{copy("web.media.listening")} <b>{duration(position)}</b> /{" "}

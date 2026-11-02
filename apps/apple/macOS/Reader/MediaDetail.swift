@@ -18,6 +18,7 @@ struct MediaDetail: View {
       Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
         .frame(maxWidth: .infinity, alignment: .leading)
       ReaderTags(tags: state.tags(of: card))
+      SummaryOverview(card: card)
       if let id = OfficialVideoPlayer.videoID(card.url) {
         OfficialVideoPlayer(
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
@@ -59,7 +60,7 @@ struct MediaDetail: View {
     MetaRow(icon: AnyView(SourceIcon(card: card))) {
       Text(
         [
-          card.publicationName, card.publicationDate ?? "",
+          card.publicationName, card.displayDate,
           card.duration.map(Format.duration) ?? "",
         ].filter { !$0.isEmpty }.joined(
           separator: " · "))

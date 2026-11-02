@@ -1,0 +1,52 @@
+name: Sill Swift build cache
+description: Restore or save Swift build files without credentials or packaging state
+inputs:
+  configuration:
+    description: debug for tests or release for packaging
+    required: true
+  save:
+    description: Save after successful verification instead of restoring
+    default: 'false'
+  key:
+    description: Original restore key to save after the build
+    default: ''
+outputs:
+  cache-primary-key:
+    description: Exact input key computed before the build
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+  cache-hit:
+    description: Whether the exact cache was restored
+    value: ${{ steps.restore.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - name: Identify Apple toolchain
+      if: ${{ inputs.save != 'true' }}
+      id: toolchain
+      shell: bash
+      run: |
+        signature=$( { xcodebuild -version; swift --version; } | shasum -a 256 | cut -d ' ' -f 1)
+        echo "signature=$signature" >> "$GITHUB_OUTPUT"
+    - name: Restore Swift build cache
+      id: restore
+      if: ${{ inputs.save != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          apps/apple/.build
+          !apps/apple/.build/config
+          !apps/apple/.build/security
+          !apps/apple/.build/build-number.json
+          !apps/apple/.build/Localizable.xcstrings
+        key: swift-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.signature }}-${{ inputs.configuration }}-${{ hashFiles('apps/apple/**', '!apps/apple/.build/**', '!apps/apple/.swiftpm/**', 'contracts/**', 'design-system/**', 'assets/**', 'package.json', 'tests/apple/run.ts', 'scripts/build-macos.ts', '.github/actions/swift-cache/action.yml') }}
+    - name: Save Swift build cache
+      if: ${{ inputs.save == 'true' && inputs.key != '' && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || github.event_name == 'workflow_dispatch') }}
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          apps/apple/.build
+          !apps/apple/.build/config
+          !apps/apple/.build/security
+          !apps/apple/.build/build-number.json
+          !apps/apple/.build/Localizable.xcstrings
+        key: ${{ inputs.key }}

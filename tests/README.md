@@ -1,6 +1,6 @@
 # 测试目录
 
-更新：2026-10-27。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-11-02。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agent/test.md) 确认授权、范围和结果边界。
 
@@ -18,7 +18,7 @@
 
 `npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试、性能基准及 Docker Postgres。报告解析不需要 Xcode。构建产物断言统一由 `scripts/check.ts` 管理。
 
-CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留独立的快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查仅在 tag 推送时执行。性能基准仍按需运行。
+CI 自动入口为 `ci.yml`：先运行分流自检及文件检查，纯文档改动到此结束；产品改动调用后续工作流，具体范围见 [CI 说明](../docs/implementation/CI.md#文档变更分流)。`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和三组专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查由发布或手动打包调用。性能基准仍按需运行。
 
 旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
 

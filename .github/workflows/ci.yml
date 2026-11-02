@@ -1,0 +1,58 @@
+name: Sill CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Run all checks; disable to classify the latest commit only
+        type: boolean
+        default: true
+concurrency:
+  group: sill-ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions:
+  contents: read
+jobs:
+  changes:
+    name: File checks and CI scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.scope.outputs.code }}
+      apple: ${{ steps.scope.outputs.apple }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '24'
+          install: none
+      - name: Check scope selection, files and documentation links
+        run: npm run ci:docs
+      - name: Select checks
+        id: scope
+        run: npm run ci:scope
+  web:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    uses: ./.github/workflows/verify.yml
+  integration:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    uses: ./.github/workflows/test.yml
+  data:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    uses: ./.github/workflows/supabase.yml
+  consent:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    uses: ./.github/workflows/consent-policy.yml
+  apple:
+    needs: changes
+    if: needs.changes.outputs.apple == 'true'
+    uses: ./.github/workflows/macos.yml

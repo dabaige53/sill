@@ -45,6 +45,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let images: [String]
   let url: URL?
   let time: Double
+  let addedTime: Double
   let priority: Double
   let isQuote: Bool
   let project: String?
@@ -77,6 +78,13 @@ struct CardModel: Identifiable, Equatable, Sendable {
   var cover: String? { images.first }
   var hasCover: Bool { (cover != nil && (kind == .article || kind == .media)) || kind == .photo }
   var publicationDate: String? { publishedAt.flatMap { Format.publication($0) } }
+  var displayDate: String {
+    if let publishedAt, let label = Format.publication(publishedAt, includeTime: kind == .mail) {
+      return label
+    }
+    guard addedTime > 0 else { return "" }
+    return Copy.text("web.card.added") + " · " + Format.dateLabel(addedTime)
+  }
   var headIcon: String {
     kind.headIconByType ? kind.icon : SourceKind.icon(sourceKind) ?? kind.icon
   }
@@ -120,6 +128,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
     images = value.images ?? []
     url = value.url.flatMap(URL.init(string:))
     time = value.time ?? createdAt ?? 0
+    addedTime = createdAt ?? value.time ?? 0
     priority = value.priority ?? 0
     isQuote = value.form == .quote
     project = value.project?.name

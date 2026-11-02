@@ -103,13 +103,15 @@ export const Card = z
 			.string()
 			.min(1)
 			.max(1000)
-			.describe("Specific plain-text title; do not place the full body here."),
+			.describe(
+				"Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful.",
+			),
 		summary: z
 			.string()
 			.max(10000)
 			.optional()
 			.describe(
-				"Card face summary: one or two plain-text sentences for the feed card and search results; for photos, the factual image description. Not shown in the detail; put all detail text in body.",
+				"One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body. For photos, use a factual image description. Do not duplicate the summary in body.",
 			),
 		authors: z
 			.array(namedParty)
@@ -197,7 +199,7 @@ export const Card = z
 			.max(100)
 			.optional()
 			.describe(
-				"Task card actionable subtasks as {id,text}; use nonempty tasks with unique stable IDs. Completion is personal state taskDone. Markdown checkboxes do not create interactive tasks.",
+				"Task card actionable subtasks as {id,text}; new or changed lists contain 1–6 items with unique stable IDs. Split larger work into multiple cards by topic. Stored legacy lists retain up to 100 items until explicitly reorganized. Completion is personal state taskDone.",
 			),
 		start: timestamp
 			.optional()

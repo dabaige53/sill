@@ -156,6 +156,7 @@ struct CardBlock: View {
         .lineLimit(nil)
         .fixedSize(horizontal: false, vertical: true)
     case "summary": summary
+    case "schedule": CardScheduleLine(card: card, state: state, now: context.now)
     case "checklist": checklist
     case "reminderMark":
       ReminderCheck(card: card, state: state)
@@ -204,35 +205,29 @@ struct CardBlock: View {
     switch entry.string("line") {
     case "publication" where entry.string("date") == "article":
       [
-        card.publicationName, card.articleDate.map { Format.shortDay($0) } ?? "",
+        card.publicationName, card.displayDate,
         card.readingTime,
       ].filter { !$0.isEmpty }.joined(separator: " · ")
-    case "task": card.project ?? Copy.text("web.task")
-    case "reminder":
-      Array(
-        NSOrderedSet(array: [Copy.text("web.reminder"), card.sourceName].filter { !$0.isEmpty })
-      )
-      .compactMap { $0 as? String }.joined(separator: " · ")
+    case "task": Copy.text("web.task")
+    case "reminder": Copy.text("web.reminder")
     case "eventDate": Format.dateLabel(card.start ?? 0)
     case "photo":
       [
         card.location ?? "",
-        card.publishedDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
+        card.displayDate,
       ].filter { !$0.isEmpty }.joined(separator: " · ")
     case "file":
-      [Copy.text("web.file"), card.sourceName, card.readingTime].filter { !$0.isEmpty }
-        .joined(separator: " · ")
-    default: card.displaySourceLine
+      [Copy.text("web.file"), card.sourceName, card.displayDate, card.readingTime].filter {
+        !$0.isEmpty
+      }
+      .joined(separator: " · ")
+    default:
+      [card.publicationName.nilIfEmpty ?? card.kind.label, card.displayDate, card.readingTime]
+        .filter { !$0.isEmpty }.joined(separator: " · ")
     }
   }
 
-  private var sourceDetail: Text? {
-    guard entry.string("line") == "task" else { return nil }
-    return card.due.map {
-      Text(" · " + Copy.text("web.card.dueShort") + " " + Format.dateLabel($0)).foregroundColor(
-        AppleColors.warning)
-    }
-  }
+  private var sourceDetail: Text? { nil }
 
   @ViewBuilder private var status: some View {
     switch entry.string("status") {
@@ -284,7 +279,7 @@ struct CardBlock: View {
   }
 
   @ViewBuilder private var sender: some View {
-    let date = card.publishedAt.flatMap(ReaderContent.fullDate) ?? ""
+    let date = card.displayDate
     if let sender = card.sender {
       HStack(spacing: AppleMetrics.space10) {
         Avatar(name: sender, size: AppleMetrics.space32)
@@ -323,16 +318,12 @@ struct CardBlock: View {
 
   @ViewBuilder private var checklist: some View {
     let tasks = state.tasks(of: card)
-    let limit = entry.number("limit") ?? tasks.count
     if !tasks.isEmpty {
       // Unfinished first, then finished; at most the recipe's limit.
       VStack(alignment: .leading, spacing: 0) {
         ForEach(state.previewTasks(of: card)) { task in
           TaskRow(task: task, locked: state.isWriting) { intents.toggleTask(card.id, task.id) }
         }
-      }
-      if tasks.count > limit {
-        MoreItems(count: tasks.count - limit, suffix: Copy.text("web.templates.f9d529eacdf3"))
       }
     } else if !context.compact {
       SummaryBlock(summary: fallbackSummary, query: context.query)

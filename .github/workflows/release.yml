@@ -11,13 +11,15 @@ concurrency:
 jobs:
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           node-version: '26'
+          install: none
       - name: Require the product version tag
-        run: node scripts/release-version.ts
+        run: npm run ci:release:version
   integration:
     needs: version
     uses: ./.github/workflows/test.yml
@@ -36,13 +38,13 @@ jobs:
   cloud-package:
     needs: [integration, web, data, consent, apple]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           node-version: '26'
           cache: npm
-      - run: npm ci
       - run: npm run build:release
       - uses: actions/upload-artifact@v4
         with:
@@ -57,14 +59,16 @@ jobs:
   publish:
     needs: [cloud-package, mac-package]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           node-version: '26'
+          install: none
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*

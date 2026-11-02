@@ -2222,20 +2222,12 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	white-space: pre-line;
 }
 .card-summary {
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: var(--summary-lines);
-	overflow: hidden;
+	display: block;
+	overflow-wrap: anywhere;
 	margin: 0;
 	font-size: calc(var(--text-summary) * var(--content-text-scale, 1));
 	line-height: calc(22 / 14);
 	color: var(--muted);
-}
-.card-summary.clamp-2 {
-	-webkit-line-clamp: 2;
-}
-.card-summary.reading-summary {
-	-webkit-line-clamp: var(--summary-reading-lines);
 }
 .card-summary.indent {
 	padding-left: var(--space-34);
