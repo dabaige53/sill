@@ -76,6 +76,7 @@ test("task and reminder types and time placement do not depend on item count or 
 				due,
 				tags: ["Topic"],
 				sources: [{ name: "提醒事项", kind: "reminders" }],
+				project: { name: "Follow-up" },
 				...(type === "task"
 					? {
 							tasks: Array.from({ length: count }, (_, i) => ({
@@ -104,6 +105,13 @@ test("task and reminder types and time placement do not depend on item count or 
 						type === "task" ? /^截止 · / : /^提醒 · /,
 					);
 					assert.equal(d.querySelector(".card-head-right .reminder-label"), null);
+					if (d.querySelector("h1")) {
+						const facts = [...d.querySelectorAll(".detail-rows > .detail-row")].map(
+							(row) => row.textContent,
+						);
+						assert.equal(facts.filter((text) => text === "来源 提醒事项").length, 1);
+						assert.equal(facts.filter((text) => text === "项目 Follow-up").length, 1);
+					}
 					if (type === "task") assert.equal(d.querySelectorAll(".check-item").length, count);
 				} finally {
 					dom.window.close();
