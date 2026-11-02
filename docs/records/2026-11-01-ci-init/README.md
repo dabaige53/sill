@@ -1,6 +1,6 @@
 # CI 初始化
 
-日期：2026-11-01；续办：2026-11-02。状态：初始化、触发去重和旧断言修正已通过五类远端检查；浏览器并行已推送验证，缓存接入已完成静态检查，真实验证待完成。
+日期：2026-11-01；续办：2026-11-02。状态：全部配置阶段均已通过五类远端检查；Swift debug/release 与 Mac npm 缓存保存、精确命中、后台测试和 DMG 验证均通过。实现与工作分支验证完成，主分支缓存及长期统计待合并后验证。
 
 ## 范围
 
@@ -39,6 +39,41 @@
 
 缓存改动前后 `compare.py coverage` 为 19 → 19，PASS，无阻断或警告。项目明确不配置必需检查，未传入分支保护检查清单。`npm run files:check` 与 `git diff --check` 通过。本次临时审计数据位于 `/private/tmp/sill-ci-20261102`。
 
+重新从原始基线 `4eebfd1f` 生成审计清单，与缓存阶段比较为 21 → 19，接受五个旧 npm 浏览器入口到新执行脚本的映射后 PASS。展开原 npm 别名后，12 个实际脚本与新分组集合完全一致；未放宽失败退出条件。
+
+## 并行实测
+
+`628845f3` 的五类检查全部成功：[Web](https://github.com/dabaige53/sill/actions/runs/41379728232)、[集成](https://github.com/dabaige53/sill/actions/runs/41379728219)、[数据](https://github.com/dabaige53/sill/actions/runs/41379728347)、[Mac](https://github.com/dabaige53/sill/actions/runs/41379728216)、[授权策略](https://github.com/dabaige53/sill/actions/runs/41379728215)。
+
+从 Web 运行下载的三组 JSON/JUnit 共包含 12 个成功入口，没有重复或遗漏。入口内部断言数量不由该报告统计。
+
+| 组 | 入口数量 | 浏览器执行合计 | Job 总耗时 |
+| --- | --- | --- | --- |
+| motion | 2 | 112.4 秒 | 150 秒 |
+| navigation | 4 | 91.5 秒 | 124 秒 |
+| layout | 6 | 114.9 秒 | 175 秒 |
+
+串行成功基线 `6fbe9ae2` 的 Web 工作流等待 398 秒，并行阶段为 179 秒；包含五类检查的提交级等待从 398 秒降至 287 秒，最后完成的检查从 Web 变为 Mac。两侧各一个成功首次 PR 样本，只说明本次趋势，不作为稳定 P50/P95 结论。初始化期间包含失败及不完整检查集的混合样本不用于证明提速。
+
+## 缓存验证
+
+`6e536074` 接入 npm 与 Swift 缓存。缓存元数据采集显示旧缓存总量约 10.32 GiB，其中 PR 缓存约 1.60 GiB；未删除已有缓存或调整仓库额度。新配置停止普通 PR 写入，旧条目仍受 GitHub 淘汰策略管理。
+
+恢复与保存的 key 传递按 [actions/cache 官方策略](https://github.com/actions/cache/blob/main/caching-strategies.md)核对，并检查了项目所用 [v4 restore 元数据](https://github.com/actions/cache/blob/v4/restore/action.yml)。不为本次缓存改动同时升级所有 Action 主版本。
+
+缓存阶段五类首次 PR 检查全部成功：[Web](https://github.com/dabaige53/sill/actions/runs/41380244807)、[集成](https://github.com/dabaige53/sill/actions/runs/41380244818)、[数据](https://github.com/dabaige53/sill/actions/runs/41380244833)、[Mac](https://github.com/dabaige53/sill/actions/runs/41380244873)、[授权策略](https://github.com/dabaige53/sill/actions/runs/41380244856)。Web 报告再次确认 12 个唯一成功入口。提交级等待 213 秒，其中 Web 161 秒、Mac 213 秒；这是冷缓存首次 PR，不能把时间变化全部归因于缓存。
+
+同一提交在工作分支手动运行，检查冷缓存保存与热缓存恢复：
+
+| 范围 | 冷运行 | 热运行 | Job 耗时：冷 → 热 | 结果 |
+| --- | --- | --- | --- | --- |
+| Swift debug、Node 24 npm | [41380252325](https://github.com/dabaige53/sill/actions/runs/41380252325) | [41380832059](https://github.com/dabaige53/sill/actions/runs/41380832059) | 352 → 177 秒 | 两次成功；npm 与 Swift 精确命中，后台测试照常执行 |
+| Swift release、Node 26 npm | [41380256266](https://github.com/dabaige53/sill/actions/runs/41380256266) | [41380964087](https://github.com/dabaige53/sill/actions/runs/41380964087) | 463 → 231 秒 | 两次成功；npm 与 Swift 精确命中，DMG 构建及验证照常执行 |
+
+debug 缓存约 728 MB，恢复 Action 用时 13 秒；release 缓存约 601 MB。Node 24/26 npm 下载缓存各约 127 MB。元数据确认新缓存只有工作分支条目，没有新增 PR 条目，也没有主分支条目。每对运行属于不同冷热条件，各一个样本，不证明长期稳定收益。
+
 ## 待验证
 
-浏览器并行及缓存的真实运行、缓存命中和耗时数据待补。主分支缓存需要合并后建立；工作分支手动缓存不代表主分支已具备缓存。未在本地运行完整测试、构建或界面自动化，未安装 actionlint 或本地 Git hook。
+主分支新缓存与 Linux npm 精确命中需要合并后建立和验证；工作分支手动缓存不代表主分支已具备缓存。尚无足够同类成功样本报告稳定 P50/P95 或长期缓存容量变化。遵循项目检查通过后停止的规则，不为凑样本重复运行完整回归。
+
+未在本地运行完整测试、构建或界面自动化，未安装 actionlint 或本地 Git hook。未合并、修改分支保护、删除缓存或部署产品。Actions 仍提示现有 v4 Action 的 Node 20 运行时弃用；本轮没有改变这些 Action 的主版本。
