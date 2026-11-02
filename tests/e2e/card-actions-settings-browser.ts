@@ -122,7 +122,7 @@ try {
 			const aligned = async (selector: string) =>
 				page.locator(selector).evaluate((body) => {
 					const nodes = body.querySelectorAll(
-						":scope > h1, :scope > .preview-meta, :scope > .preview-cover, :scope > .preview-lead, :scope > .preview-full",
+						":scope > h1, :scope > .preview-meta, :scope > .preview-cover, :scope > .preview-lead, :scope > .detail-summary, :scope > .preview-full",
 					);
 					return Array.from(nodes).map((n) => Math.round(n.getBoundingClientRect().left));
 				});
@@ -139,7 +139,8 @@ try {
 				await page.locator(".reader-body").waitFor();
 				// The reader moves the cover after the header (web-interaction handbook); the rest matches the preview.
 				const readerBlocks = await blocks(".reader-body");
-				assert.equal(readerBlocks[1]?.[1], "preview-cover");
+				assert.equal(readerBlocks[1]?.[1], "detail-summary");
+				assert.equal(readerBlocks[2]?.[1], "preview-cover");
 				assert.deepEqual(
 					readerBlocks.filter((block) => block[1] !== "preview-cover"),
 					previewBlocks,

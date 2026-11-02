@@ -170,7 +170,7 @@ try {
 			await task
 				.locator(".check-item")
 				.evaluateAll((nodes: HTMLElement[]) => nodes.map((node) => node.dataset.extra)),
-			["next-a", "next-b", "done-a"],
+			["next-a", "next-b", "done-a", "done-b", "done-c"],
 		);
 		assert.equal(await task.locator(".task-count").innerText(), "3/5");
 		await task.hover();
@@ -214,7 +214,7 @@ try {
 		await page.keyboard.press("Space");
 		assert.equal(await focusedTask(), "next-a", "completing a task moved focus to the card title");
 		assert.equal(await task.locator(".task-count").innerText(), "4/5");
-		assert.deepEqual(await previewIds(), ["next-a", "next-b", "done-a"]);
+		assert.deepEqual(await previewIds(), ["next-a", "next-b", "done-a", "done-b", "done-c"]);
 		assert.equal(
 			await digest.evaluate((node: HTMLElement) => node.isConnected),
 			true,
@@ -236,7 +236,7 @@ try {
 		await page.evaluate(() => window.__app.refreshCard("review-task"));
 		assert.deepEqual(
 			await previewIds(),
-			["next-a", "next-b", "done-a"],
+			["next-a", "next-b", "done-a", "done-b", "done-c"],
 			"moving focus inside the card must retain the preview",
 		);
 		const outside = page.locator('[data-card="review-digest"] .card-title-button');
@@ -245,7 +245,7 @@ try {
 			() =>
 				[...document.querySelectorAll('[data-card="review-task"] .checklist [data-action="task"]')]
 					.map((node: HTMLElement) => node.dataset.extra)
-					.join() === "next-a,next-b,done-a",
+					.join() === "next-a,next-b,done-a,done-b,done-c",
 		);
 		assert.equal(
 			await outside.evaluate((node: HTMLElement) => node === document.activeElement),
@@ -258,7 +258,7 @@ try {
 		await page.keyboard.press("Space");
 		assert.equal(await focusedTask(), "next-b", "feed reordering lost the last task's focus");
 		assert.equal(await task.locator(".task-count").innerText(), "5/5");
-		assert.deepEqual(await previewIds(), ["next-a", "next-b", "done-a"]);
+		assert.deepEqual(await previewIds(), ["next-a", "next-b", "done-a", "done-b", "done-c"]);
 		assert.equal(await task.locator(".done-row").count(), 0);
 		assert.equal(
 			await task.evaluate((node: HTMLElement) =>
@@ -278,7 +278,7 @@ try {
 			() => document.querySelector('[data-card="review-task"] .task-count')?.textContent === "5/5",
 		);
 		assert.equal(await task.locator(".done-row").count(), 0);
-		assert.equal(await task.locator(".check-item").count(), 3);
+		assert.equal(await task.locator(".check-item").count(), 5);
 		assert.equal(
 			await outside.evaluate((node: HTMLElement) => node === document.activeElement),
 			true,
@@ -331,7 +331,7 @@ try {
 			await task
 				.locator('.checklist [data-action="task"]')
 				.evaluateAll((nodes: HTMLElement[]) => nodes.map((node) => node.dataset.extra)),
-			["next-a", "next-b", "done-a"],
+			["next-a", "next-b", "done-a", "done-b", "done-c"],
 			"pagination discarded the held keyboard preview",
 		);
 		assert.ok(await page.evaluate(() => scrollY > 0), "restoring the task jumped the page");
@@ -347,7 +347,7 @@ try {
 			() =>
 				[...document.querySelectorAll('[data-card="review-task"] .checklist [data-action="task"]')]
 					.map((node: HTMLElement) => node.dataset.extra)
-					.join() === "next-a,next-b,done-a",
+					.join() === "next-a,next-b,done-a,done-b,done-c",
 		);
 	});
 	await run("compact-density", { width: 1720, height: 900 }, async (page) => {
