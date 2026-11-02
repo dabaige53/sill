@@ -26,17 +26,31 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 
 | 工作流 | Job | 触发 | 检查入口 | 超时 |
 | --- | --- | --- | --- | --- |
-| `verify.yml` | `verify`、`browser (motion/navigation/layout)` | main push、PR、复用调用 | 静态验证与三个浏览器组并行；各组构建后执行 `ci:test:web-browser` | 各 10 分钟 |
-| `test.yml` | `test` | main push、PR、复用调用 | `npm test`、`plugin:build`、`test:local-browser` | 12 分钟 |
-| `supabase.yml` | `boundary` | main push、PR、复用调用 | `test:supabase:postgres`、`build:cloud`，以及云端、宿主、操作、欢迎页、OAuth 浏览器入口 | 20 分钟 |
-| `consent-policy.yml` | `policy` | main push、PR、复用调用 | `ci:test:consent` | 2 分钟 |
-| `macos.yml` | `macos` | 匹配路径的 main push/PR、手动、复用调用 | `lint:apple`、`ci:test:apple`；手动可选 `ci:verify:card-content` | 30 分钟 |
+| `ci.yml` | `changes`、五类复用检查 | main push、PR、手动 | 分流自检、文件与文档链接检查；按差异调用后续检查 | changes 5 分钟 |
+| `verify.yml` | `verify`、`browser (motion/navigation/layout)` | 复用调用 | 静态验证与三个浏览器组并行；各组构建后执行 `ci:test:web-browser` | 各 10 分钟 |
+| `test.yml` | `test` | 复用调用 | `npm test`、`plugin:build`、`test:local-browser` | 12 分钟 |
+| `supabase.yml` | `boundary` | 复用调用 | `test:supabase:postgres`、`build:cloud`，以及云端、宿主、操作、欢迎页、OAuth 浏览器入口 | 20 分钟 |
+| `consent-policy.yml` | `policy` | 复用调用 | `ci:test:consent` | 2 分钟 |
+| `macos.yml` | `macos` | 手动、复用调用 | `lint:apple`、`ci:test:apple`；手动可选 `ci:verify:card-content` | 30 分钟 |
 | `macos-package.yml` | `package` | 手动、复用调用 | `build:macos`、`package:macos` | 30 分钟 |
 | `release.yml` | `version`、复用检查、打包、`publish` | `v*` tag push、手动选择版本 tag | 版本检查 → 五类检查 → 云端与 Mac 打包 → 发布 | version 5、cloud-package 10、publish 10 分钟；复用任务沿用各自限制 |
 
-Mac 路径清单在 [macos.yml](../../.github/workflows/macos.yml) 维护，包含共享 setup 与 Swift 缓存 action。它不是全量运行入口；发布通过复用调用执行 Mac 检查。
+自动检查只由 [ci.yml](../../.github/workflows/ci.yml) 触发，五类原工作流保留实际任务，供 CI 与发布复用。检查显示名称会带调用方前缀，例如 `web / verify` 和 `apple / macos`；不再由五个工作流分别响应同一 PR。
 
-本项目不配置分支保护或必需检查汇总 Job。各检查仍保留非零失败退出，发布仍等待五类检查全部通过后才打包。Job id 和工作流名称保持稳定。
+本项目不配置分支保护或必需检查汇总 Job。各检查仍保留非零失败退出。发布直接调用五类完整检查，不经过文档分流，全部通过后才打包。
+
+## 文档变更分流
+
+[ci-changes.ts](../../scripts/ci-changes.ts) 统一决定范围。纯文档指 `docs/**/*.md`、`docs/LICENSE`、根 README/AGENTS/GLOSSARY、设计手册 Markdown，以及脚本中列明目录的 README。产品交付的 `skills/` 正文不属于纯文档；未知文件也不按文档跳过。
+
+- PR 比较共同祖先到 PR head 的完整差异，不只看最后一笔提交。包含代码的 PR 后续补文档，仍运行代码检查。
+- main push 比较事件的 before/after，覆盖一次推送中的全部提交。
+- 纯文档只运行一个轻量 Job：不安装 npm 依赖，执行分流自检和 `npm run files:check`，检查目录、导航与适用的文档链接。产品测试、浏览器、数据库和 Swift 检查不分配 Runner。
+- 非文档改动运行 Web、集成、数据与授权策略检查。Apple、共享契约、设计、素材、Apple 测试、Mac 构建/格式脚本、根配置和 CI 配置触发 Mac；其他已知非 Apple 目录保留原来的平台范围，未知目录运行全部检查。
+- 无法取得差异或差异为空时运行全部检查。重命名按删除旧路径、新增新路径判断，不能把源码移入 docs 后误判为纯文档。
+- 手动运行 `Sill CI` 默认 `full=true`，强制运行全部检查；关闭它时按最近一笔提交判断，便于验证或重跑该提交的分流。发布入口始终全量。
+
+分流规则的测试在 [ci-changes.test.ts](../../tests/server/ci-changes.test.ts)，每次 CI 都先执行；覆盖纯文档、混合提交、产品技能正文、全局配置、未知目录、缺失差异、PR 共同祖先和源码重命名。判断或文件检查失败时，CI 保持失败，不将其当作正常跳过。
 
 ## 环境准备
 
@@ -69,7 +83,7 @@ Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托�
 
 ## 并发与失败
 
-五类 PR 检查按工作流与 PR 编号分组，新推送取消旧运行。其他事件按调用工作流和提交 SHA 分组，不主动取消正在执行的运行。组名包含被调用工作流的固定前缀和调用方名称，避免发布中的复用任务互相取消，或与独立检查共用分组。
+CI 入口按 PR 编号分组，新推送取消旧运行。五类复用检查保留各自分组；其他事件按调用工作流和提交 SHA 分组，不主动取消正在执行的运行。组名包含被调用工作流的固定前缀和调用方名称，避免子任务取消调用方，或与发布中的复用任务共用分组。
 
 发布沿用 `sill-release` 分组和 `cancel-in-progress: false`。这一设置不等于无限排队，也不构成人工上线审批。
 

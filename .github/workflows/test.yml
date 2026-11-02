@@ -1,8 +1,5 @@
 name: Sill integration
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_call:
 concurrency:
   group: sill-test-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}

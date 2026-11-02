@@ -1,8 +1,5 @@
 name: Offline MCP consent policy
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_call:
 concurrency:
   group: sill-consent-policy-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}

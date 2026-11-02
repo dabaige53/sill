@@ -1,9 +1,6 @@
 name: Verify Sill
 on:
   workflow_call:
-  push:
-    branches: [main]
-  pull_request:
 concurrency:
   group: sill-verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

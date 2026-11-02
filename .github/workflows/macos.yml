@@ -1,24 +1,6 @@
 name: Verify Sill macOS
 on:
   workflow_call:
-  push:
-    branches: [main]
-    paths: &apple-inputs
-      - 'apps/apple/**'
-      - 'contracts/**'
-      - 'design-system/**'
-      - 'assets/**'
-      - 'tests/apple/**'
-      - 'scripts/build-macos.ts'
-      - 'scripts/format.ts'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.swift-format'
-      - '.github/workflows/macos.yml'
-      - '.github/actions/setup/**'
-      - '.github/actions/swift-cache/**'
-  pull_request:
-    paths: *apple-inputs
   workflow_dispatch:
     inputs:
       card_content:
