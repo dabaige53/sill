@@ -407,7 +407,12 @@ test("PR has its own snapshot layout and never invents missing statistics", (t) 
 	// The card shows checks as a tick and a count only; the label lives in the tooltip.
 	assert.equal(face.querySelector(".pr-check-count")?.textContent, "1/1");
 	const detail = new JSDOM(Panels.preview({}, card)).window.document;
-	assert.match(detail.body.textContent!, /记录于.*今天/);
+	assert.doesNotMatch(detail.body.textContent!, /记录于/);
+	assert.equal(
+		detail.querySelector(".pr-date")?.textContent,
+		face.querySelector(".pr-date")?.textContent,
+	);
+	assert.match(detail.querySelector(".pr-date")?.getAttribute("title") || "", /快照时间/);
 	assert.match(detail.body.textContent!, /已通过/);
 	assert.match(detail.body.textContent!, /build/);
 	assert.equal(detail.querySelector('[data-action="reader"]'), null);

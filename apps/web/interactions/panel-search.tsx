@@ -1,4 +1,3 @@
-import React from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { SelectionBar } from "../atoms/selection.tsx";
 import { CardView } from "../cards/components.tsx";
@@ -9,7 +8,7 @@ import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
 import { type PanelRenderers, type SearchApp } from "./panel-contract.ts";
-import { button, icon, keyed } from "./panel-primitives.tsx";
+import { icon, keyed } from "./panel-primitives.tsx";
 
 export const searchTypes = [
 	["article", "web.search.type.article", "architecture"],
@@ -59,7 +58,10 @@ export function SearchMatch({ text, needle }: { text: string; needle: string }) 
 export const panelSearch = {
 	editor(
 		this: PanelRenderers,
-		app?: Pick<AppController, "editTags"> & { cloudSavedAccount?: boolean },
+		app?: Pick<AppController, "editTags"> & {
+			cloudSavedAccount?: boolean;
+			desktop?: () => boolean;
+		},
 		id?: string,
 	) {
 		const c = Store.card(id),
@@ -80,82 +82,88 @@ export const panelSearch = {
 			.slice(0, 6);
 		return (
 			<>
-				<div className={"sheet"}>
+				<div className={"sheet tag-editor-sheet"}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
 					{this.close(copy("web.editor.closeTagsAndNote"))}
-					<div className={"panel-content"}>
-						<div className={"panel-sub"} id={"editor-title"}>
-							{c.title}
-						</div>
-						{"\n   "}
-						<ul
-							className="tag-editor"
-							id="editor-tags"
-							aria-label={`${copy("web.editor.newTagLabel")}, ${current.length}${copy("web.editor.tagsAddedSuffix")}`}
-						>
-							{current.map((t) => (
-								<li key={t} className="tag-pill" data-tag={t}>
-									<span className="tag-pill-body" aria-hidden="true" />
-									<span className="tag-pill-text">{t}</span>
-									<button
-										type="button"
-										data-action="editor-tag"
-										data-extra={t}
-										aria-label={`${copy("web.editor.removeTagPrefix")}${t}`}
-									>
-										{icon("x", 14)}
-									</button>
+					<div className={"panel-content tag-panel-content"}>
+						<div className="tag-panel-fields">
+							<div className={"panel-sub"} id={"editor-title"}>
+								{c.title}
+							</div>
+							{"\n   "}
+							<ul
+								className="tag-editor"
+								id="editor-tags"
+								aria-label={`${copy("web.editor.newTagLabel")}, ${current.length}${copy("web.editor.tagsAddedSuffix")}`}
+							>
+								{current.map((t) => (
+									<li key={t} className="tag-pill" data-tag={t}>
+										<span className="tag-pill-body" aria-hidden="true" />
+										<span className="tag-pill-text">{t}</span>
+										<button
+											type="button"
+											data-action="editor-tag"
+											data-extra={t}
+											aria-label={`${copy("web.editor.removeTagPrefix")}${t}`}
+										>
+											{icon("x", 14)}
+										</button>
+									</li>
+								))}
+								<li className="tag-input-slot">
+									<input
+										id="tag-new"
+										aria-label={copy("web.editor.newTagLabel")}
+										placeholder={copy("web.editor.addTagPlaceholder")}
+										maxLength={30}
+										autoComplete="off"
+										enterKeyHint="enter"
+									/>
 								</li>
-							))}
-							<li className="tag-input-slot">
-								<input
-									id="tag-new"
-									aria-label={copy("web.editor.newTagLabel")}
-									placeholder={copy("web.editor.addTagPlaceholder")}
-									maxLength={30}
-									autoComplete="off"
-									enterKeyHint="enter"
+							</ul>
+							<p className="tag-hint">{copy("web.editor.tagHint")}</p>
+							<span className="sr-only" id="tag-live" role="status" aria-live="polite" />
+							{"\n   "}
+							{keyed(
+								suggest.length ? (
+									<>
+										<div className={"chip-suggest"}>
+											{keyed(
+												suggest.map((t) => (
+													<>
+														<button
+															type={"button"}
+															className={"chip soft"}
+															data-action={"editor-tag"}
+															data-extra={t}
+														>
+															{t}
+														</button>
+													</>
+												)),
+											)}
+										</div>
+									</>
+								) : (
+									""
+								),
+							)}
+							{"\n   "}
+							<details className="tag-note" open={!!s.note || app.desktop?.() !== false}>
+								<summary>{copy("web.editor.noteLabel")}</summary>
+								<label className={"sr-only"} htmlFor={"note-editor"}>
+									{copy("web.editor.noteLabel")}
+								</label>
+								<textarea
+									className={"editor-note"}
+									id={"note-editor"}
+									maxLength={4000}
+									placeholder={copy("web.editor.notePlaceholder")}
+									defaultValue={s.note}
+									rows={3}
 								/>
-							</li>
-						</ul>
-						<p className="tag-hint">{copy("web.editor.tagHint")}</p>
-						<span className="sr-only" id="tag-live" role="status" aria-live="polite" />
-						{"\n   "}
-						{keyed(
-							suggest.length ? (
-								<>
-									<div className={"chip-suggest"}>
-										{keyed(
-											suggest.map((t) => (
-												<>
-													<button
-														type={"button"}
-														className={"chip soft"}
-														data-action={"editor-tag"}
-														data-extra={t}
-													>
-														{t}
-													</button>
-												</>
-											)),
-										)}
-									</div>
-								</>
-							) : (
-								""
-							),
-						)}
-						{"\n   "}
-						<label className={"sr-only"} htmlFor={"note-editor"}>
-							{copy("web.editor.noteLabel")}
-						</label>
-						<textarea
-							className={"editor-note"}
-							id={"note-editor"}
-							maxLength={4000}
-							placeholder={copy("web.editor.notePlaceholder")}
-							defaultValue={s.note}
-						/>
+							</details>
+						</div>
 						{"\n   "}
 						<div className={"panel-footer"}>
 							<span className={"muted"}>

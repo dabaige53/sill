@@ -59,7 +59,7 @@ export const appFeedMethods = {
 		q = this.searchText(q);
 		if (!q?.trim() && f.type === "all" && f.status === "all" && !f.tag)
 			return { desk: [], shelved: [] };
-		const all = Store.state.cards.filter((c?: Card) => {
+		const all = this.orderedCards().filter((c?: Card) => {
 			const state = Store.item(c.id);
 			return (
 				(!q || this.matches(c, q)) &&
@@ -76,14 +76,12 @@ export const appFeedMethods = {
 			shelved: all.filter((c?: Card) => this.shelfOf(c) !== "desk"),
 		};
 	},
-	/** Phone card suggestions: the matches, or the newest desk cards while the field is empty. */
+	/** Search and suggestions keep the same stable order as home. */
 	searchSuggestions(this: AppController): Card[] {
 		const f = this.searchFilter;
 		const open = !this.searchText(f.query) && f.type === "all" && f.status === "all" && !f.tag;
 		const cards = open
-			? Store.state.cards
-					.filter((c: Card) => this.shelfOf(c) === "desk")
-					.sort((a: Card, b: Card) => (b.time || 0) - (a.time || 0))
+			? this.orderedCards().filter((c: Card) => this.shelfOf(c) === "desk")
 			: Object.values(this.searchAll(f.query)).flat();
 		return cards.slice(0, tokens.motion.searchChoice.suggestions);
 	},
@@ -98,13 +96,7 @@ export const appFeedMethods = {
 			!!f.query
 		);
 	},
-	/** `anyKind` ignores the type chip, to learn which types still have results. */
-	filtered(this: AppController, anyKind = false): Card[] {
-		const f = this.filter,
-			q = this.searchText(f.query),
-			kind = f.kind || "all",
-			mark = f.mark || "all";
-		const statusOnly = ["snoozed", "dismissed", "done"].includes(f.status);
+	orderedCards(this: AppController): Card[] {
 		// Keep one order across saves, pagination and filter changes until an explicit refresh.
 		if (!this.feedOrder || this.feedOrderSort !== this.sort) {
 			this.feedOrder = new Map();
@@ -117,37 +109,46 @@ export const appFeedMethods = {
 			let top = this.feedOrder.size ? Math.min(...this.feedOrder.values()) : arrivals.length;
 			for (const card of arrivals.reverse()) this.feedOrder.set(card.id, --top);
 		}
+		return Store.state.cards
+			.slice()
+			.sort((a, b) => this.feedOrder.get(a.id) - this.feedOrder.get(b.id));
+	},
+	/** `anyKind` ignores the type chip, to learn which types still have results. */
+	filtered(this: AppController, anyKind = false): Card[] {
+		const f = this.filter,
+			q = this.searchText(f.query),
+			kind = f.kind || "all",
+			mark = f.mark || "all";
+		const statusOnly = ["snoozed", "dismissed", "done"].includes(f.status);
 		// Cards waiting behind the new-content pill stay out until the reader brings them in.
 		const waiting = new Set(
 			Store.pref("newHint") === "off" ? [] : this.pendingCards.map((c: Card) => c.id),
 		);
-		return Store.state.cards
-			.filter((c?: Card) => {
-				if (waiting.has(c.id)) return false;
-				const s = Store.item(c.id);
-				// Searching reaches every shelf; browsing shows only the desk.
-				if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;
-				return (
-					FeedPolicy.visible(c, s, f.status) &&
-					(f.type === "all" ||
-						c.type === f.type ||
-						(f.type === "todo" && ["task", "reminder"].includes(c.type))) &&
-					(statusOnly ||
-						f.status === "all" ||
-						(f.status === "unread" && !s.read) ||
-						(f.status === "read" && s.read) ||
-						(f.status === "saved" && s.bookmarked) ||
-						(f.status === "later" && s.later)) &&
-					(anyKind || kind === "all" || c.type === kind) &&
-					(mark === "all" ||
-						(mark === "unread" && !s.read) ||
-						(mark === "saved" && s.bookmarked) ||
-						(mark === "later" && s.later)) &&
-					(!f.tag || Store.tags(c).includes(f.tag)) &&
-					(!q || this.matches(c, q))
-				);
-			})
-			.sort((a, b) => this.feedOrder.get(a.id) - this.feedOrder.get(b.id));
+		return this.orderedCards().filter((c?: Card) => {
+			if (waiting.has(c.id)) return false;
+			const s = Store.item(c.id);
+			// Searching reaches every shelf; browsing shows only the desk.
+			if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;
+			return (
+				FeedPolicy.visible(c, s, f.status) &&
+				(f.type === "all" ||
+					c.type === f.type ||
+					(f.type === "todo" && ["task", "reminder"].includes(c.type))) &&
+				(statusOnly ||
+					f.status === "all" ||
+					(f.status === "unread" && !s.read) ||
+					(f.status === "read" && s.read) ||
+					(f.status === "saved" && s.bookmarked) ||
+					(f.status === "later" && s.later)) &&
+				(anyKind || kind === "all" || c.type === kind) &&
+				(mark === "all" ||
+					(mark === "unread" && !s.read) ||
+					(mark === "saved" && s.bookmarked) ||
+					(mark === "later" && s.later)) &&
+				(!f.tag || Store.tags(c).includes(f.tag)) &&
+				(!q || this.matches(c, q))
+			);
+		});
 	},
 	deskView(this: AppController, heldId = "", taskPreviewOrder: string[] = []): ReactNode {
 		return feedView(this, heldId, taskPreviewOrder);

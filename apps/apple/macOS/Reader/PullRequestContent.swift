@@ -16,13 +16,16 @@ struct PullRequestContent: View {
         VStack(alignment: .leading, spacing: 0) {
           CardHead(
             card: card,
-            text: "\(pr.repository) #\(pr.number)"
-              + (card.displayDate.isEmpty ? "" : " · " + card.displayDate)
-              + (detail
-                ? " · \(Copy.text("pr.observed")) \(ReaderContent.fullDate(pr.observedAt) ?? pr.observedAt)"
-                : "")
+            text: pr.repository
           ) {
-            if !detail { status(pr) }
+            HStack(spacing: AppleMetrics.space6) {
+              Text("#\(pr.number)").fixedSize()
+              Text(Format.publication(pr.observedAt, includeTime: true) ?? card.displayDate)
+                .foregroundStyle(AppleColors.secondary)
+                .fixedSize()
+                .help(Copy.text("pr.observed") + " · " + pr.observedAt)
+              if !detail { status(pr) }
+            }
           }
           .frame(minHeight: detail ? AppleMetrics.space36 : AppleMetrics.cardHeadHeight)
           .padding(.bottom, detail ? AppleMetrics.rhythmClose : AppleMetrics.space8)

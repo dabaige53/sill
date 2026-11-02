@@ -4,7 +4,7 @@ import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import type { PanelRenderers, PreviewApp } from "./panel-contract.ts";
-import { agentAction, button, personalNote, SheetEdges } from "./panel-primitives.tsx";
+import { button, personalNote, SheetEdges } from "./panel-primitives.tsx";
 
 export function VideoSurface({
 	card,
@@ -33,7 +33,6 @@ export function VideoSurface({
 					<div className="preview-body">
 						<MediaDetail key={card.id} card={card} app={app} />
 						{personalNote(state.note)}
-						{renderers.foot(agentAction(app, card))}
 					</div>
 				</div>
 			</div>

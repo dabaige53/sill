@@ -98,8 +98,12 @@ try {
 			});
 			assert.deepEqual(
 				await page
-					.locator(".float-bar button")
-					.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-action"))),
+					.locator(".float-bar .icon-button")
+					.evaluateAll((nodes) =>
+						nodes.map(
+							(n) => n.getAttribute("data-action") || (n.hasAttribute("href") ? "external" : null),
+						),
+					),
 				["bookmark", "edit", "later", "external"],
 			);
 			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);

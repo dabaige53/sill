@@ -10,7 +10,7 @@ import { Panels } from "../../apps/web/interactions/panels.ts";
 const cards = Object.keys(CardTypes).map((type) => SeedCards.find((card) => card.type === type));
 cards.push(SeedCards.find((card) => card.type === "media" && card.media === "podcast"));
 for (const [index, seed] of cards.entries()) {
-	test(`preview preserves escaped content and one assistant action: ${seed.type}/${index}`, () => {
+	test(`preview preserves escaped content without an assistant action: ${seed.type}/${index}`, () => {
 		Store.state = Store.fresh();
 		const text = 'Synthetic <script> & "quoted" ${literal}';
 		const card = {
@@ -21,15 +21,17 @@ for (const [index, seed] of cards.entries()) {
 			summary: text,
 		};
 		const before = JSON.stringify(card);
-		const dom = new JSDOM(
-			Panels.preview({ agentAction: () => "<button data-agent-test>Assistant</button>" }, card),
-		);
+		const app = {
+			agentScope: () => ({ kind: "local" as const }),
+			agentAction: () => "<button data-agent-test>Assistant</button>",
+		};
+		const dom = new JSDOM(Panels.preview(app, card));
 		try {
 			const document = dom.window.document;
 			assert.equal(document.querySelectorAll("#modal-title").length, 1);
 			assert.equal(document.querySelector("#modal-title")?.textContent, text);
 			assert.equal(document.querySelectorAll("script").length, 0);
-			assert.equal(document.querySelectorAll("[data-agent-test]").length, 1);
+			assert.equal(document.querySelectorAll("[data-agent-test]").length, 0);
 			assert.ok(document.querySelector(".sheet-scroll[tabindex='0']"));
 			assert.equal(document.querySelectorAll("input:not([type=range]),textarea").length, 0);
 			assert.equal(document.querySelector('[data-action="why"]'), null);

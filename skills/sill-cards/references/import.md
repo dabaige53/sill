@@ -40,7 +40,7 @@ Sill 不订阅、不同步、不抓取，也不接收文件导入。所谓导入
 | 外部资料 | `type` | `sources.kind` | 重点字段 |
 | --- | --- | --- | --- |
 | 网页文章、博客 | `article` | `web` | `url`、`authors`（发布方在前）、`publishedAt`、正文、`images`（HTTPS 封面） |
-| 阅读器条目（Readwise、RSS 阅读器） | `article` | `readwise` / `rss` | 同上；用户的划线可写进正文 |
+| 阅读器条目（Readwise、RSS 阅读器） | `article` | `readwise` / `rss` | 同上；用户的划线可写进正文。需要回到 Reader 时保留来源实际提供的 Reader 文档 HTTPS 链接；手机由系统处理 App 打开，无 App 时仍可读网页，不编造协议或文档 ID |
 | X / Twitter 帖子 | `note` | `twitter` | `url`、`authors`、`publishedAt`；需要把原话作为金句展示时用 `form:"quote"` |
 | YouTube 等视频 | `media`，`media:"video"` | `youtube` | `url`、`images`（缩略图）、`duration` 秒、原描述里的时间戳章节 |
 | 播客单集 | `media`，`media:"podcast"` | `podcast` | `url`、`audioUrl`（RSS enclosure）、`duration`、`chapters`、`transcript` |

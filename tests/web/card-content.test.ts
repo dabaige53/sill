@@ -7,6 +7,38 @@ import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 
+test("mail keeps its full sender in detail and gives the date a separate element", () => {
+	Store.state = Store.fresh();
+	const card = {
+		id: "mail-long",
+		type: "mail",
+		title: "需要确认的材料",
+		authors: [{ name: "很长的发件人和真实地址 <sender@example.com>" }],
+		publishedAt: "2026-11-02T10:00:00+08:00",
+		url: "https://mail.example.com/message/123",
+	};
+	for (const [html, detail] of [
+		[cardHTML(card), false],
+		[Panels.preview({}, card), true],
+	] as const) {
+		const dom = new JSDOM(html);
+		try {
+			const sender = dom.window.document.querySelector(".mail-sender");
+			assert.equal(sender.querySelector("b")?.textContent, card.authors[0].name);
+			assert.equal(sender.querySelectorAll("time").length, 1);
+			assert.equal(sender.querySelector("b time"), null);
+			const link = dom.window.document.querySelector<HTMLAnchorElement>(".float-bar a.is-own");
+			if (detail) {
+				assert.ok(link);
+				assert.equal(link.getAttribute("href"), card.url);
+				assert.equal(link.getAttribute("aria-label"), "打开邮件");
+			}
+		} finally {
+			dom.window.close();
+		}
+	}
+});
+
 test("card summaries have a text bound while every detail retains the full summary", () => {
 	Store.state = Store.fresh();
 	const summary = "结论🙂".repeat(60);

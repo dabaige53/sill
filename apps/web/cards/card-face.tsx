@@ -6,7 +6,7 @@ import {
 	eventTimely,
 	timeString,
 } from "../atoms/primitives.ts";
-import { Avatar, Avatars, CheckItem, CheckMark, Icon } from "../atoms/react-primitives.tsx";
+import { Avatars, CheckItem, CheckMark, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import {
@@ -14,7 +14,6 @@ import {
 	cardCover,
 	cardDateLabel,
 	cardReadingTime,
-	cardSender,
 	cardSource,
 	cardSummaryText,
 	contentDay,
@@ -35,6 +34,7 @@ import {
 	Title,
 } from "./card-blocks.tsx";
 import { CardSchedule } from "./card-schedule.tsx";
+import { MailSender } from "./mail-sender.tsx";
 import { PullRequest } from "./pull-request.tsx";
 import { cardRecipe, type Entry, entryName, entryOptions } from "./recipes.ts";
 
@@ -218,29 +218,7 @@ const blocks: Record<string, Block> = {
 			right={o.status ? statuses[o.status]?.(c, ctx) : undefined}
 		/>
 	),
-	sender: (c) => {
-		const sender = cardSender(c);
-		return sender ? (
-			<div className="sender">
-				<Avatar name={sender} size={32} />
-				<span>
-					<b>{sender}</b>
-					<small>
-						{cardSource(c) || copy("web.mail")}
-						{cardDateLabel(c) ? ` · ${cardDateLabel(c)}` : ""}
-						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
-					</small>
-				</span>
-			</div>
-		) : (
-			<Head
-				card={c}
-				text={[cardSource(c) || copy("web.mail"), cardDateLabel(c), cardReadingTime(c)]
-					.filter(Boolean)
-					.join(" · ")}
-			/>
-		);
-	},
+	sender: (c) => <MailSender card={c} />,
 	title: (c, ctx) => <Title card={c} ctx={ctx} />,
 	quote: (c, ctx) => <Title card={c} ctx={ctx} className="quote-text" />,
 	summary: (c, _ctx, o) => {
@@ -251,7 +229,7 @@ const blocks: Record<string, Block> = {
 		return <Summary card={c} />;
 	},
 	schedule: (c, ctx) => <CardSchedule card={c} state={ctx.state} now={ctx.now} />,
-	checklist: (c, ctx, o) => {
+	checklist: (c, ctx) => {
 		const tasks = ctx.tasks;
 		if (!tasks.length) return null;
 		const byId = new Map(tasks.map((t) => [t.id, t])),

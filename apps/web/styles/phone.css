@@ -141,7 +141,7 @@
 		height: 20px !important;
 		font-size: calc(11px * var(--content-text-scale, 1));
 	}
-	.feed-item .sender > span:last-child {
+	.feed-item .sender:not(.mail-sender) > span:last-child {
 		flex: 1;
 		flex-direction: row;
 		align-items: baseline;

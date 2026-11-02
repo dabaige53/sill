@@ -191,27 +191,11 @@ struct ReaderContent: View {
     }
   }
 
-  @ViewBuilder private var sender: some View {
-    if let sender = card.sender {
-      HStack(spacing: AppleMetrics.space10) {
-        Avatar(name: sender, size: AppleMetrics.space36)
-        HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space8) {
-          Text(sender).lineLimit(1).textStyle(AppleMetrics.font15, .bold).foregroundStyle(
-            AppleColors.primary)
-          Text(
-            [card.sourceName, card.displayDate, card.readingTime]
-              .filter { !$0.isEmpty }
-              .joined(separator: " · ")
-          )
-          .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
-        }
-      }
+  private var sender: some View {
+    MailSenderHeader(card: card, detail: true)
       .padding(.trailing, discRoom)
       .firstRow()
       .frame(minHeight: AppleMetrics.space36, alignment: .leading)
-    } else {
-      source(.block("source", ["line": .string("meta")]))
-    }
   }
 
   private var title: some View {

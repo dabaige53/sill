@@ -12,7 +12,9 @@ const toolbar = (card: any) => {
 	const dom = new JSDOM(Panels.preview({}, card));
 	const bar = dom.window.document.querySelector(".float-bar");
 	const names = (selector: string) =>
-		[...(bar?.querySelectorAll(selector) || [])].map((n) => n.getAttribute("data-action"));
+		[...(bar?.querySelectorAll(selector) || [])].map(
+			(n) => n.getAttribute("data-action") || (n.hasAttribute("href") ? "external" : null),
+		);
 	return {
 		document: dom.window.document,
 		shared: names(".icon-button:not(.is-own)"),
@@ -43,14 +45,15 @@ test("card detail: shared verbs in ink, a rule, then at most three own verbs; no
 	}
 });
 
-test("mail replies, the event downloads and reminders remind again from the toolbar", () => {
+test("mail opens its web page, events download and reminders remind again from the toolbar", () => {
 	Store.state = Store.fresh();
 	const mail = toolbar(seed("mail"));
 	const event = toolbar({ ...seed("event"), start: Date.now() + 60 * 60000 });
 	const reminder = toolbar(seed("reminder"));
 	try {
 		assert.deepEqual(mail.own, ["external"]);
-		assert.equal(mail.document.querySelector(".is-own")?.getAttribute("aria-label"), "回复");
+		assert.equal(mail.document.querySelector(".is-own")?.getAttribute("aria-label"), "打开邮件");
+		assert.equal(mail.document.querySelector(".is-own")?.getAttribute("href"), seed("mail").url);
 		assert.ok(event.own.includes("download-calendar"));
 		assert.ok(event.own.includes("snooze"));
 		assert.deepEqual(reminder.own, ["snooze", "dismiss-reminder"]);

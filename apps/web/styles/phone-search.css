@@ -64,6 +64,27 @@
 	:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
 	}
+	#tag-layer.panel .tag-editor-sheet {
+		max-height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - var(--space-8));
+	}
+	#tag-layer .tag-panel-content {
+		padding-bottom: max(var(--space-12), env(safe-area-inset-bottom));
+	}
+	#tag-layer .panel-sub {
+		margin-right: var(--space-32);
+		margin-bottom: var(--space-12);
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+	#tag-layer :is(input, textarea) {
+		font-size: var(--text-input);
+	}
+	#tag-layer .tag-note .editor-note {
+		min-height: var(--hit-target);
+		margin-top: var(--space-8);
+	}
 	/* Hide navigation as soon as AI typing starts, before viewport keyboard detection. */
 	body:has(:is(#modal, .phone-layer)[open] .ai-conversation #ai-local-draft:focus) #dock,
 	body.keyboard-open:not(:has(:is(#modal, .phone-layer).search[open])) #dock {

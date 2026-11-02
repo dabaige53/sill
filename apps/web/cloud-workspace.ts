@@ -165,14 +165,17 @@ export function workspaceState() {
 		seconds: Store.state.seconds,
 	};
 }
-let saveNoticeTimer: ReturnType<typeof setTimeout> | undefined;
-let saveNoticeVisible = false;
-let saveNoticeState = "idle";
-let observedWrites = 0;
-
 export function syncStatus() {
 	app.grid.dataset.sync = sync.failed ? "error" : sync.pending.length ? "pending" : "saved";
 	let bar = document.getElementById("cloud-sync-status");
+	// Normal writes stay silent. Only an actionable failure needs a visible notice.
+	if (!sync.failed) {
+		if (bar) {
+			bar.hidden = true;
+			renderView(bar, null);
+		}
+		return;
+	}
 	if (!bar) {
 		bar = document.createElement("section");
 		bar.id = "cloud-sync-status";
@@ -180,44 +183,9 @@ export function syncStatus() {
 		bar.hidden = true;
 		document.body.append(bar);
 	}
-	const pending = sync.pending.some((batch) =>
-		batch.body.operations.some((operation: { op: string }) => operation.op !== "reading.add"),
-	);
-	const state = sync.failed ? "error" : pending ? "pending" : "idle";
-	const confirmed = sync.completedWrites > observedWrites;
-	observedWrites = sync.completedWrites;
-	if (state === saveNoticeState && state !== "error") return;
-	const previous = saveNoticeState;
-	saveNoticeState = state;
-	clearTimeout(saveNoticeTimer);
-	const show = (message: string) => {
-		(app.dialog.open ? app.dialog : document.body).append(bar);
-		renderView(bar, createElement("span", { role: "status" }, message));
-		bar.hidden = false;
-	};
-	if (state === "error") {
-		saveNoticeVisible = false;
-		(app.dialog.open ? app.dialog : document.body).append(bar);
-		bar.hidden = false;
-		renderView(bar, createElement(RecoveryNotice, { message: sync.failed.message }));
-	} else if (state === "pending") {
-		bar.hidden = true;
-		saveNoticeVisible = false;
-		// Fast saves stay silent; one notice covers the whole queue of changes.
-		saveNoticeTimer = setTimeout(() => {
-			saveNoticeVisible = true;
-			show(copy("web.cloudentry.6bdb4435095e"));
-		}, 800);
-	} else {
-		// A reset/logout is not a save receipt. Only a drained queue can confirm a save.
-		if ((saveNoticeVisible || previous === "error") && confirmed && Cloud.user) {
-			show(copy("web.cloudentry.1bd91a7d0c53"));
-			saveNoticeTimer = setTimeout(() => {
-				bar.hidden = true;
-			}, 1800);
-		} else bar.hidden = true;
-		saveNoticeVisible = false;
-	}
+	(app.dialog.open ? app.dialog : document.body).append(bar);
+	bar.hidden = false;
+	renderView(bar, createElement(RecoveryNotice, { message: sync.failed.message }));
 }
 /** The first session check answered; returns whether this call ended the boot state. */
 export function endBoot() {

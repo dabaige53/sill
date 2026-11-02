@@ -4,6 +4,30 @@ import { test } from "node:test";
 
 import { fixture } from "./search-state-fixture.ts";
 
+test("search and empty suggestions retain home order across read changes and sort changes", () => {
+	const f = fixture();
+	try {
+		const [article, task] = f.Store.state.cards;
+		article.title = "Shared article";
+		article.time = 2000;
+		task.title = "Shared task";
+		task.time = 1000;
+		task.priority = 10;
+		f.app.sort = "priority";
+		const ids = (cards: { id: string }[]) => cards.map((card) => card.id);
+		assert.deepEqual(ids(f.app.filtered()), ["b", "a"]);
+		assert.deepEqual(ids(f.app.searchAll("Shared").desk), ["b", "a"]);
+		assert.deepEqual(ids(f.app.searchSuggestions()), ["b", "a"]);
+		f.Store.state.items.b = { read: true, taskDone: ["one"] };
+		assert.deepEqual(ids(f.app.searchAll("Shared").desk), ["b", "a"]);
+		f.app.sort = "time";
+		assert.deepEqual(ids(f.app.filtered()), ["a", "b"]);
+		assert.deepEqual(ids(f.app.searchAll("Shared").desk), ["a", "b"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a category card becomes an ink token and leaves the home filter alone", () => {
 	const f = fixture();
 	try {

@@ -278,30 +278,8 @@ struct CardBlock: View {
     }
   }
 
-  @ViewBuilder private var sender: some View {
-    let date = card.displayDate
-    if let sender = card.sender {
-      HStack(spacing: AppleMetrics.space10) {
-        Avatar(name: sender, size: AppleMetrics.space32)
-        HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space8) {
-          Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
-            .foregroundStyle(AppleColors.primary)
-          Text(
-            [card.sourceName, date, card.readingTime].filter { !$0.isEmpty }
-              .joined(separator: " · ")
-          )
-          .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
-        }
-      }
-      .padding(.trailing, AppleMetrics.space30)
-    } else {
-      CardHead(
-        card: card,
-        text: [
-          card.sourceName.isEmpty ? Copy.text("web.mail") : card.sourceName, date,
-          card.readingTime,
-        ].filter { !$0.isEmpty }.joined(separator: " · "))
-    }
+  private var sender: some View {
+    MailSenderHeader(card: card)
   }
 
   @ViewBuilder private var summary: some View {
