@@ -15,6 +15,7 @@ on:
       - 'package-lock.json'
       - '.swift-format'
       - '.github/workflows/macos.yml'
+      - '.github/actions/setup/**'
   pull_request:
     paths: *apple-inputs
   workflow_dispatch:
@@ -23,6 +24,9 @@ on:
         description: Verify shared card content without browser automation
         type: boolean
         default: false
+concurrency:
+  group: sill-macos-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
@@ -31,26 +35,20 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           node-version: '24'
+          install: ignore-scripts
           cache: npm
       - name: Show Apple toolchain
         run: |
           xcodebuild -version
           swift --version
-      - name: Install dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Check Apple formatting
         run: npm run lint:apple
       - name: Verify shared card content
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.card_content }}
-        run: |
-          npm run contracts:check
-          npm run lint:web
-          npm run typecheck
-          npm run build
-          node --import tsx --test tests/web/card.test.ts tests/web/card-metadata.test.ts tests/web/card-content.test.ts tests/web/cloud-card.test.ts tests/contracts/card.test.ts tests/server/card-display-policy.test.ts
+        run: npm run ci:verify:card-content
       - name: Run Swift tests without UI automation
         if: ${{ !cancelled() }}
-        run: node tests/apple/run.ts
+        run: npm run ci:test:apple

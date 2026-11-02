@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [CI 初始化](2026-11-01-ci-init/README.md)
 - [生产功能与扩展压力验收](2026-10-31-production-acceptance/README.md)
 - [卡片内容一致性第一批](2026-10-31-card-content-consistency/README.md)
 - [main 测试与功能提交不同步](2026-10-31-main-ci-tests/README.md)

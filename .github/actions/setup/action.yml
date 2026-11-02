@@ -1,0 +1,27 @@
+name: Setup Sill CI
+description: Prepare the existing Node runtime and npm dependencies
+inputs:
+  node-version:
+    description: Node major version for this job
+    required: true
+  cache:
+    description: npm to enable the existing dependency cache, empty to disable
+    default: ''
+  install:
+    description: standard, ignore-scripts, or none
+    default: standard
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache }}
+    - name: Install dependencies
+      if: ${{ inputs.install == 'standard' }}
+      shell: bash
+      run: npm ci
+    - name: Install dependencies without lifecycle scripts
+      if: ${{ inputs.install == 'ignore-scripts' }}
+      shell: bash
+      run: npm ci --ignore-scripts --no-audit --no-fund

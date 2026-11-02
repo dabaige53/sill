@@ -4,18 +4,21 @@ on:
     branches: ['**']
   pull_request:
   workflow_call:
+concurrency:
+  group: sill-supabase-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
   boundary:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
       # Node service coverage runs once in test.yml via npm test.
       - run: npm run test:supabase:postgres
       - id: cloudbuild

@@ -4,20 +4,23 @@ on:
     branches: ['**']
   pull_request:
   workflow_call:
+concurrency:
+  group: sill-test-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
           # PGlite hits Node 24's Wasm cleanup crash: nodejs/node#66366.
           # Match the Node 26 runtime used for the local release checks.
           node-version: '26'
           cache: npm
-      - run: npm ci
       - run: npm test
       - run: npm run plugin:build
       - run: npx playwright install --with-deps chromium
