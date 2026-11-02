@@ -1,5 +1,6 @@
 import { copy } from "../../copy.ts";
 import { Store } from "../../data/store.ts";
+import { MotionEngine } from "../../interactions/motion.ts";
 import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
 import {
 	announceTags,
@@ -77,14 +78,12 @@ const MAX_TAGS = 20;
 function paintTags(this: AppController, added: string[], typed: boolean, removed?: string) {
 	const before = captureTags(document.getElementById("editor-tags"), removed);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-	const expanded = this.editorLayer.querySelector<HTMLDetailsElement>(".tag-note").open;
 	const scroll = this.editorLayer.querySelector(".tag-panel-fields").scrollTop;
 	const input = this.editorLayer.querySelector<HTMLInputElement>("#tag-new");
 	const draft = typed ? "" : input.value;
 	const selection = [input.selectionStart, input.selectionEnd];
 	renderView(this.editorLayer, Panels.editor(this, this.editId));
 	if (note !== undefined) (document.getElementById("note-editor") as HTMLInputElement).value = note;
-	this.editorLayer.querySelector<HTMLDetailsElement>(".tag-note").open = !!expanded;
 	this.editorLayer.querySelector(".tag-panel-fields").scrollTop = scroll;
 	const next = this.editorLayer.querySelector<HTMLInputElement>("#tag-new");
 	next.value = draft;
@@ -95,6 +94,7 @@ function paintTags(this: AppController, added: string[], typed: boolean, removed
 /** A suggestion adds its tag; a chip's × removes it. Focus stays in the field. */
 function editorTag(this: AppController, { extra }: ActionContext) {
 	const removing = this.editTags.has(extra);
+	const typing = this.desktop() || document.activeElement?.id === "tag-new";
 	if (!removing && this.editTags.size >= MAX_TAGS) {
 		this.alert(copy("web.app.1859bc867672"));
 		return;
@@ -103,7 +103,8 @@ function editorTag(this: AppController, { extra }: ActionContext) {
 	else this.editTags.add(extra);
 	paintTags.call(this, removing ? [] : [extra], false, removing ? extra : undefined);
 	announceTags(`${copy(removing ? "web.editor.tagRemoved" : "web.editor.tagAdded")}${extra}`);
-	document.getElementById("tag-new")?.focus({ preventScroll: true });
+	// On a phone a chip tap leaves the keyboard as it was; only the tag field itself raises it.
+	if (typing) document.getElementById("tag-new")?.focus({ preventScroll: true });
 }
 
 /**
@@ -146,10 +147,67 @@ function addTag(this: AppController, { extra }: ActionContext) {
 	document.getElementById("tag-new")?.focus({ preventScroll: true });
 }
 
+/**
+ * Phone: the note row opens the note's own page over the sheet. The field takes focus inside
+ * the tap, which is what lets the phone raise its keyboard.
+ */
+function noteOpen(this: AppController) {
+	const sheet = this.editorLayer.querySelector<HTMLElement>(".tag-editor-sheet");
+	const field = this.editorLayer.querySelector<HTMLTextAreaElement>("#note-editor");
+	if (!sheet || !field) return;
+	notePage(sheet, true);
+	field.focus({ preventScroll: true });
+	field.setSelectionRange(field.value.length, field.value.length);
+}
+
+/** Done keeps the note as typed and returns to the tags; Save writes both. */
+function noteDone(this: AppController) {
+	const sheet = this.editorLayer.querySelector<HTMLElement>(".tag-editor-sheet");
+	const field = this.editorLayer.querySelector<HTMLTextAreaElement>("#note-editor");
+	if (!sheet || !field) return;
+	field.blur();
+	this.editNote = field.value.slice(0, 4000);
+	paintTags.call(this, [], false);
+	notePage(sheet, false);
+}
+
+/** The page slides over from the side while the sheet grows to full height, and back. */
+function notePage(sheet: HTMLElement, open: boolean) {
+	const page = sheet.querySelector<HTMLElement>(".note-page");
+	const from = sheet.offsetHeight;
+	MotionEngine.cancel(sheet);
+	MotionEngine.cancel(page);
+	sheet.classList.toggle("note-open", open);
+	sheet.classList.toggle("note-leaving", !open);
+	const to = sheet.offsetHeight;
+	const timing = {
+		duration: MotionEngine.time("dur-sheet"),
+		easing: MotionEngine.curve("ease-sheet"),
+	};
+	if (from !== to)
+		MotionEngine.animate(sheet, [{ height: `${from}px` }, { height: `${to}px` }], timing);
+	const slide = MotionEngine.animate(
+		page,
+		open
+			? [{ transform: "translateX(100%)" }, { transform: "none" }]
+			: [{ transform: "none" }, { transform: "translateX(100%)" }],
+		timing,
+	);
+	const settle = () => {
+		if (!sheet.classList.contains("note-open")) sheet.classList.remove("note-leaving");
+	};
+	if (open || !slide) settle();
+	else slide.finished.then(settle, settle);
+}
+
 function saveNote(this: AppController, { id }: ActionContext) {
 	const pending = (document.getElementById("tag-new") as HTMLInputElement)?.value.trim();
 	if (pending) this.editTags.add(pending.replace(/^#/, "").slice(0, 30));
-	const note = (document.getElementById("note-editor") as HTMLInputElement).value.slice(0, 4000);
+	const note = (
+		(document.getElementById("note-editor") as HTMLInputElement)?.value ??
+		this.editNote ??
+		""
+	).slice(0, 4000);
 	const ids = this.bulkEditIds || [id];
 	ids.forEach((cardId?: any, i?: any) => {
 		Store.setTags(cardId, [...this.editTags]);
@@ -174,4 +232,6 @@ export const cardsActions = {
 	"editor-tag": editorTag,
 	"add-tag": addTag,
 	"save-note": saveNote,
+	"note-open": noteOpen,
+	"note-done": noteDone,
 } satisfies Record<string, ActionHandler>;

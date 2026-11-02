@@ -58,14 +58,16 @@ export function SearchMatch({ text, needle }: { text: string; needle: string }) 
 export const panelSearch = {
 	editor(
 		this: PanelRenderers,
-		app?: Pick<AppController, "editTags"> & {
+		app?: Pick<AppController, "editTags" | "editNote"> & {
 			cloudSavedAccount?: boolean;
 			desktop?: () => boolean;
 		},
 		id?: string,
 	) {
 		const c = Store.card(id),
-			s = Store.item(id),
+			note = app.editNote ?? Store.item(id).note ?? "",
+			// A phone writes the note on its own page, so opening the sheet never raises the keyboard.
+			phone = app.desktop?.() === false,
 			current = [...app.editTags];
 		const suggest = [
 			...new Set<string>([
@@ -84,13 +86,12 @@ export const panelSearch = {
 			<>
 				<div className={"sheet tag-editor-sheet"}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
+					<h2 className="sr-only" id="editor-title">
+						{copy("web.app.09fe39e89e28")}: {c.title}
+					</h2>
 					{this.close(copy("web.editor.closeTagsAndNote"))}
 					<div className={"panel-content tag-panel-content"}>
 						<div className="tag-panel-fields">
-							<div className={"panel-sub"} id={"editor-title"}>
-								{c.title}
-							</div>
-							{"\n   "}
 							<ul
 								className="tag-editor"
 								id="editor-tags"
@@ -121,7 +122,6 @@ export const panelSearch = {
 									/>
 								</li>
 							</ul>
-							<p className="tag-hint">{copy("web.editor.tagHint")}</p>
 							<span className="sr-only" id="tag-live" role="status" aria-live="polite" />
 							{"\n   "}
 							{keyed(
@@ -149,20 +149,35 @@ export const panelSearch = {
 								),
 							)}
 							{"\n   "}
-							<details className="tag-note" open={!!s.note || app.desktop?.() !== false}>
-								<summary>{copy("web.editor.noteLabel")}</summary>
-								<label className={"sr-only"} htmlFor={"note-editor"}>
-									{copy("web.editor.noteLabel")}
-								</label>
-								<textarea
-									className={"editor-note"}
-									id={"note-editor"}
-									maxLength={4000}
-									placeholder={copy("web.editor.notePlaceholder")}
-									defaultValue={s.note}
-									rows={3}
-								/>
-							</details>
+							{phone ? (
+								<button
+									type="button"
+									className={`note-field${note ? "" : " is-empty"}`}
+									data-action="note-open"
+									aria-label={
+										note ? `${copy("web.editor.noteLabel")}, ${note}` : copy("web.editor.noteLabel")
+									}
+								>
+									<span className="note-field-text">
+										{note || copy("web.editor.notePlaceholder")}
+									</span>
+									{icon("chevron", 14)}
+								</button>
+							) : (
+								<>
+									<label className={"sr-only"} htmlFor={"note-editor"}>
+										{copy("web.editor.noteLabel")}
+									</label>
+									<textarea
+										className={"editor-note note-field"}
+										id={"note-editor"}
+										maxLength={4000}
+										placeholder={copy("web.editor.notePlaceholder")}
+										defaultValue={note}
+										rows={3}
+									/>
+								</>
+							)}
 						</div>
 						{"\n   "}
 						<div className={"panel-footer"}>
@@ -186,6 +201,23 @@ export const panelSearch = {
 							</button>
 						</div>
 					</div>
+					{phone && (
+						<section className="note-page" aria-labelledby="note-page-title">
+							<header className="note-page-bar">
+								<h2 id="note-page-title">{copy("web.editor.noteLabel")}</h2>
+								<button type="button" className="note-done" data-action="note-done">
+									{copy("web.done")}
+								</button>
+							</header>
+							<textarea
+								className={"editor-note"}
+								id={"note-editor"}
+								maxLength={4000}
+								placeholder={copy("web.editor.notePlaceholder")}
+								defaultValue={note}
+							/>
+						</section>
+					)}
 				</div>
 			</>
 		);

@@ -288,10 +288,12 @@ export const appLifecycleMethods = {
 		const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
 		// Only the dialogs read the height. Set on the root, the inherited value restyled the
 		// whole feed behind search on every frame of the keyboard's motion.
-		const value = `${kb}px`;
+		const value = `${kb}px`,
+			visible = `${Math.round(vv.height)}px`;
 		for (const dialog of document.querySelectorAll<HTMLElement>("dialog")) {
 			if (dialog.style.getPropertyValue("--kb") !== value) dialog.style.setProperty("--kb", value);
-			dialog.style.setProperty("--visible-height", `${Math.round(vv.height)}px`);
+			if (dialog.style.getPropertyValue("--visible-height") !== visible)
+				dialog.style.setProperty("--visible-height", visible);
 		}
 		if (kb === this.keyboardHeight) return;
 		this.keyboardHeight = kb;

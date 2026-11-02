@@ -239,6 +239,8 @@ class AppController {
 	previewSizeObserver?: ResizeObserver;
 	declare editId: string;
 	declare editTags: Set<string>;
+	/** The note as last left on its phone page; saved with the tags. */
+	declare editNote: string | null;
 	declare editorLayer: ViewDialog;
 	declare editorFocus: HTMLElement | null;
 	declare toastTimer: number;

@@ -32,7 +32,7 @@ interface PanelRenderers {
 	preview(app?: PreviewApp, card?: PreviewCard): string;
 	reader(app?: PreviewApp, card?: Card, loading?: boolean): string;
 	lightbox(card?: Card, index?: number, app?: PreviewApp): string;
-	editor(app?: Pick<AppController, "editTags">, id?: string): string;
+	editor(app?: Pick<AppController, "editTags" | "editNote">, id?: string): string;
 	search(app?: SearchApp): string;
 	searchResults(app?: SearchApp): string;
 	archive(app?: Pick<AppController, "shelved">, which?: string): string;

@@ -214,9 +214,12 @@ const previews: Record<
 			// The panel reads its card from the store; lend it the sample card for this one render.
 			const cards = Store.state.cards;
 			Store.state.cards = [article];
-			const editor = Panels.editor({ editTags: new Set(["设计", "阅读", "AI"]) }, article.id);
+			const editor = Panels.editor(
+				{ editTags: new Set(["设计", "阅读", "AI"]), editNote: null },
+				article.id,
+			);
 			Store.state.cards = cards;
-			const field = pick(editor, ".tag-editor, .tag-hint, .chip-suggest", 3);
+			const field = pick(editor, ".tag-editor, .chip-suggest", 2);
 			const plain = pick(editor, ".tag-editor");
 			const at = plain.lastIndexOf('class="tag-pill"');
 			const armed = `${plain.slice(0, at)}class="tag-pill is-armed"${plain.slice(at + 16)}`;

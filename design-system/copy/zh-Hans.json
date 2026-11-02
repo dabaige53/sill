@@ -589,7 +589,6 @@
 	"web.editor.removeTagPrefix": "移除标签 ",
 	"web.editor.newTagLabel": "新的标签",
 	"web.editor.addTagPlaceholder": "添加标签",
-	"web.editor.tagHint": "回车或逗号添加，连按两次退格删除最后一个",
 	"web.editor.tagAdded": "已添加 ",
 	"web.editor.tagRemoved": "已移除 ",
 	"web.editor.tagExistsSuffix": " 已经添加过",

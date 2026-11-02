@@ -120,8 +120,7 @@ export async function verifySelectionOperations(
 		requestsBeforeTags,
 		"opening the bulk tag editor must not write",
 	);
-	if (!(await page.locator("#note-editor").isVisible()))
-		await page.locator(".tag-note > summary").click();
+	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
 	await page.locator("#note-editor").fill("Cloud note");
 	await page.locator("#tag-new").fill("标签");
 	await action("save-note", note.id);

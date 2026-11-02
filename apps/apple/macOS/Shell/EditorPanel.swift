@@ -29,14 +29,8 @@ struct EditorPanel: View {
   var body: some View {
     let card = ids.first.flatMap(workspace.model)
     VStack(alignment: .leading, spacing: 0) {
-      Text(card?.title ?? "")
-        .font(.sans(AppleMetrics.font13))
-        .foregroundStyle(AppleColors.secondary)
-        .lineLimit(2)
-        .padding(.trailing, AppleMetrics.space48)
-        .padding(.bottom, AppleMetrics.space18)
-        .accessibilityAddTraits(.isHeader)
-      tagEditor
+      // No title above: the field keeps clear of the round close button.
+      tagEditor.padding(.trailing, AppleMetrics.space48)
       suggestions(card)
       noteEditor
       footer
