@@ -12,7 +12,6 @@ import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
 	cardCover,
-	cardDateLabel,
 	cardReadingTime,
 	cardSource,
 	cardSummaryText,
@@ -27,7 +26,9 @@ import {
 	type Card,
 	type Context,
 	Cover,
+	cardTime,
 	Head,
+	metaLine,
 	Progress,
 	Summary,
 	sourceLine,
@@ -103,13 +104,8 @@ const lines: Record<string, (c: Card, ctx: Context, options: Options) => ReactNo
 	task: () => copy("web.task"),
 	reminder: () => copy("web.reminder"),
 	eventDate: (c) => dateLabel(c.start),
-	photo: (c) => {
-		return [c.location, cardDateLabel(c)].filter(Boolean).join(" · ");
-	},
-	file: (c) =>
-		[copy("web.file"), cardSource(c), cardDateLabel(c), cardReadingTime(c)]
-			.filter(Boolean)
-			.join(" · "),
+	photo: (c) => metaLine([c.location, cardTime(c)]),
+	file: (c) => metaLine([cardSource(c), cardTime(c), cardReadingTime(c)]),
 };
 
 /** The one status item on the right of the source line, by the recipe's `status` option. */

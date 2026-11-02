@@ -1,12 +1,12 @@
 import { cloneElement, type ReactElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { eventTimely } from "../atoms/primitives.ts";
-import { DetailSummary, sourceLine } from "../cards/card-blocks.tsx";
+import { cardTime, metaLine, sourceLine } from "../cards/card-blocks.tsx";
 import { DetailText } from "../cards/markdown.tsx";
 import { PhotoCarousel } from "../cards/photo-carousel.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardDateLabel, cardSourceKind } from "../data/card-source.ts";
+import { cardSourceKind } from "../data/card-source.ts";
 import { SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
@@ -307,6 +307,7 @@ export const panelCard = {
 			<>
 				<div className={"lightbox-top"}>
 					<div>
+						<small className="lightbox-meta">{metaLine([c.location, cardTime(c)])}</small>
 						<span id="modal-title">{c.title}</span>
 						<small className="num">
 							{i + 1} / {photos.length}
@@ -314,8 +315,6 @@ export const panelCard = {
 					</div>
 					{button("x", copy("web.photo.close"), "close")}
 				</div>
-				{"\n   "}
-				<DetailSummary card={c} />
 				<div className={"lightbox-stage"}>
 					{photos.length > 1 && (
 						<button
@@ -351,10 +350,6 @@ export const panelCard = {
 							{icon("arrow", 20)}
 						</button>
 					)}
-				</div>
-				{"\n   "}
-				<div className="lightbox-caption">
-					<small>{[c.location, cardDateLabel(c)].filter(Boolean).join(" · ")}</small>
 				</div>
 				<div className={"lightbox-thumbs"}>
 					{keyed(

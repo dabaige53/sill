@@ -216,7 +216,7 @@
       "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
     },
     "summary": {
-      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body. For photos, use a factual image description. Do not duplicate the summary in body.",
+      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
       "type": "string",
       "maxLength": 10000
     },

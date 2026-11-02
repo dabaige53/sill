@@ -4,10 +4,9 @@ import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardDateLabel } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
 import { type AgentScope, agentKey } from "../services/agent-handoff.ts";
-import { DetailSummary } from "./card-blocks.tsx";
+import { cardTime, DetailSummary, metaLine } from "./card-blocks.tsx";
 import { DetailText } from "./markdown.tsx";
 import { PodcastDetail } from "./podcast-detail.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
@@ -50,13 +49,11 @@ function VideoDetail({ card, app }: { card: Card; app?: PlaybackApp; full?: bool
 					<div className="preview-meta">
 						<SourceMark card={card} />
 						<span>
-							{[
+							{metaLine([
 								publicationName(card),
-								cardDateLabel(card),
+								cardTime(card),
 								card.duration !== undefined ? duration(card.duration) : "",
-							]
-								.filter(Boolean)
-								.join(" · ")}
+							])}
 						</span>
 					</div>
 				)}

@@ -83,7 +83,11 @@ struct CardModel: Identifiable, Equatable, Sendable {
       return label
     }
     guard addedTime > 0 else { return "" }
-    return Copy.text("web.card.added") + " · " + Format.dateLabel(addedTime)
+    return Format.dateLabel(addedTime)
+  }
+  /// The date is the time the card entered Sill, not a date from the content (Web `cardDateSource`).
+  var displayDateIsAdded: Bool {
+    !displayDate.isEmpty && publishedAt.flatMap { Format.publication($0) } == nil
   }
   var headIcon: String {
     kind.headIconByType ? kind.icon : SourceKind.icon(sourceKind) ?? kind.icon

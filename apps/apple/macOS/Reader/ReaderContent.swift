@@ -68,7 +68,8 @@ struct ReaderContent: View {
             .padding(.top, -AppleMetrics.space16)
         }
         head
-        SummaryOverview(card: card)
+        // Photos speak for themselves: no summary block in their detail (Web the same).
+        if card.kind != .photo { SummaryOverview(card: card) }
         ForEach(Array(recipe.body.enumerated()), id: \.offset) { index, entry in
           bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
         }
@@ -115,11 +116,14 @@ struct ReaderContent: View {
       let start = card.start ?? 0
       let relative = Format.eventRelative(
         start: start, end: card.end ?? start, now: Format.milliseconds())
-      MetaRow(icon: nil) {
+      MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
         Text(Format.dateLabel(start))
           + Text(relative.isEmpty ? "" : " · ")
           + Text(relative).foregroundColor(AppleColors.secondary).fontWeight(.medium)
       }
+      .padding(.trailing, discRoom)
+      .firstRow()
+      .frame(minHeight: AppleMetrics.space36, alignment: .leading)
     case "timeSpan": timeSpan
     case "title":
       if entry.flag("bare") == true {
@@ -147,7 +151,7 @@ struct ReaderContent: View {
 
   private func source(_ entry: RecipeEntry) -> some View {
     MetaRow(icon: AnyView(SourceIcon(card: card, size: sourceIconSize(entry)))) {
-      Text(sourceLine(entry))
+      card.metaText(sourceLine(entry))
     }
     .padding(.trailing, discRoom)
     .firstRow()
@@ -176,11 +180,6 @@ struct ReaderContent: View {
           card.publicationName.nilIfEmpty ?? card.kind.label,
           card.displayDate, card.readingTime,
         ].filter { !$0.isEmpty }.joined(separator: " · ")
-      case .event: card.sourceName
-      case .file:
-        Copy.text("web.preview.fileSourcePrefix")
-          + [card.sourceName, card.displayDate, card.readingTime].filter { !$0.isEmpty }.joined(
-            separator: " · ")
       default:
         [
           [.note, .suggestion].contains(card.kind) ? card.publicationName : card.sourceName,

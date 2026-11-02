@@ -11,7 +11,7 @@
 	flex-direction: column;
 	gap: 0;
 }
-.detail-header > :is(.preview-meta, .preview-sender) {
+.detail-header > .preview-meta {
 	min-height: 36px;
 	margin-bottom: var(--rhythm-close);
 }
@@ -89,11 +89,6 @@
 }
 .reader-body > .preview-cover {
 	margin: 0 0 24px;
-}
-.preview-sender small {
-	display: flex;
-	align-items: center;
-	gap: 6px;
 }
 .detail-section h2 {
 	font-size: calc(13px * var(--content-text-scale, 1));
@@ -432,14 +427,9 @@
 	font-weight: 600;
 	color: var(--ink);
 }
-.lightbox-caption {
-	order: 0;
-	text-align: left;
-}
-.lightbox-caption small {
-	display: block;
+/* Place · date above the title, the same source row as the photo card. */
+.lightbox-meta {
 	color: var(--muted);
-	margin-top: 4px;
 }
 .pr-check-details summary {
 	list-style: none;
@@ -577,9 +567,6 @@
 	}
 	.lightbox-top {
 		padding-inline: var(--space-16);
-	}
-	.lightbox-caption {
-		padding-inline: var(--space-20);
 	}
 }
 

@@ -246,9 +246,7 @@ export function bindSheetChrome(this: AppController) {
 			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");
 			// The disc sits in the source row above the title, so the title keeps the full width.
-			const row = sheet.querySelector(
-				".preview-body .preview-sender, .preview-body .preview-meta, .pr-detail .card-head",
-			);
+			const row = sheet.querySelector(".preview-body .preview-meta, .pr-detail .card-head");
 			const anchor = row || title;
 			if (anchor && !cover && !podcast) {
 				// Layout offsets stay stable while the card's opening transform animates.

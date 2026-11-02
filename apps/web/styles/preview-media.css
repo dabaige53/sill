@@ -274,13 +274,6 @@
 	width: 62%;
 }
 
-.lightbox-caption {
-	flex: none;
-	text-align: center;
-	padding: var(--space-12) var(--space-20);
-	font-size: var(--text-control);
-	color: var(--muted);
-}
 .lightbox > .preview-note {
 	flex: none;
 	margin: var(--space-12) var(--space-20);

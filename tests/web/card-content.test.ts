@@ -39,7 +39,7 @@ test("mail keeps its full sender in detail and gives the date a separate element
 	}
 });
 
-test("card summaries have a text bound while every detail retains the full summary", () => {
+test("card summaries have a text bound while every detail but the photo viewer retains the full summary", () => {
 	Store.state = Store.fresh();
 	const summary = "结论🙂".repeat(60);
 	assert.equal(Array.from(cardSummaryText(summary)).length, 120);
@@ -53,6 +53,11 @@ test("card summaries have a text bound while every detail retains the full summa
 		]) {
 			const dom = new JSDOM(html);
 			try {
+				// The photo viewer shows the photos without a summary block.
+				if (card.type === "photo") {
+					assert.equal(dom.window.document.querySelector(".detail-summary"), null, card.id);
+					continue;
+				}
 				assert.equal(dom.window.document.querySelectorAll(".detail-summary").length, 1, card.id);
 				assert.equal(
 					dom.window.document.querySelector(".detail-summary p")?.textContent,
@@ -173,7 +178,7 @@ test("legacy long lists display all items without a hidden-count notice", () => 
 	}
 });
 
-test("insertion fallback is labelled consistently and never uses the update time", () => {
+test("insertion fallback carries no label, a dotted style, and never uses the update time", () => {
 	const card = {
 		id: "date",
 		type: "note",
@@ -182,15 +187,19 @@ test("insertion fallback is labelled consistently and never uses the update time
 		updated_at: "2026-10-31T05:00:00Z",
 	};
 	const expected = cardDateLabel(card);
-	assert.match(expected, /^加入 · /);
+	assert.doesNotMatch(expected, /加入/);
 	assert.equal(cardDateLabel({ ...card, updated_at: "2026-11-01T00:00:00Z" }), expected);
 	for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
 		const dom = new JSDOM(html);
 		try {
-			assert.ok(dom.window.document.body.textContent?.includes(expected));
+			const doc = dom.window.document;
+			assert.ok(!doc.body.textContent?.includes("加入"));
+			assert.equal(doc.querySelector(".card-time.is-added")?.textContent, expected);
 		} finally {
 			dom.window.close();
 		}
 	}
-	assert.doesNotMatch(cardDateLabel({ ...card, publishedAt: "2025-01-01" }), /加入/);
+	const published = new JSDOM(cardHTML({ ...card, publishedAt: "2025-01-01" })).window.document;
+	assert.ok(published.querySelector(".card-time"));
+	assert.equal(published.querySelector(".card-time.is-added"), null);
 });
