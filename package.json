@@ -64,7 +64,9 @@
 		"ci:verify:card-content": "npm run contracts:check && npm run lint:web && npm run typecheck && npm run build && node --import tsx --test tests/web/card.test.ts tests/web/card-metadata.test.ts tests/web/card-content.test.ts tests/web/cloud-card.test.ts tests/contracts/card.test.ts tests/server/card-display-policy.test.ts",
 		"ci:test:apple": "node tests/apple/run.ts",
 		"ci:test:consent": "node --test tests/server/consent-policy.test.ts",
-		"ci:release:version": "node scripts/release-version.ts"
+		"ci:release:version": "node scripts/release-version.ts",
+		"ci:docs": "node --test tests/server/ci-changes.test.ts && npm run files:check",
+		"ci:scope": "node scripts/ci-changes.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

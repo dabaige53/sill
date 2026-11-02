@@ -13,6 +13,8 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 | 指定 Node 测试 | `npm run ci:test -- tests/web/card.test.ts` | 参数直接交给 Node test runner；CI 全量检查仍使用 `npm test` 的明确清单 |
 | Web 构建 | `npm run ci:build` | 调用现有构建 |
 | 静态检查集合 | `npm run ci:quick` | 文件、Web lint 与类型检查；检查完整范围，不自动选择变更文件 |
+| 文档轻量检查 | `npm run ci:docs` | 分流规则自检、文件与适用的文档链接检查；不安装依赖、不构建产品 |
+| Actions 范围判断 | `npm run ci:scope` | 读取 GitHub 事件与 Git 差异，写入后续 Job 的选择标记；只供 Actions 调用 |
 | Web 验证 | `npm run ci:verify:web` | Web lint、构建、再次构建比较产物 |
 | Web 浏览器回归 | `npm run ci:test:web-browser -- <group>` | motion、navigation、layout 三组共 12 个入口；省略 group 执行全部。组内完整执行，有任一失败即返回失败 |
 | 共享卡片专项 | `npm run ci:verify:card-content` | 契约、Web lint、类型、构建及指定卡片测试；Mac 手动运行的可选步骤 |

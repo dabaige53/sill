@@ -31,13 +31,11 @@ jobs:
         with:
           node-version: '24'
           install: none
-      - name: Check scope selection
-        run: node --test tests/server/ci-changes.test.ts
-      - name: Check files and documentation links
-        run: npm run files:check
+      - name: Check scope selection, files and documentation links
+        run: npm run ci:docs
       - name: Select checks
         id: scope
-        run: node scripts/ci-changes.ts
+        run: npm run ci:scope
   web:
     needs: changes
     if: needs.changes.outputs.code == 'true'
