@@ -27,11 +27,11 @@ test("mail keeps its full sender in detail and gives the date a separate element
 			assert.equal(sender.querySelector("b")?.textContent, card.authors[0].name);
 			assert.equal(sender.querySelectorAll("time").length, 1);
 			assert.equal(sender.querySelector("b time"), null);
-			const link = dom.window.document.querySelector<HTMLAnchorElement>(".float-bar a.is-own");
+			const open = dom.window.document.querySelector(".float-bar .is-own");
 			if (detail) {
-				assert.ok(link);
-				assert.equal(link.getAttribute("href"), card.url);
-				assert.equal(link.getAttribute("aria-label"), "打开邮件");
+				assert.equal(open?.getAttribute("data-action"), "external");
+				assert.equal(open.hasAttribute("disabled"), false);
+				assert.equal(open.getAttribute("aria-label"), "打开邮件");
 			}
 		} finally {
 			dom.window.close();
