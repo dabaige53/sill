@@ -182,7 +182,8 @@ test("each card detail has one handoff in its content footer, including digests,
 	const detail = new JSDOM(Panels.preview(app, digest));
 	try {
 		const doc = detail.window.document;
-		assert.equal(doc.body.textContent.includes(digest.summary), false);
+		assert.equal(doc.querySelector(".detail-summary p")?.textContent, digest.summary);
+		assert.equal(doc.querySelector(".preview-full")?.textContent.includes(digest.summary), false);
 		assert.equal(doc.querySelector(".preview-full ol li").textContent, "Actual point");
 		assert.equal(doc.querySelector(".preview-full h2").textContent, "Detail");
 		assert.equal(doc.querySelector(".preview-full strong").textContent, "detail");
