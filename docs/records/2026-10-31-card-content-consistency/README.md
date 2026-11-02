@@ -94,6 +94,7 @@ Readwise 的公开 App 关联配置已读取：`https://read.readwise.io/.well-k
 | 1.2.25 | [PR #94](https://github.com/dabaige53/sill/pull/94)，合并提交 `2514fbe0` | `41408523978` 全部成功 | `c1213e45-c3f6-401a-ae4c-4b2e09bb409d` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
 | 1.2.26 | [PR #95](https://github.com/dabaige53/sill/pull/95)，合并提交 `e44ebc95` | `41410937408` 全部成功 | `6f7afee2-8882-46be-a781-42f99542b54a` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
 | 1.2.27 | [PR #97](https://github.com/dabaige53/sill/pull/97)，合并提交 `8db1055a` | `41427266821` 全部成功 | `b20783e1-9913-46d5-865c-bcec59fc994c` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
+| 1.2.28 | [PR #99](https://github.com/dabaige53/sill/pull/99)，合并提交 `1333d435` | `41431907462` 全部成功 | `23c2d9e7-153d-4632-81f2-1dc0e13ad30a` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
 
 PR #94 首轮 CI 有 3 项单元测试失败：两项断言仍查找旧按钮或依赖示例邮件链接，搜索顺序测试在面板已固定顺序后修改优先级。处理中误把来源按钮改回 `data-action="external"`，该改动随 1.2.25 上线，撤销了第 11 项的原生链接。宿主内链接本已由 `app-input.ts` 的全局入口转给 openLink，原实现无需改动。1.2.26 恢复原生链接，只修正测试断言。
 
@@ -106,3 +107,7 @@ PR #94 首轮 CI 有 3 项单元测试失败：两项断言仍查找旧按钮或
 PR #97 首轮 `web / browser (navigation)` 失败：旧断言要求详情头部没有 `<time>`，新实现统一用 `<time>` 承载日期与完整时刻提示；断言改为最多一个且不含「加入」，重跑全部通过。相比 1.2.26 无新数据库迁移，`SILL_DATABASE_VERIFIED_COMMIT` 按原兼容性决定更新为合并提交。
 
 未发布：`sill-cards` 技能文档已改，插件包仍为 1.2.21。未验证：手机 Safari/PWA、Mac 窗口与插件宿主的实际显示。
+
+## 详情待办行距（1.2.28，2026-11-02）
+
+详情待办每行原为 44，卡片为 32、正文行约 22，列表显得松散。Web 与 Mac 改为每行 36；手机用不可见的上下 4 扩展保持 44 点按区域。PR #99 检查一次全部通过。无新数据库迁移，`SILL_DATABASE_VERIFIED_COMMIT` 更新为合并提交。未验证：手机真机与 Mac 窗口实际显示。
