@@ -1,7 +1,8 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { markdownBlocks } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
-import { ProgressRing } from "../atoms/react-primitives.tsx";
+import { Icon, ProgressRing } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import {
@@ -13,6 +14,7 @@ import {
 	cardSummaryText,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 
 import { publicationName, SourceMark } from "./source-mark.tsx";
 
@@ -123,13 +125,146 @@ export function Summary({ card: c }: { card: Card }) {
 	return summary ? <p className="card-summary">{cardSummaryText(summary)}</p> : null;
 }
 
+const summaryTiming = tokens.motion.summaryLength;
+const quietMotion = () =>
+	document.documentElement.dataset.inputModality === "keyboard" ||
+	matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * The detail summary: short by default. When the card has a long summary, the Sill mark at the
+ * top left switches between the two, with a brief writing pause; the chevron folds the block.
+ */
+// @design detail-summary
 export function DetailSummary({ card }: { card: Card }) {
-	return card.summary?.trim() ? (
-		<section className="detail-summary" aria-label={copy("web.card.summary")}>
-			<span className="detail-summary-label">{copy("web.card.summary")}</span>
-			<p>{card.summary}</p>
+	const points: string[] = (card.longSummary || []).filter((point: string) => point?.trim());
+	const [long, setLong] = useState(false);
+	const [loading, setLoading] = useState<boolean | null>(null);
+	const [open, setOpen] = useState(true);
+	const timer = useRef(0);
+	const root = useRef<HTMLElement>(null);
+	const switched = useRef(false);
+	const shown = useRef(open);
+	useEffect(() => () => clearTimeout(timer.current), []);
+	// While the other length is written, the bar in the mark writes and the placeholders breathe.
+	useEffect(() => {
+		const section = root.current;
+		if (!section || loading === null) return;
+		const bar = section.querySelector(".sill-ai-bar") as HTMLElement | null;
+		const writing = MotionEngine.animate(
+			bar ?? undefined,
+			[{ transform: "scaleX(1)" }, { transform: "scaleX(0.3)" }, { transform: "scaleX(1)" }],
+			{ duration: 650, easing: "cubic-bezier(0.45, 0, 0.55, 1)", repeat: Infinity },
+		);
+		const bars = [...section.querySelectorAll<HTMLElement>(".summary-skeleton > span")];
+		for (const placeholder of bars) MotionEngine.breathe(placeholder);
+		return () => {
+			writing?.cancel();
+			for (const placeholder of bars) MotionEngine.loading(placeholder, false);
+		};
+	}, [loading]);
+	// The written length settles in once; opening the detail shows the summary as it is.
+	useEffect(() => {
+		if (!switched.current || loading !== null) return;
+		switched.current = false;
+		const text = root.current?.querySelector<HTMLElement>(".summary-points, .detail-summary > p");
+		MotionEngine.animate(
+			text ?? undefined,
+			[
+				{ opacity: 0, transform: "translateY(4px)" },
+				{ opacity: 1, transform: "none" },
+			],
+			{ duration: summaryTiming.reveal, easing: summaryTiming.revealEase },
+		);
+	}, [loading]);
+	useEffect(() => {
+		if (shown.current === open) return;
+		shown.current = open;
+		if (quietMotion()) return;
+		const icon = root.current?.querySelector<HTMLElement>(".summary-fold > .icon");
+		MotionEngine.animate(
+			icon ?? undefined,
+			[
+				{ transform: `rotate(${open ? 90 : -90}deg)` },
+				{ transform: `rotate(${open ? -90 : 90}deg)` },
+			],
+			{ duration: 260, easing: summaryTiming.revealEase },
+		);
+	}, [open]);
+	if (!card.summary?.trim()) return null;
+	const target = loading ?? long;
+	const toggle = () => {
+		clearTimeout(timer.current);
+		const next = !target;
+		setOpen(true);
+		if (next === long || quietMotion()) {
+			setLoading(null);
+			setLong(next);
+			return;
+		}
+		setLoading(next);
+		switched.current = true;
+		timer.current = window.setTimeout(() => {
+			setLong(next);
+			setLoading(null);
+		}, summaryTiming.loading);
+	};
+	const lengthLabel = copy(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong");
+	const skeleton = loading ? points.map((point) => point.length) : [100, 58];
+	return (
+		<section
+			ref={root}
+			className={`detail-summary${target ? " is-long" : ""}${loading === null ? "" : " is-loading"}`}
+			aria-label={copy("web.card.summary")}
+			aria-busy={loading !== null}
+		>
+			<div className="detail-summary-head">
+				{!!points.length && (
+					<button
+						type="button"
+						className="summary-length"
+						aria-pressed={target}
+						aria-label={lengthLabel}
+						title={lengthLabel}
+						onClick={toggle}
+					>
+						<Icon name="sill-ai" size={20} />
+					</button>
+				)}
+				<span className="detail-summary-label">{copy("web.card.summary")}</span>
+				<button
+					type="button"
+					className="summary-fold"
+					aria-expanded={open}
+					aria-label={copy(open ? "web.card.summaryFold" : "web.card.summaryUnfold")}
+					onClick={() => setOpen(!open)}
+				>
+					<Icon name="chevron" size={16} />
+				</button>
+			</div>
+			{open &&
+				(loading !== null ? (
+					<div className="summary-skeleton" aria-hidden="true">
+						{skeleton.map((size, i) => (
+							<span
+								// biome-ignore lint/suspicious/noArrayIndexKey: Placeholder bars are fixed and stateless.
+								key={i}
+								className={loading ? "is-point" : undefined}
+								style={{ width: `${loading ? Math.min(96, 30 + size) : size}%` }}
+							/>
+						))}
+					</div>
+				) : long ? (
+					<ul key="long" className="summary-points">
+						{points.map((point, i) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: Points may repeat; these list items have no component state.
+							<li key={i}>{point}</li>
+						))}
+					</ul>
+				) : (
+					<p key="short">{card.summary}</p>
+				))}
 		</section>
-	) : null;
+	);
 }
 export function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
 	const image = cardCover(c);

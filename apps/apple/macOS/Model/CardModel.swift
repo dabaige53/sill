@@ -31,6 +31,8 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let kind: CardKind
   let title: String
   let summary: String
+  /// The long summary's points, switched to from the detail summary (Web `longSummary`).
+  let longSummary: [String]
   let body: [String]
   let markdown: MarkdownBody
   let sources: [Source]
@@ -117,6 +119,9 @@ struct CardModel: Identifiable, Equatable, Sendable {
     kind = CardKind(type: value._type)
     title = value.title
     summary = value.summary ?? ""
+    longSummary = (value.longSummary ?? []).filter {
+      !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     let parsed = MarkdownBody(value.body ?? "")
     markdown = parsed
     body = parsed.blocks.map(\.text).filter { !$0.isEmpty }

@@ -115,7 +115,6 @@ export function PullRequest({
 				)}
 			</header>
 			{!detail && card.summary && <p className="card-summary">{cardSummaryText(card.summary)}</p>}
-			{detail && <DetailSummary card={card} />}
 			{!detail && pr && (
 				<div className="pr-footer">
 					<div className="pr-reviewers">
@@ -231,6 +230,8 @@ export function PullRequest({
 							)}
 						</div>
 					)}
+					{/* Status, checks, reviewers and changes come first; the summary sits under them. */}
+					<DetailSummary card={card} />
 					<DetailText body={card.body} />
 				</>
 			)}

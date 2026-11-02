@@ -35,6 +35,7 @@ export const cardMigrations = [
 	"20261029160000_workspace_conditional_read.sql",
 	"20261030120000_sill_keyword_search.sql",
 	"20261031125200_card_display_time_and_task_limit.sql",
+	"20261102120000_card_long_summary.sql",
 ];
 export async function applyCardMigrations(db?: any) {
 	for (const file of cardMigrations)

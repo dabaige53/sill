@@ -651,10 +651,77 @@
 	font-weight: 600;
 	color: var(--muted);
 }
-.detail-summary p {
+.detail-summary p,
+.summary-points {
 	margin: 0;
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
+}
+/* Head: the Sill mark switches short and long at the left, the chevron folds at the right. */
+.detail-summary-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-height: var(--space-24);
+	margin: calc(-1 * var(--space-10)) calc(-1 * var(--space-10)) calc(-1 * var(--space-10))
+		calc(-1 * var(--space-12));
+}
+.detail-summary-head > .detail-summary-label:first-child {
+	padding-left: var(--space-12);
+}
+.summary-length,
+.summary-fold {
+	display: grid;
+	place-items: center;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--muted);
+	cursor: pointer;
+}
+.summary-fold {
+	margin-left: auto;
+}
+.summary-length[aria-pressed="true"] {
+	color: var(--accent);
+}
+.summary-length:active {
+	transform: scale(0.94);
+}
+@media (hover: hover) and (pointer: fine) {
+	:is(.summary-length, .summary-fold):hover {
+		background: color-mix(in srgb, var(--ink) 6%, transparent);
+	}
+}
+.summary-fold > .icon {
+	transform: rotate(-90deg);
+}
+.summary-fold[aria-expanded="false"] > .icon {
+	transform: rotate(90deg);
+}
+.summary-length .sill-ai-bar {
+	transform-box: fill-box;
+	transform-origin: left center;
+}
+.summary-points {
+	display: grid;
+	gap: var(--space-8);
+	padding-left: var(--space-20);
+}
+.summary-skeleton {
+	display: grid;
+}
+.summary-skeleton > span {
+	height: 10px;
+	margin-block: 7px;
+	border-radius: 5px;
+	background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.summary-skeleton > span.is-point {
+	margin-left: var(--space-20);
 }
 .card-schedule {
 	display: flex;

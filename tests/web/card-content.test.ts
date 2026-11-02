@@ -203,3 +203,48 @@ test("insertion fallback carries no label, a dotted style, and never uses the up
 	assert.ok(published.querySelector(".card-time"));
 	assert.equal(published.querySelector(".card-time.is-added"), null);
 });
+
+test("a long summary adds the Sill switch, and the summary follows the info rows before the body", () => {
+	Store.state = Store.fresh();
+	const pr = {
+		id: "pr-long-summary",
+		type: "pr",
+		title: "一行卡片头部",
+		summary: "卡片和详情头部合成一行。",
+		longSummary: ["来源、日期合成一行。", "收录时间改用点状下划线。"],
+		body: "正文段落",
+		pullRequest: {
+			repository: "example/sill",
+			number: 7,
+			state: "merged" as const,
+			observedAt: "2026-11-02T10:00:00+08:00",
+			additions: 12,
+			deletions: 3,
+			changedFiles: 2,
+		},
+	};
+	const dom = new JSDOM(Panels.preview({}, pr));
+	try {
+		const doc = dom.window.document;
+		const summary = doc.querySelector(".detail-summary");
+		assert.ok(summary);
+		// Short first; the Sill mark is the switch, not pressed until the long summary shows.
+		assert.equal(summary.querySelector("p")?.textContent, pr.summary);
+		assert.equal(summary.querySelector(".summary-length")?.getAttribute("aria-pressed"), "false");
+		assert.equal(summary.querySelector(".summary-points"), null);
+		const rows = doc.querySelector(".detail-rows");
+		const order = (a: Element, b: Element) => a.compareDocumentPosition(b) & 4;
+		assert.ok(order(rows, summary), "summary must follow the PR info rows");
+		assert.ok(
+			order(summary, doc.querySelector(".detail-text, .markdown") || summary.nextElementSibling),
+		);
+	} finally {
+		dom.window.close();
+	}
+	const plain = new JSDOM(Panels.preview({}, { ...pr, longSummary: undefined }));
+	try {
+		assert.equal(plain.window.document.querySelector(".summary-length"), null);
+	} finally {
+		plain.window.close();
+	}
+});

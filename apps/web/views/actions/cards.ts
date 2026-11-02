@@ -201,7 +201,10 @@ function notePage(sheet: HTMLElement, open: boolean) {
 }
 
 function saveNote(this: AppController, { id }: ActionContext) {
-	const pending = (document.getElementById("tag-new") as HTMLInputElement)?.value.trim();
+	// Letters still being composed into characters are not a tag; Save keeps only chosen text.
+	const pending = this.editorLayer.dataset.composing
+		? ""
+		: (document.getElementById("tag-new") as HTMLInputElement)?.value.trim();
 	if (pending) this.editTags.add(pending.replace(/^#/, "").slice(0, 30));
 	const note = (
 		(document.getElementById("note-editor") as HTMLInputElement)?.value ??
@@ -215,6 +218,7 @@ function saveNote(this: AppController, { id }: ActionContext) {
 		this.refreshCard(cardId);
 		repaintDetail(this, cardId);
 	});
+	delete this.editorLayer.dataset.composing;
 	this.closeEditor();
 }
 

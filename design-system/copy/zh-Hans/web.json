@@ -122,7 +122,6 @@
 	"web.editor.tagsAddedSuffix": " 个标签",
 	"web.editor.noteLabel": "备注",
 	"web.editor.notePlaceholder": "写一句备注…",
-	"web.editor.deviceStorageHint": " 存在这台设备",
 	"web.why.connectedSourcePrefix": "来自你接入的「",
 	"web.why.updatedSuffix": "更新",
 	"web.why.close": "关闭说明",
@@ -279,7 +278,6 @@
 	"web.cloud.export": "导出",
 	"web.cloud.clear": "清空卡片",
 	"web.cloud.clearDetail": "清空当前账号的全部卡片？请先导出需要保留的内容。此操作无法撤销。",
-	"web.cloud.savedAccount": "保存到当前账号",
 	"web.selection.actions": "操作",
 	"web.selection.countPrefix": "已选择 ",
 	"web.selection.countSuffix": " 张卡片",
@@ -411,5 +409,9 @@
 	"web.media.excerpt": "节选",
 	"web.media.information": "信息",
 	"web.card.summary": "概要",
+	"web.card.summaryShowLong": "显示长摘要",
+	"web.card.summaryShowShort": "显示短摘要",
+	"web.card.summaryFold": "折叠概要",
+	"web.card.summaryUnfold": "展开概要",
 	"web.card.source": "来源"
 }

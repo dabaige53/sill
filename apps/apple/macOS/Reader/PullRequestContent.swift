@@ -62,7 +62,6 @@ struct PullRequestContent: View {
           }
         }
         if detail {
-          SummaryOverview(card: card)
           details(pr)
         } else {
           if !card.summary.isEmpty {
@@ -264,6 +263,8 @@ struct PullRequestContent: View {
       }
     }
     .padding(.top, rhythm.rowLift)
+    // Status, checks, reviewers and changes first; the summary sits under them (Web the same).
+    SummaryOverview(card: card).padding(.top, rhythm.rowLift)
     if !card.markdown.blocks.isEmpty {
       MarkdownText(
         document: card.markdown, size: AppleMetrics.font15, leading: AppleMetrics.previewBodyLeading
