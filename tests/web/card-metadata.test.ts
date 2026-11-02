@@ -258,7 +258,10 @@ test("valid media without body opens and prose never becomes media chapters or p
 				body ? body.split("\n\n") : [],
 			);
 			assert.ok(doc.querySelector(".unavailable-video img"));
-			assert.ok(doc.querySelector("[data-action='external']"));
+			assert.equal(
+				doc.querySelector(".float-bar a.is-own")?.getAttribute("href"),
+				"https://example.com/video",
+			);
 			assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Video note");
 			assert.equal(JSON.stringify(Store.state), before);
 		} finally {
