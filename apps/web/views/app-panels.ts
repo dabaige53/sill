@@ -115,6 +115,7 @@ export const appPanelsMethods = {
 		editorToken++;
 		this.editId = id;
 		this.editTags = new Set<string>(Store.tags(Store.card(id)));
+		this.editNote = null;
 		MotionEngine.cancelPanel(layer);
 		layer.inert = false;
 		renderContent(layer, Panels.editor(this, id));
@@ -139,7 +140,11 @@ export const appPanelsMethods = {
 				),
 			]);
 		}
-		layer.querySelector<HTMLElement>("#tag-new")?.focus({ preventScroll: true });
+		layer.querySelector(".tag-editor-sheet")?.classList.remove("note-open");
+		// A phone keeps its keyboard down until the tag field is tapped: raising it here moved the
+		// sheet under its own rising animation and froze the page.
+		if (this.desktop() || MotionEngine.keyboard)
+			layer.querySelector<HTMLElement>("#tag-new")?.focus({ preventScroll: true });
 	},
 	closeEditor(this: AppController, animate = true) {
 		const layer = this.editorLayer;

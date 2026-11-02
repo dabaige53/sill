@@ -63,7 +63,7 @@ export async function runCardActions({
 			await page.waitForFunction(() => !document.querySelector("dialog").open);
 			await action(page, "edit", "note-01");
 			if (!(await page.locator("#note-editor").isVisible()))
-				await page.locator(".tag-note > summary").click();
+				await page.locator(".note-field").click();
 			await page.locator("#note-editor").fill("<b>本地备注</b>");
 			await page.locator('[data-action="save-note"]').click();
 			await page.reload();

@@ -89,8 +89,7 @@ try {
 	await page.getByText("新 AI 备注", { exact: true }).waitFor();
 	assert.equal(await page.evaluate(() => window.__store.pref("density")), "compact");
 	await page.getByRole("button", { name: "编辑标签与备注", exact: true }).click();
-	if (!(await page.locator("#note-editor").isVisible()))
-		await page.locator(".tag-note > summary").click();
+	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
 	await page.locator("#note-editor").fill("页面写回给 AI");
 	await page.locator('[data-action="save-note"]').click();
 	await page.waitForFunction(
@@ -124,8 +123,7 @@ try {
 	await page.waitForFunction(
 		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
 	);
-	if (!(await page.locator("#note-editor").isVisible()))
-		await page.locator(".tag-note > summary").click();
+	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
 	await page.locator("#note-editor").fill("保留的冲突草稿");
 	await page.locator('[data-action="save-note"]').click();
 	await page.waitForFunction(
