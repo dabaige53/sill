@@ -6,11 +6,7 @@ import type { AppController } from "../views/app.ts";
 import type { AIPageState } from "./panel-ai.tsx";
 
 export type ToolbarAction = [CardAction, ReactNode];
-export type PreviewApp = {
-	action?: AppController["action"];
-	agentAction?: (card: Card) => string;
-	agentActionView?: (card: Card) => ReactNode;
-};
+export type PreviewApp = Partial<Pick<AppController, "action" | "agentScope" | "refreshCard">>;
 export type SearchApp = Pick<
 	AppController,
 	| "searchFilter"

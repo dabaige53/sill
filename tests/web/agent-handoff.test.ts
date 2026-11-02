@@ -143,9 +143,10 @@ test("host navigation never falls back to blocked popups, and browser ambiguity 
 	assert.equal(popups, 1);
 });
 
-test("each card detail has one handoff in its content footer, including digests, readers and photo pages", () => {
+test("details omit handoff actions even when a host can supply one", () => {
 	Store.state = Store.fresh();
 	const app = {
+		agentScope: () => ({ kind: "local" as const }),
 		agentAction: (card: AgentCard) =>
 			`<button type="button" data-action="agent-handoff" data-id="${card.id}">Discuss</button>`,
 	};
@@ -158,10 +159,10 @@ test("each card detail has one handoff in its content footer, including digests,
 		const dom = new JSDOM(html);
 		try {
 			const document = dom.window.document;
-			assert.equal(document.querySelectorAll('[data-action="agent-handoff"]').length, 1, card.type);
+			assert.equal(document.querySelectorAll('[data-action="agent-handoff"]').length, 0, card.type);
 			assert.equal(
 				document.querySelectorAll('.preview-foot [data-action="agent-handoff"]').length,
-				1,
+				0,
 				card.type,
 			);
 			assert.equal(document.querySelectorAll(".preview-foot .preview-foot").length, 0, card.type);
@@ -202,7 +203,7 @@ test("each card detail has one handoff in its content footer, including digests,
 			reader.window.document.querySelectorAll(
 				'.reader-body .preview-foot [data-action="agent-handoff"]',
 			).length,
-			1,
+			0,
 		);
 	} finally {
 		reader.window.close();
@@ -213,11 +214,7 @@ test("each card detail has one handoff in its content footer, including digests,
 		try {
 			assert.equal(
 				page.window.document.querySelectorAll('[data-action="agent-handoff"]').length,
-				1,
-			);
-			assert.equal(
-				page.window.document.querySelector('[data-action="agent-handoff"]').getAttribute("data-id"),
-				photo.id,
+				0,
 			);
 		} finally {
 			page.window.close();

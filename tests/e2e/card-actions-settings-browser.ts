@@ -98,7 +98,7 @@ try {
 			});
 			assert.deepEqual(
 				await page
-					.locator(".float-bar button")
+					.locator(".float-bar .icon-button")
 					.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-action"))),
 				["bookmark", "edit", "later", "external"],
 			);

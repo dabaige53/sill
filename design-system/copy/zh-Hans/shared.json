@@ -206,7 +206,7 @@
 	"pr.state.closed": "已关闭",
 	"pr.reviewers": "审阅人",
 	"pr.checks": "检查",
-	"pr.observed": "记录于",
+	"pr.observed": "快照时间",
 	"pr.reviewRequested": "待你审阅",
 	"pr.decision.pending": "待评审",
 	"pr.decision.approved": "已通过",

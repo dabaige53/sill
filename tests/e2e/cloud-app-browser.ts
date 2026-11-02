@@ -206,57 +206,16 @@ try {
 		"short note body stays inside its sheet",
 	);
 	assert.equal(hostMessages.length, 0, "opening a card never messages the assistant");
-	assert.equal(await frame.locator('#modal [data-action="agent-handoff"]').count(), 1);
-	const contentWrites = () =>
-		toolResults.filter(({ name }) => /sill_(create|update|delete)Content/.test(name)).length;
-	const writesBeforeHandoff = contentWrites();
-	await frame.getByRole("button", { name: "附到对话", exact: true }).click();
-	await frame
-		.getByRole("button", { name: "已附加", exact: true })
-		.waitFor()
-		.catch(async (error) => {
-			console.error({
-				errors,
-				hostContexts,
-				hostMessages,
-				toast: await frame.locator("#toast").innerText(),
-				button: await frame.locator('[data-action="agent-handoff"]').textContent(),
-			});
-			throw error;
-		});
-	assert.equal(await frame.getByRole("button", { name: "已附加", exact: true }).isDisabled(), true);
-	assert.equal(hostMessages.length, 0);
-	assert.equal(hostContexts.length, 1);
+	assert.equal(await frame.locator('#modal [data-action="agent-handoff"]').count(), 0);
+	assert.equal(hostContexts.length, 0, "details do not attach content to the host");
 	assert.equal(await frame.locator("#ai-dock").isVisible(), false);
-	const handoff = JSON.parse(hostContexts[0].content[0].text.split("\n\n").at(-1));
-	assert.equal(handoff.expected_owner, A);
-	assert.equal(handoff.card.id, created.id);
-	assert.equal(handoff.card.title, created.title);
-	assert.equal(handoff.card.body, "Stored through the real MCP and SQL boundary");
-	assert.equal("state" in handoff.card, false);
-
-	assert.equal(
-		toolResults.filter(({ name }) => name === "sill_getContent").at(-1).arguments.expected_owner,
-		A,
-	);
-	assert.equal(contentWrites(), writesBeforeHandoff, "handoff performs no card-content mutation");
 	await frame.getByRole("button", { name: "关闭预览", exact: true }).click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
 	await frame.locator("[data-card] .card-title-button").click();
-	await frame.getByRole("button", { name: "附到对话", exact: true }).waitFor();
-	assert.equal(hostMessages.length, 0, "reopening a detail only enables a fresh explicit handoff");
-	hostResult.message = "unknown";
-	await frame.getByRole("button", { name: "附到对话", exact: true }).click();
-	await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).waitFor();
-	assert.equal(
-		await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).isDisabled(),
-		true,
-	);
+	await frame.locator("#modal[open]").waitFor();
+	assert.equal(await frame.locator('[data-action="agent-handoff"]').count(), 0);
 	assert.equal(hostMessages.length, 0);
-	assert.equal(hostContexts.length, 2);
-	assert.match(await frame.locator("#toast").innerText(), /附加结果尚未确认/);
 	assert.equal(await frame.locator(".agent-reference-field").count(), 0);
-	assert.equal(await frame.getByRole("button", { name: "复制给助手", exact: true }).count(), 0);
 	await mkdir("tests/artifacts", { recursive: true });
 	await frame.getByRole("button", { name: "关闭预览", exact: true }).click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
@@ -356,9 +315,7 @@ try {
 	await frame.locator(`[data-card="${photo.id}"] .card-title-button`).click();
 	await frame.locator("#modal.lightbox[open]").waitFor();
 	const messagesBeforePhoto = hostContexts.length;
-	hostResult.message = "unknown";
-	await frame.getByRole("button", { name: "附到对话", exact: true }).click();
-	await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).waitFor();
+	await frame.evaluate(() => window.__app.alert("Synthetic photo recovery failure"));
 	await frame.evaluate(() => {
 		(window as any).__photoRecoveryToast = document.getElementById("toast");
 	});
@@ -381,19 +338,16 @@ try {
 		true,
 		"photo navigation keeps the same live recovery notice",
 	);
-	assert.equal(
-		await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).isDisabled(),
-		true,
-	);
+	assert.equal(await frame.locator('[data-action="agent-handoff"]').count(), 0);
 	assert.equal(await frame.locator(".agent-reference-field").count(), 0);
 	assert.equal(await frame.locator("#modal-title").innerText(), photo.title);
 	assert.equal(await frame.evaluate((id?: any) => __store.card(id)?.title, photo.id), photo.title);
 	assert.equal(await frame.locator("#toast").count(), 1);
-	assert.match(await frame.locator("#toast").innerText(), /附加结果尚未确认/);
+	assert.match(await frame.locator("#toast").innerText(), /Synthetic photo recovery failure/);
 	assert.equal(
 		hostContexts.length,
-		messagesBeforePhoto + 1,
-		"photo recovery never resends an uncertain discussion",
+		messagesBeforePhoto,
+		"photo recovery never attaches a card to the conversation",
 	);
 	await page.screenshot({
 		path: "tests/artifacts/cloud-photo-message-recovery.png",
@@ -412,7 +366,7 @@ try {
 	assert.deepEqual(popups, []);
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud MCP App: bridge handshake, cancelled late navigation, MCP card creation, bounded explicit handoff and copy recovery across photo pages, host-only links, 1280/390, no direct network or account storage (synthetic identity)",
+		"PASS cloud MCP App: bridge handshake, cancelled late navigation, MCP card creation, no detail handoff, recovery notices across photo pages, host-only links, 1280/390, no direct network or account storage (synthetic identity)",
 	);
 } finally {
 	await browser?.close();

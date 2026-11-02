@@ -346,3 +346,57 @@ a.detail-row:hover {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+.mail-sender.sender > .mail-identity,
+.mail-sender.preview-sender > .mail-identity {
+	display: block;
+	flex: 1;
+	min-width: 0;
+	white-space: normal;
+}
+.mail-sender .mail-sender-line {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: baseline;
+	gap: var(--space-8);
+	min-width: 0;
+}
+.mail-sender .mail-sender-line b {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.mail-sender time,
+.pr-date {
+	flex: none;
+	white-space: nowrap;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.preview-sender.mail-sender .mail-sender-line b {
+	overflow: visible;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+.mail-sender .mail-source {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.pr-origin {
+	flex: 1;
+	display: flex;
+	gap: var(--space-4);
+}
+.pr-repository {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.pr-number {
+	flex: none;
+}
+.pr-detail .card-head {
+	padding-right: var(--space-44);
+}

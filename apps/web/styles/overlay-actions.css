@@ -64,6 +64,34 @@
 	margin-top: var(--space-8);
 }
 
+.tag-editor-sheet {
+	display: flex;
+	flex-direction: column;
+	max-height: min(78dvh, var(--visible-height, 100dvh));
+}
+.tag-panel-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.tag-panel-fields {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.tag-panel-content .panel-footer {
+	flex: none;
+}
+.tag-note {
+	margin-top: var(--space-16);
+}
+.tag-note summary {
+	font-size: var(--text-meta);
+	color: var(--muted);
+	cursor: pointer;
+}
+
 /* First run: an empty sill, one sentence, one button. */
 .welcome {
 	display: flex;

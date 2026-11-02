@@ -77,9 +77,19 @@ const MAX_TAGS = 20;
 function paintTags(this: AppController, added: string[], typed: boolean, removed?: string) {
 	const before = captureTags(document.getElementById("editor-tags"), removed);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
+	const expanded = this.editorLayer.querySelector<HTMLDetailsElement>(".tag-note").open;
+	const scroll = this.editorLayer.querySelector(".tag-panel-fields").scrollTop;
+	const input = this.editorLayer.querySelector<HTMLInputElement>("#tag-new");
+	const draft = typed ? "" : input.value;
+	const selection = [input.selectionStart, input.selectionEnd];
 	renderView(this.editorLayer, Panels.editor(this, this.editId));
 	if (note !== undefined) (document.getElementById("note-editor") as HTMLInputElement).value = note;
+	this.editorLayer.querySelector<HTMLDetailsElement>(".tag-note").open = !!expanded;
+	this.editorLayer.querySelector(".tag-panel-fields").scrollTop = scroll;
+	const next = this.editorLayer.querySelector<HTMLInputElement>("#tag-new");
+	next.value = draft;
 	settleTags(document.getElementById("editor-tags"), before, added, typed);
+	if (!typed) next.setSelectionRange(selection[0], selection[1]);
 }
 
 /** A suggestion adds its tag; a chip's × removes it. Focus stays in the field. */

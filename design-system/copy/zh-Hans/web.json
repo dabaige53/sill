@@ -22,6 +22,7 @@
 	"web.note": "笔记",
 	"web.article": "文章",
 	"web.mail": "邮件",
+	"web.mail.open": "打开邮件",
 	"web.task": "待办",
 	"web.event": "日程",
 	"web.reminder": "提醒",

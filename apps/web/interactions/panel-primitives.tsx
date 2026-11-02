@@ -103,19 +103,6 @@ export function checkItem(c: { id: string }, t: { id: string; done?: boolean; te
 	return <CheckItem cardId={c.id} task={t} />;
 }
 
-export function agentAction(
-	app:
-		| { agentAction?: (card: any) => string; agentActionView?: (card: any) => React.ReactNode }
-		| undefined,
-	card: any,
-) {
-	return app?.agentActionView ? (
-		app.agentActionView(card)
-	) : app?.agentAction ? (
-		<TrustedFragment html={app.agentAction(card)} />
-	) : null;
-}
-
 export function sourceIcon(c: any, size = 16): React.ReactNode {
 	return <SourceMark card={c} size={size} />;
 }

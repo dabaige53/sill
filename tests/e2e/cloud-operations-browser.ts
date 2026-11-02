@@ -248,6 +248,8 @@ try {
 	assert.deepEqual(batchRequests[0], batchRequests[1]);
 	// Editing baseline must survive an unrelated successful write while another client edits.
 	await action("edit", note.id);
+	if (!(await page.locator("#note-editor").isVisible()))
+		await page.locator(".tag-note > summary").click();
 	await page.locator("#note-editor").fill("Retained conflict draft");
 	const remote = await api("/api/v1/contents/" + note.id);
 	await api(
@@ -269,6 +271,8 @@ try {
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-desktop.png" });
 	await page.setViewportSize({ width: 390, height: 844 });
 	await action("edit", note.id);
+	if (!(await page.locator("#note-editor").isVisible()))
+		await page.locator(".tag-note > summary").click();
 	await page.locator("#note-editor").fill("手机备注");
 	assert.equal(await page.locator("[data-cloud-field]").count(), 0);
 	await page.evaluate(() =>

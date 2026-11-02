@@ -10,17 +10,10 @@ import { cardDateLabel, cardSourceKind } from "../data/card-source.ts";
 import { SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
+import { cardLinkURL } from "../services/agent-handoff.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { PanelRenderers, PreviewApp, PreviewCard, ToolbarAction } from "./panel-contract.ts";
-import {
-	agentAction,
-	button,
-	icon,
-	keyed,
-	ownButton,
-	personalNote,
-	sourceIcon,
-} from "./panel-primitives.tsx";
+import { button, icon, keyed, ownButton, personalNote, sourceIcon } from "./panel-primitives.tsx";
 import { previewView as preview, readingContent } from "./previews-components.tsx";
 import { ReaderLayout } from "./reader-layout.tsx";
 
@@ -124,8 +117,12 @@ export const panelCard = {
 	},
 	own(this: PanelRenderers, c?: Card): ToolbarAction[] {
 		const s = Store.item(c.id);
-		const openButton = button("external", this.externalLabel(c), "external", c.id);
-		const open = c.url ? openButton : cloneElement(openButton, { disabled: true });
+		// The external action routes through the MCP host and marks readable cards read.
+		const link = (url: string | undefined, label: string, glyph = "external") => {
+			const openButton = button(glyph, label, "external", c.id);
+			return cardLinkURL(url) ? openButton : cloneElement(openButton, { disabled: true });
+		};
+		const open = link(c.url, this.externalLabel(c));
 		const reminder: ToolbarAction = FeedPolicy.supports(c)
 			? // A finished reminder is restored by its own circle, so the toolbar does not repeat it.
 				s.dismissed || s.snoozedUntil || (s.reminderDone && c.type !== "reminder")
@@ -133,15 +130,9 @@ export const panelCard = {
 				: ["snooze", button("snooze", copy("web.reminder.again"), "snooze", c.id)]
 			: ["snooze", ""];
 		const dismiss: ToolbarAction = ["dismiss", this.reminderTools(c)];
-		if (c.type === "mail")
-			return [
-				[
-					"reply",
-					cloneElement(button("reply", copy("web.preview.reply"), "external", c.id), {
-						disabled: !c.url,
-					}),
-				],
-			];
+		if (c.type === "mail") {
+			return [["reply", link(c.url, this.externalLabel(c))]];
+		}
 		if (c.type === "event") {
 			const join: ToolbarAction = [
 				"join",
@@ -193,6 +184,7 @@ export const panelCard = {
 		return button("bell-off", copy("web.preview.dismissReminder"), "dismiss-reminder", c.id);
 	},
 	externalLabel(this: PanelRenderers, c?: Card) {
+		if (c.type === "mail") return copy("web.mail.open");
 		if (c.type === "media" && c.media === "podcast") return copy("web.preview.podcast.openApp");
 		const kind = SourceKinds[cardSourceKind(c)]?.label;
 		return `${copy("web.preview.openSourcePrefix")}${kind && !["RSS", copy("web.local"), copy("web.cards.e727b8cc2df0")].includes(kind) ? kind : copy("web.preview.originalSource")}`;
@@ -266,7 +258,6 @@ export const panelCard = {
 													readingContent.call(this, c, app)
 												)}
 												{personalNote(s.note)}
-												{loading ? "" : this.foot(agentAction(app, c))}
 												<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
 											</article>
 										</ReaderLayout>
@@ -392,7 +383,6 @@ export const panelCard = {
 				</div>
 				{personalNote(Store.item(c.id).note)}
 				{this.tools(c, Store.item(c.id))}
-				{this.foot(agentAction(app, c))}
 			</>
 		);
 	},

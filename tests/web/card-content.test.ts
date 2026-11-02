@@ -7,6 +7,38 @@ import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 
+test("mail keeps its full sender in detail and gives the date a separate element", () => {
+	Store.state = Store.fresh();
+	const card = {
+		id: "mail-long",
+		type: "mail",
+		title: "需要确认的材料",
+		authors: [{ name: "很长的发件人和真实地址 <sender@example.com>" }],
+		publishedAt: "2026-11-02T10:00:00+08:00",
+		url: "https://mail.example.com/message/123",
+	};
+	for (const [html, detail] of [
+		[cardHTML(card), false],
+		[Panels.preview({}, card), true],
+	] as const) {
+		const dom = new JSDOM(html);
+		try {
+			const sender = dom.window.document.querySelector(".mail-sender");
+			assert.equal(sender.querySelector("b")?.textContent, card.authors[0].name);
+			assert.equal(sender.querySelectorAll("time").length, 1);
+			assert.equal(sender.querySelector("b time"), null);
+			const open = dom.window.document.querySelector(".float-bar .is-own");
+			if (detail) {
+				assert.equal(open?.getAttribute("data-action"), "external");
+				assert.equal(open.hasAttribute("disabled"), false);
+				assert.equal(open.getAttribute("aria-label"), "打开邮件");
+			}
+		} finally {
+			dom.window.close();
+		}
+	}
+});
+
 test("card summaries have a text bound while every detail retains the full summary", () => {
 	Store.state = Store.fresh();
 	const summary = "结论🙂".repeat(60);
@@ -76,6 +108,7 @@ test("task and reminder types and time placement do not depend on item count or 
 				due,
 				tags: ["Topic"],
 				sources: [{ name: "提醒事项", kind: "reminders" }],
+				project: { name: "Follow-up" },
 				...(type === "task"
 					? {
 							tasks: Array.from({ length: count }, (_, i) => ({
@@ -104,6 +137,13 @@ test("task and reminder types and time placement do not depend on item count or 
 						type === "task" ? /^截止 · / : /^提醒 · /,
 					);
 					assert.equal(d.querySelector(".card-head-right .reminder-label"), null);
+					if (d.querySelector("h1")) {
+						const facts = [...d.querySelectorAll(".detail-rows > .detail-row")].map(
+							(row) => row.textContent,
+						);
+						assert.equal(facts.filter((text) => text === "来源 提醒事项").length, 1);
+						assert.equal(facts.filter((text) => text === "项目 Follow-up").length, 1);
+					}
 					if (type === "task") assert.equal(d.querySelectorAll(".check-item").length, count);
 				} finally {
 					dom.window.close();

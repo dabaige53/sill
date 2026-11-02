@@ -5,8 +5,9 @@ import { DetailSummary } from "../cards/card-blocks.tsx";
 import { ReminderMark } from "../cards/card-face.tsx";
 import { CardSchedule } from "../cards/card-schedule.tsx";
 import { FileList, RelatedCards, TaskFacts } from "../cards/detail-blocks.tsx";
+import { MailSender } from "../cards/mail-sender.tsx";
 import { DetailText } from "../cards/markdown.tsx";
-import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
+import { MediaDetail } from "../cards/media-detail.tsx";
 import { PullRequest } from "../cards/pull-request.tsx";
 import {
 	type DetailRecipe,
@@ -19,34 +20,16 @@ import {
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import {
-	cardCover,
-	cardDateLabel,
-	cardReadingTime,
-	cardSender,
-	cardSource,
-} from "../data/card-source.ts";
+import { cardCover, cardDateLabel, cardReadingTime, cardSource } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
-import {
-	agentAction,
-	avatar,
-	button,
-	checkItem,
-	icon,
-	keyed,
-	personalNote,
-	SheetEdges,
-} from "./panel-primitives.tsx";
+import type { PreviewApp } from "./panel-contract.ts";
+import { button, checkItem, icon, keyed, personalNote, SheetEdges } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
 
 import { VideoSurface } from "./video-surface.tsx";
 
 type PreviewCard = ReturnType<typeof Store.card>;
-type PreviewApp = PlaybackApp & {
-	agentAction?: (card: PreviewCard) => string;
-	agentActionView?: (card: PreviewCard) => ReactNode;
-};
 type PreviewContext = {
 	app: PreviewApp;
 	s: ReturnType<typeof Store.item>;
@@ -108,7 +91,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 						<div className={c.type === "article" ? "preview-body is-article" : "preview-body"}>
 							{inner}
 							{note}
-							{this.foot(action, agentAction(app, c))}
+							{this.foot(action)}
 							{end}
 						</div>
 					</div>
@@ -185,22 +168,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 	source(c, o, scope) {
 		return (detailLines[o.line] || detailLines.meta).call(this, c, o, scope);
 	},
-	sender(c) {
-		const sender = cardSender(c);
-		return sender ? (
-			<div className={"preview-sender"}>
-				{avatar(sender, 36)}
-				<span>
-					<b>{sender}</b>
-					<small>
-						{[cardSource(c), cardDateLabel(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
-					</small>
-				</span>
-			</div>
-		) : (
-			this.meta(c)
-		);
-	},
+	sender: (c) => <MailSender card={c} detail />,
 	eventDate: (c) => (
 		<div className={"preview-meta"}>
 			{dateLabel(c.start)}

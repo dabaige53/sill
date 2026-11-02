@@ -289,8 +289,10 @@ export const appLifecycleMethods = {
 		// Only the dialogs read the height. Set on the root, the inherited value restyled the
 		// whole feed behind search on every frame of the keyboard's motion.
 		const value = `${kb}px`;
-		for (const dialog of document.querySelectorAll<HTMLElement>("dialog"))
+		for (const dialog of document.querySelectorAll<HTMLElement>("dialog")) {
 			if (dialog.style.getPropertyValue("--kb") !== value) dialog.style.setProperty("--kb", value);
+			dialog.style.setProperty("--visible-height", `${Math.round(vv.height)}px`);
+		}
 		if (kb === this.keyboardHeight) return;
 		this.keyboardHeight = kb;
 		// Browser chrome can change the viewport slightly; once a keyboard is open, keep its

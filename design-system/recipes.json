@@ -167,14 +167,8 @@
 					"tags"
 				],
 				"body": [
-					"body",
-					{
-						"block": "info",
-						"fields": [
-							"project"
-						],
-						"style": "line"
-					}
+					"facts",
+					"body"
 				]
 			}
 		},

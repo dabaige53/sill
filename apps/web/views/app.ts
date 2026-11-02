@@ -91,6 +91,7 @@ class AppController {
 	declare filtering: AppControllerMethods["filtering"];
 	declare refreshFeedOrder: AppControllerMethods["refreshFeedOrder"];
 	declare filtered: AppControllerMethods["filtered"];
+	declare orderedCards: AppControllerMethods["orderedCards"];
 	declare deskView: AppControllerMethods["deskView"];
 	declare renderCurrent: AppControllerMethods["renderCurrent"];
 	declare bootStage: AppControllerMethods["bootStage"];
@@ -101,9 +102,6 @@ class AppController {
 	declare homeTabFilter: AppControllerMethods["homeTabFilter"];
 	declare homeTab: AppControllerMethods["homeTab"];
 	declare agentScope: AppControllerMethods["agentScope"];
-	declare agentAction: AppControllerMethods["agentAction"];
-	declare agentActionView: AppControllerMethods["agentActionView"];
-	declare paintAgentActions: AppControllerMethods["paintAgentActions"];
 	declare toast: AppControllerMethods["toast"];
 	declare alert: AppControllerMethods["alert"];
 	declare showToast: AppControllerMethods["showToast"];
@@ -318,15 +316,12 @@ class AppController {
 				window.__SILL_HOST__,
 				current,
 			);
-			this.paintAgentActions();
 			const result = await handoff;
 			if (result && current()) {
 				document.getElementById("announcer").textContent = copy("web.agent.sent");
 			}
 		} catch (error) {
 			this.alert(error.message || copy("web.agent.unavailable"));
-		} finally {
-			this.paintAgentActions();
 		}
 	}
 	async openExternal(c?: Card, url: string = c?.url) {

@@ -4,11 +4,11 @@ import type { Card } from "../../../contracts/card.ts";
 import type { CardAction } from "../../../contracts/card-actions.ts";
 import type { CardItem } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
+import type { PreviewApp } from "./panel-contract.ts";
 import { TrustedFragment } from "./panel-primitives.tsx";
 import { formatBytes, PanelViews, relativeTime, WelcomeView } from "./panels-components.tsx";
 
 type ToolbarAction = [CardAction, string];
-type PreviewApp = Partial<Pick<AppController, "agentAction">>;
 type SearchApp = Pick<AppController, "searchFilter" | "searchAll" | "searchLimit" | "feedNow">;
 /** Legacy callers may retain an unrecognized display form; the renderer keeps its fallback. */
 type PreviewCard = { [K in keyof Card]: K extends "form" ? string : Card[K] };

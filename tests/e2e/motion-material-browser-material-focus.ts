@@ -187,7 +187,7 @@ export async function runMaterialFocus({
 	);
 
 	await scenario(
-		"A toolbar-free preview fixture keeps its final action visible",
+		"A toolbar-free preview omits the removed assistant footer",
 		async (page) => {
 			await page.evaluate(() => {
 				window.__SILL_HOST__ = { canDiscuss: () => true };
@@ -198,10 +198,8 @@ export async function runMaterialFocus({
 				node.scrollTop = node.scrollHeight;
 			});
 			await page.waitForTimeout(420);
-			const action = page.locator('#modal [data-action="agent-handoff"]');
-			await action.scrollIntoViewIfNeeded();
-			const box = await action.boundingBox();
-			assert.ok(box.height >= 44 && box.y >= 0 && box.y + box.height <= 844);
+			assert.equal(await page.locator('#modal [data-action="agent-handoff"]').count(), 0);
+			assert.equal(await page.locator("#modal .preview-foot").count(), 0);
 			assert.equal(await page.locator("#modal > .float-bar").count(), 0);
 			assert.equal(
 				await page

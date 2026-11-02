@@ -53,7 +53,7 @@ struct ReaderAction: Identifiable, Equatable {
       ? make(.dismiss, "dismiss", "bell-off", Copy.text("web.preview.dismissReminder")) : nil
     switch card.kind {
     case .mail:
-      return [make(.reply, "reply", "reply", Copy.text("web.preview.reply"))]
+      return [make(.reply, "reply", "external", Copy.text("web.mail.open"))]
     case .event:
       let start = card.start ?? 0
       let join: ReaderAction? =

@@ -328,13 +328,7 @@ import SillKit
       operations.append(.itemPatch(id: first, values: ["note": .string(text)]))
     }
     guard !operations.isEmpty else { return completion(.saved) }
-    write(operations) { [weak self] done in
-      guard let self else { return }
-      if done {
-        self.toast(
-          self.isLocal
-            ? Copy.text("web.app.5fa0ce52b47e") : Copy.text("web.cloudentry.1bd91a7d0c53"))
-      }
+    write(operations) { done in
       completion(done ? .saved : .failed)
     }
   }

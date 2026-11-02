@@ -96,24 +96,29 @@ export class AgentHandoff {
 	}
 }
 
+/** Shared by native links and host navigation. */
+export function cardLinkURL(value: string | undefined): string | undefined {
+	try {
+		const url = new URL(value);
+		return ["https:", "http:", "mailto:"].includes(url.protocol) ? url.href : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 /** The host owns navigation in an MCP App; browser popups are only for independent pages. */
 export async function openCardLink(
 	value: string,
 	host: { openLink?: (url: string) => Promise<void> } | undefined,
 	openWindow: (url: string) => unknown,
 ) {
-	let url: URL;
-	try {
-		url = new URL(value);
-		if (!["https:", "http:", "mailto:"].includes(url.protocol)) throw new Error();
-	} catch {
-		throw agentFailure("invalid_link", copy("web.agent.invalidLink"));
-	}
+	const url = cardLinkURL(value);
+	if (!url) throw agentFailure("invalid_link", copy("web.agent.invalidLink"));
 	if (host) {
 		if (!host.openLink) throw agentFailure("link_unavailable", copy("web.agent.linkUnavailable"));
-		await host.openLink(url.href);
+		await host.openLink(url);
 		return true;
 	}
 	// With noopener a browser can return null even after opening; this is not proof of a read.
-	return !!openWindow(url.href);
+	return !!openWindow(url);
 }
