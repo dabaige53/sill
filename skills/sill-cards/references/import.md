@@ -48,7 +48,7 @@ Sill 不订阅、不同步、不抓取，也不接收文件导入。所谓导入
 | GitHub / Linear 议题 | `task` | `github` / `linear` | `url`、`tasks`（议题里的清单）、`due`、`project` |
 | 邮件 | `mail` | `mail` | `authors[0]` 为发件人、`publishedAt` 为发送时刻、附件写 `files` |
 | 日历事件 | `event` | `calendar` | `start`/`end` 毫秒、`location`、`people`、`meeting` |
-| 系统提醒事项 | `reminder` | `reminders` | `due` 毫秒、`project` |
+| 系统提醒事项 | 按用途选 `task` 或 `reminder` | `reminders` | 待办写 `tasks` 和真实截止 `due`；定时提醒写提醒时刻 `due`；所属清单写 `project`，不按程序名或事项数量选类型 |
 | 在线相册 | `photo` | `photos` | `images` 只能用已有的 HTTPS 地址 |
 | 网盘或文件夹里的文件 | `file` | `folder` | `files` 写名称、MIME、字节数、修改时间、HTTPS 链接 |
 | Markdown 笔记 | `note` | `markdown` | 正文保留原 Markdown 层级 |
