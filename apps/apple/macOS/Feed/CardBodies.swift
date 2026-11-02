@@ -90,7 +90,7 @@ struct TaskRow: View {
           .fixedSize(horizontal: false, vertical: true)
       }
       .padding(.vertical, AppleMetrics.space2)
-      .frame(minHeight: large ? AppleMetrics.hitTarget : AppleMetrics.checkRowHeight)
+      .frame(minHeight: large ? AppleMetrics.space36 : AppleMetrics.checkRowHeight)
       .contentShape(Rectangle())
     }
     .buttonStyle(CheckPress())

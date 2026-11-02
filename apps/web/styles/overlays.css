@@ -504,8 +504,10 @@ button.detail-row:active {
 .why-line .icon {
 	color: var(--secondary);
 }
+/* Rows keep the card's rhythm; the phone widens the touch area without spacing them out. */
 .detail-task-list .check-item {
-	min-height: 44px;
+	position: relative;
+	min-height: var(--space-36);
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-tags {
