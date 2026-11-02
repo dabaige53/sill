@@ -295,6 +295,8 @@ function renderDetail(
 	});
 }
 
+const INFO_ROWS = new Set(["facts", "info", "participants"]);
+
 /** One detail surface: the recipe's head inside the header, then its body blocks. */
 function detailContent(
 	this: PanelRenderers,
@@ -304,14 +306,19 @@ function detailContent(
 	s: ReturnType<typeof Store.item>,
 ) {
 	const scope = { mode, recipe, s };
+	// Info rows (facts, time and place, people) lead the body; the summary follows them.
+	const body = recipe.body || [];
+	let rows = 0;
+	while (rows < body.length && INFO_ROWS.has(entryName(body[rows]))) rows++;
 	return (
 		<>
 			<header className={`detail-header ${recipe.ruled ? "ruled-header" : ""}`}>
 				{renderDetail.call(this, recipe.head, c, scope)}
 			</header>
+			{renderDetail.call(this, body.slice(0, rows), c, scope)}
 			{/* Photos speak for themselves: no summary block in their detail. */}
 			{c.type !== "photo" && <DetailSummary card={c} />}
-			{renderDetail.call(this, recipe.body, c, scope)}
+			{renderDetail.call(this, body.slice(rows), c, scope)}
 		</>
 	);
 }

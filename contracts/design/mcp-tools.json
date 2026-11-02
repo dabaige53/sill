@@ -263,6 +263,17 @@
                       "type": "string",
                       "maxLength": 10000
                     },
+                    "longSummary": {
+                      "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      }
+                    },
                     "authors": {
                       "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                       "maxItems": 20,
@@ -1256,6 +1267,17 @@
                 "type": "string",
                 "maxLength": 10000
               },
+              "longSummary": {
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "minItems": 2,
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
               "authors": {
                 "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                 "maxItems": 20,
@@ -1968,6 +1990,17 @@
                 "type": "string",
                 "maxLength": 10000
               },
+              "longSummary": {
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "minItems": 2,
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
               "authors": {
                 "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                 "maxItems": 20,
@@ -2559,6 +2592,17 @@
                 "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
+              },
+              "longSummary": {
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "minItems": 2,
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
               },
               "authors": {
                 "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -3284,6 +3328,17 @@
                     "type": "string",
                     "maxLength": 10000
                   },
+                  "longSummary": {
+                    "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                    "minItems": 2,
+                    "maxItems": 8,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    }
+                  },
                   "authors": {
                     "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                     "maxItems": 20,
@@ -3905,6 +3960,17 @@
                 "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
+              },
+              "longSummary": {
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "minItems": 2,
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
               },
               "authors": {
                 "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -4642,6 +4708,17 @@
                 "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
+              },
+              "longSummary": {
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "minItems": 2,
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
               },
               "authors": {
                 "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -5811,6 +5888,17 @@
                               "type": "string",
                               "maxLength": 10000
                             },
+                            "longSummary": {
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "minItems": 2,
+                              "maxItems": 8,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              }
+                            },
                             "authors": {
                               "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                               "maxItems": 20,
@@ -6637,6 +6725,17 @@
                               "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
+                            },
+                            "longSummary": {
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "minItems": 2,
+                              "maxItems": 8,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              }
                             },
                             "authors": {
                               "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -7622,6 +7721,17 @@
                               "type": "string",
                               "maxLength": 10000
                             },
+                            "longSummary": {
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "minItems": 2,
+                              "maxItems": 8,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              }
+                            },
                             "authors": {
                               "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
                               "maxItems": 20,
@@ -8118,6 +8228,17 @@
                                   "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                                   "type": "string",
                                   "maxLength": 10000
+                                },
+                                "longSummary": {
+                                  "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                                  "minItems": 2,
+                                  "maxItems": 8,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                  }
                                 },
                                 "authors": {
                                   "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -8735,6 +8856,17 @@
                               "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
+                            },
+                            "longSummary": {
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "minItems": 2,
+                              "maxItems": 8,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              }
                             },
                             "authors": {
                               "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
@@ -9887,6 +10019,17 @@
                           "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
                           "type": "string",
                           "maxLength": 10000
+                        },
+                        "longSummary": {
+                          "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                          "minItems": 2,
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          }
                         },
                         "authors": {
                           "description": "Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",

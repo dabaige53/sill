@@ -77,6 +77,11 @@
 }
 .tag-panel-content .panel-footer {
 	flex: none;
+	justify-content: flex-end;
+}
+/* The sheet holds focus on a phone so no control opens with a ring. */
+.tag-editor-sheet:focus {
+	outline: 0;
 }
 /* With no title above it, the tag field keeps clear of the round close button. */
 .tag-panel-fields > .tag-editor {

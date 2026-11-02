@@ -6,7 +6,7 @@
 - `local.ts`：已实现的本地状态和批量操作。
 - `backup.ts`：已实现的账号备份快照、WebDAV/R2 配置、恢复确认及 8 个 MCP 输入；秘密设置只用于本人 HTTP，不注册成 MCP 输入。
 - `reminders-worker.ts`：Web 与本地服务共用的通知点击脚本；只联系已打开页面，不缓存内容或订阅推送。
-- `cloud.ts`：已实现的云端写入与 MCP 输入，从 `Card.shape` 复用任务、时间、来源及展示字段；外部 `/contents` 路径、工具名与权限名保持兼容。云端局部更新保留未修改字段，`state` 合并子字段，数组和嵌套对象整体替换；整卡更新替换整张卡片。每次写入都按类型检查合并后的整张卡片。数据库校验见 `supabase/migrations/20261028120000_sill_card_fields_v5.sql`。
+- `cloud.ts`：已实现的云端写入与 MCP 输入，从 `Card.shape` 复用任务、时间、来源及展示字段；外部 `/contents` 路径、工具名与权限名保持兼容。云端局部更新保留未修改字段，`state` 合并子字段，数组和嵌套对象整体替换；整卡更新替换整张卡片。每次写入都按类型检查合并后的整张卡片。数据库校验见 `supabase/migrations/20261028120000_sill_card_fields_v5.sql`，`longSummary` 由 `20261102120000_card_long_summary.sql` 加入同一校验。
 - `mcp-guidance.ts`：每个 MCP 工具的用途与传输规则；运行时工具发现和导出目录共用，版本取自 card.ts。导出响应只携带该工具用到的定义。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `fixtures.json` 与 `media-fixtures.json`：按核心字段、媒体与图片拆分的合法和非法合成样例；Node 通过 `card-fixtures.ts` 合并，Swift 读取两份文件，每个写入端执行同一批样例。

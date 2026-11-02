@@ -69,6 +69,9 @@ const Glyphs = {
 	more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
 	check: '<path d="m5 12 4 4L19 6"/>',
 	"check-circle": '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+	// The Sill mark in line form: two cards, the taller one with its bar. The AI summary switch.
+	"sill-ai":
+		'<rect x="3.4" y="6.3" width="8" height="11.4" rx="2.2"/><rect x="14" y="9.7" width="6.8" height="8" rx="2.2"/><path class="sill-ai-bar" d="M5.9 10.1h3"/>',
 	x: '<path d="m6 6 12 12M18 6 6 18"/>',
 	plus: '<path d="M12 5v14M5 12h14"/>',
 	arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',

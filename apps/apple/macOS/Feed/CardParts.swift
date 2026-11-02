@@ -151,20 +151,104 @@ struct SummaryBlock: View {
   }
 }
 
+/// Web `DetailSummary`: short by default; when the card has a long summary, the Sill mark at
+/// the top left switches between the two after a brief writing pause, and the chevron folds it.
 struct SummaryOverview: View {
   let card: CardModel
+  @State private var long = false
+  @State private var loading: Bool?
+  @State private var open = true
+  @State private var pending: Task<Void, Never>?
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
   var body: some View {
     if !card.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      let target = loading ?? long
       VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-        Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
-          .foregroundStyle(AppleColors.secondary)
-        Text(card.summary).textStyle(AppleMetrics.font15)
-          .fixedSize(horizontal: false, vertical: true)
-          .textSelection(.enabled)
+        HStack(spacing: AppleMetrics.space6) {
+          if !card.longSummary.isEmpty {
+            Button(action: toggle) {
+              Icon("sill-ai", size: AppleMetrics.space20)
+                .foregroundStyle(target ? AppleColors.accent : AppleColors.secondary)
+                .opacity(loading == nil ? 1 : 0.55)
+                .animation(
+                  loading == nil || reduceMotion
+                    ? .default : .easeInOut(duration: 0.33).repeatForever(), value: loading)
+            }
+            .buttonStyle(.plain)
+            .help(Copy.text(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong"))
+            .accessibilityLabel(
+              Copy.text(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong")
+            )
+            .accessibilityAddTraits(target ? .isSelected : [])
+          }
+          Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
+            .foregroundStyle(AppleColors.secondary)
+          Spacer(minLength: 0)
+          Button {
+            withAnimation(Motion.ease(0.26)) { open.toggle() }
+          } label: {
+            Icon("chevron", size: AppleMetrics.font14)
+              .rotationEffect(.degrees(open ? -90 : 90))
+              .foregroundStyle(AppleColors.secondary)
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(Copy.text(open ? "web.card.summaryFold" : "web.card.summaryUnfold"))
+        }
+        if open {
+          Group {
+            if let loading {
+              VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+                ForEach(0..<(loading ? card.longSummary.count : 2), id: \.self) { index in
+                  Capsule().fill(AppleColors.primary.opacity(0.07))
+                    .frame(height: AppleMetrics.space10)
+                    .frame(maxWidth: index % 2 == 1 ? 220 : .infinity, alignment: .leading)
+                }
+              }
+            } else if long {
+              VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+                ForEach(Array(card.longSummary.enumerated()), id: \.offset) { _, point in
+                  HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space8) {
+                    Text("•")
+                    Text(point).fixedSize(horizontal: false, vertical: true)
+                  }
+                  .textStyle(AppleMetrics.font15)
+                }
+              }
+              .textSelection(.enabled)
+            } else {
+              Text(card.summary).textStyle(AppleMetrics.font15)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+            }
+          }
+          .transition(.opacity)
+        }
       }
       .padding(AppleMetrics.space16)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space12).fill(AppleColors.surface))
+      .onDisappear { pending?.cancel() }
+    }
+  }
+
+  private func toggle() {
+    pending?.cancel()
+    let next = !(loading ?? long)
+    open = true
+    if next == long || reduceMotion || Motion.keyboardDriven {
+      loading = nil
+      long = next
+      return
+    }
+    loading = next
+    pending = Task { @MainActor in
+      try? await Task.sleep(for: .milliseconds(520))
+      guard !Task.isCancelled else { return }
+      withAnimation(Motion.ease(0.28)) {
+        long = next
+        loading = nil
+      }
     }
   }
 }

@@ -42,7 +42,7 @@ export interface PanelRenderers {
 	reader(app?: PreviewApp, card?: Card, loading?: boolean): ReactNode;
 	lightbox(card?: Card, index?: number, app?: PreviewApp): ReactNode;
 	editor(
-		app?: Pick<AppController, "editTags" | "editNote"> & { cloudSavedAccount?: boolean },
+		app?: Pick<AppController, "editTags" | "editNote"> & { desktop?: () => boolean },
 		id?: string,
 	): ReactNode;
 	search(app?: SearchApp): ReactNode;

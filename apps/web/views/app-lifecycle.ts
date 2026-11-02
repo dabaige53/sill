@@ -285,6 +285,10 @@ export const appLifecycleMethods = {
 	syncKeyboard(this: AppController) {
 		const vv = window.visualViewport;
 		if (!vv) return;
+		// A locked page rests at the top. iOS still scrolls it to show a focused field and leaves it
+		// there when the keyboard goes, so the page behind a sheet jumped and stayed shifted.
+		if (this.pageScrollLocked && !this.desktop() && scrollY !== 0)
+			window.scrollTo({ top: 0, behavior: "instant" });
 		const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
 		// Only the dialogs read the height. Set on the root, the inherited value restyled the
 		// whole feed behind search on every frame of the keyboard's motion.
@@ -315,6 +319,14 @@ export const appLifecycleMethods = {
 		};
 		vv.addEventListener("resize", schedule);
 		vv.addEventListener("scroll", schedule);
+		// The document itself only moves under a sheet when iOS pans it for a field.
+		window.addEventListener(
+			"scroll",
+			() => {
+				if (this.pageScrollLocked) schedule();
+			},
+			{ passive: true },
+		);
 		window.addEventListener("resize", schedule);
 		this.syncKeyboard();
 	},

@@ -81,6 +81,10 @@
 	color: var(--ink);
 	font-weight: 600;
 }
+/* The summary follows the listening row, before the introduction. */
+.podcast-listening + .detail-summary {
+	margin-top: var(--space-24);
+}
 .podcast-body {
 	display: flex;
 	flex-direction: column;

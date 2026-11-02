@@ -44,13 +44,14 @@ struct PodcastDetail: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.trailing, AppleMetrics.space32)
       }
-      SummaryOverview(card: card)
       HStack(spacing: AppleMetrics.space8) {
         Icon("headphones", size: AppleMetrics.space16)
         Text(Copy.text("web.media.listening"))
         Text(Format.duration(Int(state.playbackPosition))).fontWeight(.semibold)
         Text("/ " + (card.duration.map(Format.duration) ?? Copy.text("web.media.unknownDuration")))
       }.font(.number(AppleMetrics.font14)).foregroundStyle(AppleColors.secondary)
+      // The summary follows the listening row, before the introduction (Web the same).
+      SummaryOverview(card: card)
       if !card.markdown.blocks.isEmpty {
         MarkdownText(
           document: card.markdown, size: AppleMetrics.font15,

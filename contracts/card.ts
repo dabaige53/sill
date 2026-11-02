@@ -113,6 +113,14 @@ export const Card = z
 			.describe(
 				"One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
 			),
+		longSummary: z
+			.array(z.string().min(1).max(500))
+			.min(2)
+			.max(8)
+			.optional()
+			.describe(
+				"Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+			),
 		authors: z
 			.array(namedParty)
 			.max(20)

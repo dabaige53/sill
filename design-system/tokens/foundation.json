@@ -680,6 +680,12 @@
 			"shake": 300,
 			"shakeEase": "cubic-bezier(0.23,1,0.32,1)"
 		},
+		"summaryLength": {
+			"loading": 520,
+			"reveal": 280,
+			"revealEase": "cubic-bezier(0.32,0.72,0,1)",
+			"inkEase": "ease"
+		},
 		"searchIconSpring": {
 			"duration": 0.3,
 			"bounce": 0

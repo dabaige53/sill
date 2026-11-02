@@ -73,12 +73,12 @@ export function PodcastDetail({ card }: { card: Card }) {
 					)}
 				</div>
 			</header>
-			<DetailSummary card={card} />
 			<p className="podcast-listening num">
 				<Icon name="headphones" size={16} />
 				{copy("web.media.listening")} <b>{duration(position)}</b> /{" "}
 				{card.duration !== undefined ? duration(card.duration) : copy("web.media.unknownDuration")}
 			</p>
+			<DetailSummary card={card} />
 			<div className="podcast-body">
 				{card.body?.trim() && (
 					<div className="podcast-intro">

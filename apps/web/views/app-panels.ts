@@ -94,6 +94,9 @@ export const appPanelsMethods = {
 			});
 			// A phone card drawer underneath traps focus at the document; focus moving inside the
 			// layer stops here so the drawer does not pull it back.
+			// A phone keyboard still composing (pinyin letters) has not chosen the tag yet.
+			layer.addEventListener("compositionstart", () => (layer.dataset.composing = "true"));
+			layer.addEventListener("compositionend", () => delete layer.dataset.composing);
 			for (const type of ["focusin", "focusout"])
 				layer.addEventListener(type, (e) => {
 					if (type === "focusout" && (e.target as HTMLElement).id === "tag-new")
@@ -145,6 +148,8 @@ export const appPanelsMethods = {
 		// sheet under its own rising animation and froze the page.
 		if (this.desktop() || MotionEngine.keyboard)
 			layer.querySelector<HTMLElement>("#tag-new")?.focus({ preventScroll: true });
+		// The dialog would give its first button, the close ×, a focus ring; the sheet holds it.
+		else layer.querySelector<HTMLElement>(".tag-editor-sheet")?.focus({ preventScroll: true });
 	},
 	closeEditor(this: AppController, animate = true) {
 		const layer = this.editorLayer;

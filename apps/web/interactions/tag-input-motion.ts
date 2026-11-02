@@ -52,6 +52,16 @@ export function settleTags(
 		const to = node.getBoundingClientRect();
 		const dx = from.left - to.left,
 			dy = from.top - to.top;
+		// The field gives its old place to the new chip: sliding it across drew its placeholder
+		// over that chip, so it fades in where it lands instead.
+		if (key === SLOT) {
+			if (dx || dy)
+				MotionEngine.animate(node, [{ opacity: 0 }, { opacity: 1 }], {
+					duration: timing.leave,
+					easing: timing.leaveEase,
+				});
+			continue;
+		}
 		if (dx || dy)
 			MotionEngine.animate(
 				node,

@@ -58,10 +58,7 @@ export function SearchMatch({ text, needle }: { text: string; needle: string }) 
 export const panelSearch = {
 	editor(
 		this: PanelRenderers,
-		app?: Pick<AppController, "editTags" | "editNote"> & {
-			cloudSavedAccount?: boolean;
-			desktop?: () => boolean;
-		},
+		app?: Pick<AppController, "editTags" | "editNote"> & { desktop?: () => boolean },
 		id?: string,
 	) {
 		const c = Store.card(id),
@@ -84,7 +81,7 @@ export const panelSearch = {
 			.slice(0, 6);
 		return (
 			<>
-				<div className={"sheet tag-editor-sheet"}>
+				<div className={"sheet tag-editor-sheet"} tabIndex={-1}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
 					<h2 className="sr-only" id="editor-title">
 						{copy("web.app.09fe39e89e28")}: {c.title}
@@ -181,16 +178,6 @@ export const panelSearch = {
 						</div>
 						{"\n   "}
 						<div className={"panel-footer"}>
-							<span className={"muted"}>
-								{app?.cloudSavedAccount ? (
-									copy("web.cloud.savedAccount")
-								) : (
-									<>
-										{icon("lock", 13)}
-										{copy("web.editor.deviceStorageHint")}
-									</>
-								)}
-							</span>
 							<button
 								type="button"
 								className={"solid-button"}

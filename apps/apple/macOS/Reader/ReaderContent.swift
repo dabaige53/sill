@@ -68,9 +68,14 @@ struct ReaderContent: View {
             .padding(.top, -AppleMetrics.space16)
         }
         head
+        // Info rows (facts, time and place, people) lead; the summary follows them, then the body.
         // Photos speak for themselves: no summary block in their detail (Web the same).
+        let rows = recipe.body.prefix { Self.infoRows.contains($0.name) }.count
+        ForEach(Array(recipe.body.enumerated().prefix(rows)), id: \.offset) { index, entry in
+          bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
+        }
         if card.kind != .photo { SummaryOverview(card: card) }
-        ForEach(Array(recipe.body.enumerated()), id: \.offset) { index, entry in
+        ForEach(Array(recipe.body.enumerated().dropFirst(rows)), id: \.offset) { index, entry in
           bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
         }
       }
@@ -79,6 +84,8 @@ struct ReaderContent: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .environment(\.contentAppearance, workspace.preferences.readerAppearance)
   }
+
+  private static let infoRows: Set<String> = ["facts", "info", "participants"]
 
   private var page: Bool { type.title == ReaderType.page.title }
 

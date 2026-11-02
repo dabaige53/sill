@@ -165,16 +165,6 @@ struct EditorPanel: View {
 
   private var footer: some View {
     HStack(spacing: AppleMetrics.space12) {
-      HStack(spacing: AppleMetrics.space4) {
-        if workspace.isLocal {
-          Icon("lock", size: AppleMetrics.font13)
-          Text(Copy.text("web.editor.deviceStorageHint"))
-        } else {
-          Text(Copy.text("web.cloud.savedAccount"))
-        }
-      }
-      .font(.sans(AppleMetrics.font13))
-      .foregroundStyle(AppleColors.secondary)
       Spacer(minLength: 0)
       Button(Copy.text("web.save"), action: save)
         .buttonStyle(SolidButtonStyle())

@@ -3,6 +3,7 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import {
 	A,
+	applyCardMigrations,
 	B,
 	claims,
 	identity,
@@ -140,6 +141,35 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 				);
 				assert.equal((await rpc(db, "sill_get_content", [one.id])).revision, 1);
 			},
+		);
+	} finally {
+		await db.close();
+	}
+});
+
+test("the card validator accepts a long summary of 2–8 points and rejects other shapes", async () => {
+	const db = new PGlite();
+	try {
+		await setupBoundary(db);
+		await applyCardMigrations(db);
+		await identity(db);
+		const write = (payload: any, key: string) =>
+			rpc(db, "sill_write_v1", ["create", null, JSON.stringify(payload), key]);
+		const card = { type: "note", title: "Long summary", summary: "短摘要。" };
+		const made = (
+			await write({ ...card, longSummary: ["第一点。", "第二点。"] }, "long_summary_ok")
+		).body;
+		assert.deepEqual((await rpc(db, "sill_get_content", [made.id])).longSummary, [
+			"第一点。",
+			"第二点。",
+		]);
+		await assert.rejects(
+			write({ ...card, longSummary: ["只有一点。"] }, "long_summary_one"),
+			/invalid_request/,
+		);
+		await assert.rejects(
+			write({ ...card, longSummary: "不是列表" }, "long_summary_text"),
+			/invalid_request/,
 		);
 	} finally {
 		await db.close();
