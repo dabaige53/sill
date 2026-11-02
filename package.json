@@ -60,7 +60,7 @@
 		"ci:build": "npm run build",
 		"ci:quick": "npm run files:check && npm run ci:lint && npm run ci:typecheck",
 		"ci:verify:web": "npm run lint:web && npm run build && node scripts/build.ts --check",
-		"ci:test:web-browser": "status=0; npm run test:material-density || status=1; npm run test:motion-material || status=1; npm run test:pwa-touch || status=1; node tests/e2e/photo-toolbar-browser.ts || status=1; node tests/e2e/card-actions-settings-browser.ts || status=1; node tests/e2e/home-tabs-browser.ts || status=1; node tests/e2e/drawer-browser.ts || status=1; node tests/e2e/search-browser.ts || status=1; node tests/e2e/search-filters-browser.ts || status=1; node tests/e2e/refresh-motion-browser.ts || status=1; npm run test:browser || status=1; npm run test:selection-browser || status=1; exit \"$status\"",
+		"ci:test:web-browser": "node scripts/ci-browser.ts",
 		"ci:verify:card-content": "npm run contracts:check && npm run lint:web && npm run typecheck && npm run build && node --import tsx --test tests/web/card.test.ts tests/web/card-metadata.test.ts tests/web/card-content.test.ts tests/web/cloud-card.test.ts tests/contracts/card.test.ts tests/server/card-display-policy.test.ts",
 		"ci:test:apple": "node tests/apple/run.ts",
 		"ci:test:consent": "node --test tests/server/consent-policy.test.ts",

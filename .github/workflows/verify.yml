@@ -21,14 +21,30 @@ jobs:
           install: ignore-scripts
       - name: Verify source, generated pages and core behavior
         run: npm run ci:verify:web
+  browser:
+    name: browser (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [motion, navigation, layout]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '24'
+          install: ignore-scripts
+      - name: Build browser fixture
+        run: npm run ci:build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
-        run: npm run ci:test:web-browser
+        run: npm run ci:test:web-browser -- ${{ matrix.group }}
       - name: Retain browser results and screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-verification
+          name: browser-verification-${{ matrix.group }}
           path: tests/artifacts/
           if-no-files-found: ignore

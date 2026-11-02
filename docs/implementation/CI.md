@@ -14,7 +14,7 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 | Web 构建 | `npm run ci:build` | 调用现有构建 |
 | 静态检查集合 | `npm run ci:quick` | 文件、Web lint 与类型检查；检查完整范围，不自动选择变更文件 |
 | Web 验证 | `npm run ci:verify:web` | Web lint、构建、再次构建比较产物 |
-| Web 浏览器回归 | `npm run ci:test:web-browser` | 顺序执行现有 12 个入口；执行完全部入口，有任一失败即返回失败 |
+| Web 浏览器回归 | `npm run ci:test:web-browser -- <group>` | motion、navigation、layout 三组共 12 个入口；省略 group 执行全部。组内完整执行，有任一失败即返回失败 |
 | 共享卡片专项 | `npm run ci:verify:card-content` | 契约、Web lint、类型、构建及指定卡片测试；Mac 手动运行的可选步骤 |
 | Swift 后台测试 | `npm run ci:test:apple` | 调用现有 Apple 测试脚本，支持追加 Swift test 参数 |
 | 离线授权策略 | `npm run ci:test:consent` | 不安装依赖的独立快速检查；与服务端测试有意重叠 |
@@ -26,7 +26,7 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 
 | 工作流 | Job | 触发 | 检查入口 | 超时 |
 | --- | --- | --- | --- | --- |
-| `verify.yml` | `verify` | main push、PR、复用调用 | `ci:verify:web`、`ci:test:web-browser` | 10 分钟 |
+| `verify.yml` | `verify`、`browser (motion/navigation/layout)` | main push、PR、复用调用 | 静态验证与三个浏览器组并行；各组构建后执行 `ci:test:web-browser` | 各 10 分钟 |
 | `test.yml` | `test` | main push、PR、复用调用 | `npm test`、`plugin:build`、`test:local-browser` | 12 分钟 |
 | `supabase.yml` | `boundary` | main push、PR、复用调用 | `test:supabase:postgres`、`build:cloud`，以及云端、宿主、操作、欢迎页、OAuth 浏览器入口 | 20 分钟 |
 | `consent-policy.yml` | `policy` | main push、PR、复用调用 | `ci:test:consent` | 2 分钟 |
@@ -63,7 +63,7 @@ Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托�
 
 发布沿用 `sill-release` 分组和 `cancel-in-progress: false`。这一设置不等于无限排队，也不构成人工上线审批。
 
-Web 浏览器集合保留全部入口执行后的统一失败结果。云端浏览器步骤保留构建和 Chromium 安装成功后继续检查的条件。Swift 测试保留未取消即继续运行的条件。其他步骤沿用 GitHub Actions 的前序成功条件。
+Web 浏览器分组在 [ci-browser.ts](../../scripts/ci-browser.ts) 维护；`--list` 只输出分组。矩阵关闭 fail-fast，各组独立 Runner，组内保留全部入口执行后的统一失败结果。各组独立上传截图、耗时 JSON 和按脚本入口计数的 JUnit，不把入口数当作内部断言数量。云端浏览器步骤保留构建和 Chromium 安装成功后继续检查的条件。Swift 测试保留未取消即继续运行的条件。其他步骤沿用 GitHub Actions 的前序成功条件。
 
 ## 触发与构建去重
 
