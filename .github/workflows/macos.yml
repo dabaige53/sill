@@ -16,6 +16,7 @@ on:
       - '.swift-format'
       - '.github/workflows/macos.yml'
       - '.github/actions/setup/**'
+      - '.github/actions/swift-cache/**'
   pull_request:
     paths: *apple-inputs
   workflow_dispatch:
@@ -40,6 +41,11 @@ jobs:
           node-version: '24'
           install: ignore-scripts
           cache: npm
+          cache-write: 'true'
+      - uses: ./.github/actions/swift-cache
+        id: swift-cache
+        with:
+          configuration: debug
       - name: Show Apple toolchain
         run: |
           xcodebuild -version
@@ -52,3 +58,9 @@ jobs:
       - name: Run Swift tests without UI automation
         if: ${{ !cancelled() }}
         run: npm run ci:test:apple
+      - uses: ./.github/actions/swift-cache
+        if: ${{ success() && steps.swift-cache.outputs.cache-hit != 'true' }}
+        with:
+          configuration: debug
+          save: 'true'
+          key: ${{ steps.swift-cache.outputs.cache-primary-key }}

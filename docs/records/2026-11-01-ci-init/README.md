@@ -1,6 +1,6 @@
 # CI 初始化
 
-日期：2026-11-01。状态：本地配置与静态检查完成，未推送，真实 Actions 验证待执行。
+日期：2026-11-01；续办：2026-11-02。状态：初始化、触发去重和旧断言修正已通过五类远端检查；浏览器并行已推送验证，缓存接入已完成静态检查，真实验证待完成。
 
 ## 范围
 
@@ -27,8 +27,18 @@
 
 临时原始数据保存在 `/private/tmp/sill-ci-audit-20261101` 和 `/private/tmp/sill-ci-init-20261101`，未提交原始日志、未新增仓库顶层临时目录。
 
+## 初始化验证与后续优化
+
+用户随后授权继续全部步骤。改动在 `codex/ci-tuning`，对应 [PR #93](https://github.com/dabaige53/sill/pull/93)，基于 `codex/card-content-consistency`；未合并或上线。
+
+旧卡片断言已单独提交修正，依据与结果见[卡片内容一致性记录](../2026-10-31-card-content-consistency/README.md)。提交 `6fbe9ae2` 的五类检查全部成功：[Web](https://github.com/dabaige53/sill/actions/runs/41376777708)、[集成](https://github.com/dabaige53/sill/actions/runs/41376777923)、[数据](https://github.com/dabaige53/sill/actions/runs/41376777723)、[Mac](https://github.com/dabaige53/sill/actions/runs/41376777833)、[授权策略](https://github.com/dabaige53/sill/actions/runs/41376777710)。
+
+触发去重仅保留 main push 与 PR 检查，插件包装不再重复构建 Web。`628845f3` 将原 12 个浏览器入口分成 motion、navigation、layout 三组，使用独立 Runner，保留全部入口和失败状态；2026-11-02 续办时已推送。
+
+缓存接入采用 npm 下载缓存与 Swift 精确输入缓存。普通 PR 只读；指定任务在默认分支或手动运行时保存。Swift 恢复后仍执行完整测试或打包，成功后才保存，并沿用恢复时计算的 key。原任务临时草稿已不存在，本次依据源码补全，不覆盖其他文件。
+
+缓存改动前后 `compare.py coverage` 为 19 → 19，PASS，无阻断或警告。项目明确不配置必需检查，未传入分支保护检查清单。`npm run files:check` 与 `git diff --check` 通过。本次临时审计数据位于 `/private/tmp/sill-ci-20261102`。
+
 ## 待验证
 
-未在本地执行 lint、类型检查、测试、浏览器自动化或构建。未安装 actionlint 或本地 Git hook。取得推送授权后，由 GitHub Actions 验证共享 Action、检查入口、并发分组和全部原检查；不能仅凭本次静态比较宣布 CI 通过。
-
-当前分支的 [共享卡片专项历史运行](https://github.com/dabaige53/sill/actions/runs/41204251100)仍有一个失败断言，本次 init 未处理该产品或测试问题。若新 CI 仍报同一错误，应单独定位，不能通过修改编排跳过。
+浏览器并行及缓存的真实运行、缓存命中和耗时数据待补。主分支缓存需要合并后建立；工作分支手动缓存不代表主分支已具备缓存。未在本地运行完整测试、构建或界面自动化，未安装 actionlint 或本地 Git hook。

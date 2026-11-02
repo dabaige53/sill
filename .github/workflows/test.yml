@@ -21,6 +21,7 @@ jobs:
           # Match the Node 26 runtime used for the local release checks.
           node-version: '26'
           cache: npm
+          cache-write: 'true'
       - run: npm test
       - run: npm run plugin:build
       - run: npx playwright install --with-deps chromium

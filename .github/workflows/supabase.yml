@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+          cache-write: 'true'
       # Node service coverage runs once in test.yml via npm test.
       - run: npm run test:supabase:postgres
       - id: cloudbuild

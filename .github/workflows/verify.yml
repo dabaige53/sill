@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: '24'
           install: ignore-scripts
+          cache: npm
       - name: Verify source, generated pages and core behavior
         run: npm run ci:verify:web
   browser:
@@ -35,6 +36,7 @@ jobs:
         with:
           node-version: '24'
           install: ignore-scripts
+          cache: npm
       - name: Build browser fixture
         run: npm run ci:build
       - name: Install Chromium

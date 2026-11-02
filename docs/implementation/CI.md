@@ -34,17 +34,17 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 | `macos-package.yml` | `package` | 手动、复用调用 | `build:macos`、`package:macos` | 30 分钟 |
 | `release.yml` | `version`、复用检查、打包、`publish` | `v*` tag push、手动选择版本 tag | 版本检查 → 五类检查 → 云端与 Mac 打包 → 发布 | version 5、cloud-package 10、publish 10 分钟；复用任务沿用各自限制 |
 
-Mac 路径清单在 [macos.yml](../../.github/workflows/macos.yml) 维护，包含共享 setup action。它不是全量运行入口；发布通过复用调用执行 Mac 检查。
+Mac 路径清单在 [macos.yml](../../.github/workflows/macos.yml) 维护，包含共享 setup 与 Swift 缓存 action。它不是全量运行入口；发布通过复用调用执行 Mac 检查。
 
 本项目不配置分支保护或必需检查汇总 Job。各检查仍保留非零失败退出，发布仍等待五类检查全部通过后才打包。Job id 和工作流名称保持稳定。
 
 ## 环境准备
 
-所有 Job 在 checkout 后使用 [.github/actions/setup/action.yml](../../.github/actions/setup/action.yml)。输入为 `node-version`、`cache` 和 `install`。`install` 支持 `standard`（`npm ci`）、`ignore-scripts`（保留禁止生命周期脚本、关闭 audit/fund 的参数）、`none`（只准备 Node）。
+所有 Job 在 checkout 后使用 [.github/actions/setup/action.yml](../../.github/actions/setup/action.yml)。输入为 `node-version`、`cache`、`cache-write` 和 `install`。`install` 支持 `standard`（`npm ci`）、`ignore-scripts`（保留禁止生命周期脚本、关闭 audit/fund 的参数）、`none`（只准备 Node）。
 
 | 范围 | Node | npm 缓存 | 安装模式 |
 | --- | --- | --- | --- |
-| Web 验证 | 24 | 无 | ignore-scripts |
+| Web 验证与浏览器组 | 24 | 有，只读 | ignore-scripts |
 | 集成检查 | 26 | 有 | standard |
 | 数据与云端检查 | 24 | 有 | standard |
 | Mac 验证 | 24 | 有 | ignore-scripts |
@@ -53,7 +53,17 @@ Mac 路径清单在 [macos.yml](../../.github/workflows/macos.yml) 维护，包�
 | 云端发布构建 | 26 | 有 | standard |
 | 发布版本与部署 | 26 | 无 | none |
 
-Node 26 用于集成检查，以保留现有 PGlite 运行环境。Node 版本和安装模式由调用方显式指定；缓存启用时沿用 setup-node 的 npm 缓存机制和锁文件 key，不缓存 node_modules、凭据或整个工作区。当前没有 Swift 构建缓存。
+Node 26 用于集成检查，以保留现有 PGlite 运行环境。Node 版本和安装模式由调用方显式指定。npm 仅缓存下载内容目录 `_cacache`，key 绑定系统、架构、实际 Node/npm 版本和锁文件；仅精确匹配，命中后仍执行 npm ci。不缓存 node_modules、日志、凭据或整个工作区。
+
+npm 默认只读。Linux Node 24 由数据检查负责写入，Node 26 由集成检查负责写入；Mac 检查与打包分别写入对应 Node 版本。写入还要求默认分支或手动运行，普通 PR 不保存缓存。
+
+## Swift 缓存
+
+Mac 检查与打包使用共享 [Swift 缓存 Action](../../.github/actions/swift-cache/action.yml)，debug 与 release 分开。key 绑定系统、架构、Xcode/Swift 工具链、Apple 源码和资源、contracts、design-system、assets、package.json、构建及测试脚本和缓存 Action；源码输入排除 `.build` 与 `.swiftpm`。仅精确匹配，不从不同构建输入恢复编译产物。
+
+缓存保存 `apps/apple/.build`，排除 config、security、构建号计数和生成的 String Catalog。恢复和保存使用构建前计算的同一个 key。缓存命中不跳过格式检查、Swift 测试、构建或 DMG 验证。
+
+Swift 仅在检查通过、未精确命中且属于默认分支或手动运行时保存。主分支 Mac 检查建立 debug 缓存；主分支手动 DMG 构建可建立 release 缓存。工作分支手动运行只验证该分支的保存与恢复，不表示主分支缓存已经建立。合并、主分支运行和发布仍遵守各自授权边界。
 
 Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托管 Runner。各工作流默认只有 `contents: read`，发布 Job 单独保留 `contents: write`。
 

@@ -15,9 +15,20 @@ jobs:
           node-version: '26'
           install: ignore-scripts
           cache: npm
+          cache-write: 'true'
+      - uses: ./.github/actions/swift-cache
+        id: swift-cache
+        with:
+          configuration: release
       - run: npm run build:macos
       - name: Package and verify internal DMG
         run: npm run package:macos
+      - uses: ./.github/actions/swift-cache
+        if: ${{ success() && steps.swift-cache.outputs.cache-hit != 'true' }}
+        with:
+          configuration: release
+          save: 'true'
+          key: ${{ steps.swift-cache.outputs.cache-primary-key }}
       - uses: actions/upload-artifact@v4
         with:
           name: release-macos
