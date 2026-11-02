@@ -96,9 +96,11 @@ test("task and reminder types and time placement do not depend on item count or 
 					);
 					const title = d.querySelector("h1,h2");
 					assert.ok(title);
-					assert.equal(title.nextElementSibling?.className, "card-schedule");
+					const titleRow = type === "reminder" ? title.closest(".reminder-row") : title;
+					assert.ok(titleRow);
+					assert.equal(titleRow.nextElementSibling?.className, "card-schedule");
 					assert.match(
-						title.nextElementSibling?.textContent ?? "",
+						titleRow.nextElementSibling?.textContent ?? "",
 						type === "task" ? /^截止 · / : /^提醒 · /,
 					);
 					assert.equal(d.querySelector(".card-head-right .reminder-label"), null);
