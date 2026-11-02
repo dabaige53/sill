@@ -92,6 +92,7 @@ Readwise 的公开 App 关联配置已读取：`https://read.readwise.io/.well-k
 | 版本 | 源码 | 正式流程 | 部署 | 结果 |
 | --- | --- | --- | --- | --- |
 | 1.2.25 | [PR #94](https://github.com/dabaige53/sill/pull/94)，合并提交 `2514fbe0` | `41408523978` 全部成功 | `c1213e45-c3f6-401a-ae4c-4b2e09bb409d` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
+| 1.2.26 | [PR #95](https://github.com/dabaige53/sill/pull/95)，合并提交 `e44ebc95` | `41410937408` 全部成功 | `6f7afee2-8882-46be-a781-42f99542b54a` | 健康接口 ready，未登录 `/auth/session` 返回 401 |
 
 PR #94 首轮 CI 有 3 项单元测试失败：两项断言仍查找旧按钮或依赖示例邮件链接，搜索顺序测试在面板已固定顺序后修改优先级。处理中误把来源按钮改回 `data-action="external"`，该改动随 1.2.25 上线，撤销了第 11 项的原生链接。宿主内链接本已由 `app-input.ts` 的全局入口转给 openLink，原实现无需改动。1.2.26 恢复原生链接，只修正测试断言。
 
