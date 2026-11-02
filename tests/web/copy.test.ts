@@ -119,8 +119,7 @@ test("translated HTML keeps dynamic values, escaping and nested expressions", ()
 	};
 	const document = new JSDOM(cardHTML(card)).window.document;
 	assert.equal(document.querySelector("h2")?.textContent, title);
-	assert.equal(document.querySelector(".sender b")?.textContent, title);
-	assert.equal(document.querySelector(".sender small")?.textContent, copy("web.mail"));
+	assert.equal(document.querySelector(".mail-sender b")?.textContent, title);
 	assert.equal(document.querySelectorAll("script").length, 0);
 	const participant = new JSDOM(avatars(["A", "B"])).window.document;
 	assert.equal(participant.querySelector("[role=img]")?.getAttribute("aria-label"), "2 位参与者");

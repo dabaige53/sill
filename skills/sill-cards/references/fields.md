@@ -9,7 +9,7 @@
 | `id` | 单卡创建由服务端生成；批量新建才传。1–100 位字母、数字、下划线、连字符，禁用 __proto__/constructor/prototype |
 | `type` | article/pr/mail/note/task/event/reminder/media/digest/suggestion/photo/file；不是 MIME |
 | `title` | 1–1000 字的具体标题 |
-| `summary` | 最多 10000 字，编辑目标 50–60 字；卡面最多显示 120 个文字字符，详情概要完整显示；照片卡显示为照片说明 |
+| `summary` | 最多 10000 字，编辑目标 50–60 字；卡面最多显示 120 个文字字符，详情概要完整显示；照片卡面显示为照片说明，照片大图页不显示 |
 | `body` | 一个 CommonMark Markdown 字符串，最多 500000 字；段落用空行分隔，不传数组。阅读时长由客户端按正文计算 |
 | `url` | 原内容 HTTP(S) 地址，不是上传入口 |
 | `sources` | 最多 11 个 {name,kind}；name 1–300 字，kind 1–100 字。kind 可用 rss/readwise/youtube/twitter/podcast/web/mail/calendar/reminders/photos/folder/linear/github/capture/markdown/local/agent；这里只记录来源 |

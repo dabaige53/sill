@@ -1,8 +1,7 @@
 import { dateLabel } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
-import { cardDateLabel } from "../data/card-source.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
-import type { Card } from "./card-blocks.tsx";
+import { type Card, cardTime } from "./card-blocks.tsx";
 
 /** Task deadlines and personal reminder times occupy the same place on both surfaces. */
 export function CardSchedule({
@@ -23,10 +22,12 @@ export function CardSchedule({
 		deadline ? `${copy("web.card.due")} · ${dateLabel(card.due)}` : "",
 		reminderText,
 	].filter(Boolean);
-	if (!rows.length) rows.push(cardDateLabel(card));
-	return rows.some(Boolean) ? (
+	// Without a deadline or reminder, the card's own date holds the place.
+	const time = rows.length ? null : cardTime(card);
+	if (time) return <div className="card-schedule">{time}</div>;
+	return rows.length ? (
 		<div className="card-schedule">
-			{rows.filter(Boolean).map((text) => (
+			{rows.map((text) => (
 				<span
 					key={text}
 					className={

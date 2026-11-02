@@ -111,7 +111,7 @@ export const Card = z
 			.max(10000)
 			.optional()
 			.describe(
-				"One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body. For photos, use a factual image description. Do not duplicate the summary in body.",
+				"One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
 			),
 		authors: z
 			.array(namedParty)

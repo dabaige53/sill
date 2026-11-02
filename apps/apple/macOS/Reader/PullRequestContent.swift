@@ -14,19 +14,23 @@ struct PullRequestContent: View {
     VStack(alignment: .leading, spacing: detail ? rhythm.group : AppleMetrics.space8) {
       if let pr = card.pullRequest {
         VStack(alignment: .leading, spacing: 0) {
-          CardHead(
-            card: card,
-            text: pr.repository
-          ) {
-            HStack(spacing: AppleMetrics.space6) {
-              Text("#\(pr.number)").fixedSize()
-              Text(Format.publication(pr.observedAt, includeTime: true) ?? card.displayDate)
-                .foregroundStyle(AppleColors.secondary)
-                .fixedSize()
+          // Repository · number · date; the repository truncates first, the state stays right.
+          HStack(spacing: AppleMetrics.space4) {
+            SourceIcon(card: card).foregroundStyle(AppleColors.iconSecondary)
+              .padding(.trailing, AppleMetrics.space2)
+            Text(pr.repository).lineLimit(1).truncationMode(.tail)
+            Text("#\(pr.number)").fixedSize()
+            if let observed = Format.publication(pr.observedAt, includeTime: true) {
+              Text("· " + observed).fixedSize()
                 .help(Copy.text("pr.observed") + " · " + pr.observedAt)
-              if !detail { status(pr) }
+            } else if !card.displayDate.isEmpty {
+              (Text("· ") + card.metaText(card.displayDate)).fixedSize()
             }
+            Spacer(minLength: 0)
+            if !detail { status(pr) }
           }
+          .foregroundStyle(AppleColors.secondary)
+          .textStyle(AppleMetrics.font12)
           .frame(minHeight: detail ? AppleMetrics.space36 : AppleMetrics.cardHeadHeight)
           .padding(.bottom, detail ? AppleMetrics.rhythmClose : AppleMetrics.space8)
           Text(card.title)

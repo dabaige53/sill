@@ -167,7 +167,14 @@ export async function runRailMaterial({
 				assert.ok(dimensions.scroll <= dimensions.client + 1);
 				assert.equal(await page.locator(".preview-meta").count(), 1);
 				await page.screenshot({ path: path.join(artifacts, `drawer-layout-${width}.png`) });
-				assert.equal(await page.locator(".preview-meta time").count(), 0);
+				assert.ok((await page.locator(".preview-meta time").count()) <= 1);
+				assert.equal(
+					await page
+						.locator(".preview-meta")
+						.textContent()
+						.then((t) => t.includes("加入")),
+					false,
+				);
 				const date = await page.locator(".preview-meta").boundingBox();
 				const title = await page.locator("#modal-title").boundingBox();
 				const body = await page.locator(".preview-full").boundingBox();

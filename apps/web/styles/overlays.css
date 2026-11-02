@@ -151,17 +151,14 @@ dialog::backdrop {
 	height: 44px;
 }
 .preview-sheet :is(#modal-title, .phone-layer-title),
-.preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
+.preview-sheet .preview-body .preview-meta {
 	padding-right: var(--space-48);
 }
 .preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
-.preview-sheet:has(.sheet-head [data-action="reader"])
-	.preview-body
-	:is(.preview-sender, .preview-meta) {
+.preview-sheet:has(.sheet-head [data-action="reader"]) .preview-body .preview-meta {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta))
-	:is(#modal-title, .phone-layer-title) {
+.preview-sheet:has(.preview-body .preview-meta) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
@@ -415,27 +412,6 @@ dialog::backdrop {
 	margin: 0;
 	font: inherit;
 	color: inherit;
-}
-.preview-sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-/* Name and time share one baseline, as on the card. */
-.preview-sender > span:last-child {
-	display: flex;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-.preview-sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.preview-sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	color: var(--muted);
 }
 .detail-rows {
 	display: flex;

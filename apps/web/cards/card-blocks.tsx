@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { markdownBlocks } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
 import { ProgressRing } from "../atoms/react-primitives.tsx";
@@ -7,6 +7,7 @@ import { assetURL } from "../data/assets.ts";
 import {
 	cardCover,
 	cardDateLabel,
+	cardDateSource,
 	cardReadingTime,
 	cardSource,
 	cardSummaryText,
@@ -35,16 +36,41 @@ export interface BlockProps {
 	ctx: Context;
 }
 export const SourceIcon = SourceMark;
+/** The card's date. The time it entered Sill carries no label; a dotted underline sets it apart. */
+export function cardTime(c: Card): ReactNode {
+	const label = cardDateLabel(c);
+	if (!label) return null;
+	const { date, added } = cardDateSource(c);
+	return (
+		<time
+			className={added ? "card-time is-added" : "card-time"}
+			dateTime={date?.datetime}
+			title={date?.text}
+		>
+			{label}
+		</time>
+	);
+}
+/** Source-line parts joined by the shared separator; empty parts drop out. */
+export function metaLine(parts: ReactNode[]): ReactNode {
+	return parts
+		.filter((part) => part !== null && part !== undefined && part !== false && part !== "")
+		.map((part, i) => (
+			// biome-ignore lint/suspicious/noArrayIndexKey: The parts are a fixed, ordered line.
+			<Fragment key={i}>
+				{i ? " · " : null}
+				{part}
+			</Fragment>
+		));
+}
 export function sourceLine(c: Card, date: Date | null = null) {
-	return [
+	return metaLine([
 		(["article", "media", "note", "suggestion"].includes(c.type)
 			? publicationName(c as any)
 			: cardSource(c)) || (CardTypes[c.type] || CardTypes.note).label,
-		cardDateLabel(c) || (date ? shortDay(date.getTime()) : ""),
+		cardTime(c) || (date ? shortDay(date.getTime()) : ""),
 		cardReadingTime(c),
-	]
-		.filter(Boolean)
-		.join(" · ");
+	]);
 }
 export function Head({ card, text, right }: { card: Card; text: ReactNode; right?: ReactNode }) {
 	return (

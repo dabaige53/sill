@@ -126,11 +126,6 @@ a.detail-row:hover {
 	position: static;
 	flex: none;
 }
-.sender small {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
 .pr-card-heading {
 	display: flex;
 	flex-direction: column;
@@ -339,54 +334,30 @@ a.detail-row:hover {
 	stroke: none;
 }
 
-.sender :is(b, small),
-.preview-sender :is(b, small) {
+/* Mail head: avatar · sender · date on one row. The name truncates first; the date stays whole. */
+.mail-sender > .avatar {
+	margin: 0;
+	font-size: calc(10px * var(--content-text-scale, 1));
+}
+.preview-meta.mail-sender > .avatar {
+	font-size: calc(11px * var(--content-text-scale, 1));
+}
+.mail-sender > b {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	color: var(--ink);
+	font-weight: calc(600 + var(--content-weight-add, 0));
 }
-
-.mail-sender.sender > .mail-identity,
-.mail-sender.preview-sender > .mail-identity {
-	display: block;
-	flex: 1;
-	min-width: 0;
-	white-space: normal;
-}
-.mail-sender .mail-sender-line {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-}
-.mail-sender .mail-sender-line b {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.mail-sender time,
+.mail-date,
 .pr-date {
 	flex: none;
 	white-space: nowrap;
-	font-size: var(--text-caption);
-	color: var(--muted);
 }
-.preview-sender.mail-sender .mail-sender-line b {
-	overflow: visible;
-	white-space: normal;
-	overflow-wrap: anywhere;
-}
-.mail-sender .mail-source {
-	display: block;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
+/* Repository · number · date; the repository truncates first. */
 .pr-origin {
-	flex: 1;
+	flex: 0 1 auto;
 	display: flex;
 	gap: var(--space-4);
 }

@@ -217,10 +217,8 @@ struct CardBlock: View {
         card.displayDate,
       ].filter { !$0.isEmpty }.joined(separator: " · ")
     case "file":
-      [Copy.text("web.file"), card.sourceName, card.displayDate, card.readingTime].filter {
-        !$0.isEmpty
-      }
-      .joined(separator: " · ")
+      [card.sourceName, card.displayDate, card.readingTime].filter { !$0.isEmpty }
+        .joined(separator: " · ")
     default:
       [card.publicationName.nilIfEmpty ?? card.kind.label, card.displayDate, card.readingTime]
         .filter { !$0.isEmpty }.joined(separator: " · ")

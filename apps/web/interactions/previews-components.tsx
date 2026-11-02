@@ -1,7 +1,7 @@
 import { type CSSProperties, Fragment, type ReactNode } from "react";
 import { dateLabel, eventRelative, relativeDay, timeString } from "../atoms/primitives.ts";
 import { Avatars } from "../atoms/react-primitives.tsx";
-import { DetailSummary } from "../cards/card-blocks.tsx";
+import { cardTime, DetailSummary, metaLine } from "../cards/card-blocks.tsx";
 import { ReminderMark } from "../cards/card-face.tsx";
 import { CardSchedule } from "../cards/card-schedule.tsx";
 import { FileList, RelatedCards, TaskFacts } from "../cards/detail-blocks.tsx";
@@ -20,7 +20,7 @@ import {
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardCover, cardDateLabel, cardReadingTime, cardSource } from "../data/card-source.ts";
+import { cardCover, cardReadingTime, cardSource } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import type { PreviewApp } from "./panel-contract.ts";
@@ -151,14 +151,12 @@ const detailLines: Record<string, DetailBlock> = {
 	digest: (c) =>
 		previewMeta(
 			c,
-			[
+			metaLine([
 				cardSource(c),
-				cardDateLabel(c),
+				cardTime(c),
 				cardReadingTime(c),
 				c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
-			]
-				.filter(Boolean)
-				.join(" · "),
+			]),
 		),
 	task: (c) => previewMeta(c, copy("web.task"), 15),
 	reminder: (c) => previewMeta(c, copy("web.reminder"), 15),
@@ -171,15 +169,19 @@ const detailBlocks: Record<string, DetailBlock> = {
 	sender: (c) => <MailSender card={c} detail />,
 	eventDate: (c) => (
 		<div className={"preview-meta"}>
-			{dateLabel(c.start)}
-			{eventRelative(c) ? (
-				<>
-					{" · "}
-					<span className="event-relative">{eventRelative(c)}</span>
-				</>
-			) : (
-				""
-			)}
+			<SourceMark card={c} size={15} />
+			<span>
+				{metaLine([
+					dateLabel(c.start),
+					eventRelative(c) ? (
+						<span key="relative" className="event-relative">
+							{eventRelative(c)}
+						</span>
+					) : (
+						""
+					),
+				])}
+			</span>
 		</div>
 	),
 	timeSpan: (c) => (
@@ -307,7 +309,8 @@ function detailContent(
 			<header className={`detail-header ${recipe.ruled ? "ruled-header" : ""}`}>
 				{renderDetail.call(this, recipe.head, c, scope)}
 			</header>
-			<DetailSummary card={c} />
+			{/* Photos speak for themselves: no summary block in their detail. */}
+			{c.type !== "photo" && <DetailSummary card={c} />}
 			{renderDetail.call(this, recipe.body, c, scope)}
 		</>
 	);

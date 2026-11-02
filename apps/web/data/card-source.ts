@@ -53,12 +53,23 @@ export function detailDate(value: unknown, includeTime = false, now = Date.now()
 	return includeTime && parsed.datetime.length > 10 ? `${day} ${timeString(date.getTime())}` : day;
 }
 
+/** The time the card entered Sill: the stored creation time, else the feed time. */
+function addedValue(card: Record<string, any>): unknown {
+	return cardDate(card.created_at) ? card.created_at : card.time;
+}
+
 /** One date choice for the card and its detail. Source dates never become insertion dates. */
 export function cardDateLabel(card: Record<string, any>): string {
 	if (cardDate(card.publishedAt)) return detailDate(card.publishedAt, card.type === "mail");
-	const inserted = cardDate(card.created_at) ? card.created_at : card.time;
-	const label = detailDate(inserted, true);
-	return label ? `${copy("web.card.added")} · ${label}` : "";
+	return detailDate(addedValue(card), true);
+}
+
+/** The label's date and whether it is the time the card entered Sill rather than a content date. */
+export function cardDateSource(card: Record<string, any>) {
+	const published = cardDate(card.publishedAt);
+	return published
+		? { date: published, added: false }
+		: { date: cardDate(addedValue(card)), added: true };
 }
 
 /** Bound only the face text. The stored summary and detail retain every character. */

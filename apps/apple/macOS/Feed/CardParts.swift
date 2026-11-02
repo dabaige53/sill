@@ -46,10 +46,23 @@ extension EnvironmentValues {
   }
 }
 
+extension CardModel {
+  /// A source line as text. The time the card entered Sill carries no label; a dotted underline
+  /// tells it from a content date (Web `cardTime`).
+  func metaText(_ line: String) -> Text {
+    guard displayDateIsAdded else { return Text(line) }
+    var value = AttributedString(line)
+    if let range = value.range(of: displayDate) {
+      value[range].underlineStyle = Text.LineStyle(pattern: .dot)
+    }
+    return Text(value)
+  }
+}
+
 /// head: source icon · source · meta, with one timely value on the right.
 struct CardHead<Right: View>: View {
   let icon: AnyView
-  let text: String
+  let text: Text
   var detail: Text?
   @ViewBuilder var right: Right
 
@@ -58,7 +71,7 @@ struct CardHead<Right: View>: View {
     @ViewBuilder right: () -> Right = { EmptyView() }
   ) {
     self.icon = AnyView(SourceIcon(card: card))
-    self.text = text
+    self.text = card.metaText(text)
     self.detail = detail
     self.right = right()
   }
@@ -66,7 +79,7 @@ struct CardHead<Right: View>: View {
   var body: some View {
     HStack(spacing: AppleMetrics.space6) {
       icon.foregroundStyle(AppleColors.iconSecondary)
-      (Text(text) + (detail ?? Text(""))).lineLimit(1).truncationMode(.tail)
+      (text + (detail ?? Text(""))).lineLimit(1).truncationMode(.tail)
         .foregroundStyle(AppleColors.secondary)
       Spacer(minLength: 0)
       right
@@ -170,7 +183,7 @@ struct CardScheduleLine: View {
       {
         Text(Copy.text("web.reminder") + " · " + Format.dateLabel(when.at))
       } else if card.due == nil {
-        Text(card.displayDate)
+        card.metaText(card.displayDate)
       }
     }
     .textStyle(AppleMetrics.font13).foregroundStyle(AppleColors.secondary)

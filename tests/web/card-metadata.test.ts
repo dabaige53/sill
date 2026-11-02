@@ -161,12 +161,9 @@ test("mail identity never borrows sources", () => {
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
-				assert.equal(
-					doc.querySelector(".sender b,.preview-sender b")?.textContent,
-					sender || undefined,
-				);
+				assert.equal(doc.querySelector(".mail-sender b")?.textContent, sender || undefined);
 				assert.ok(!doc.body.textContent!.includes("发给你"));
-				assert.equal(doc.querySelector(":is(.sender, .preview-sender) .source-mark"), null);
+				assert.equal(doc.querySelector(".mail-sender .source-mark"), null);
 				if (!sender) assert.match(doc.body.textContent!, /InboxSource/);
 			} finally {
 				dom.window.close();
@@ -176,7 +173,7 @@ test("mail identity never borrows sources", () => {
 	const noIdentity = new JSDOM(
 		Panels.preview({}, { id: "mail-empty", type: "mail", title: "Mail" }),
 	);
-	assert.equal(noIdentity.window.document.querySelector(".preview-sender"), null);
+	assert.equal(noIdentity.window.document.querySelector(".mail-sender"), null);
 	assert.ok(!noIdentity.window.document.body.textContent!.includes("本地"));
 	noIdentity.window.close();
 });
@@ -324,14 +321,6 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 			for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
 				const dom = new JSDOM(html);
 				try {
-					if (dom.window.document.querySelector(".podcast-detail")) {
-						assert.equal(dom.window.document.querySelector(".podcast-date")?.textContent, label);
-						assert.equal(
-							dom.window.document.querySelector(".podcast-byline")?.textContent,
-							"Source",
-						);
-						continue;
-					}
 					assert.equal(
 						dom.window.document.querySelector(".card-src, .preview-meta")?.textContent?.trim(),
 						`Source · ${label}`,
@@ -351,10 +340,7 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 		});
 		const dom = new JSDOM(Panels.lightbox(photo));
 		try {
-			assert.equal(
-				dom.window.document.querySelector(".lightbox-caption small")?.textContent,
-				label,
-			);
+			assert.equal(dom.window.document.querySelector(".lightbox-meta")?.textContent, label);
 		} finally {
 			dom.window.close();
 		}
@@ -370,7 +356,11 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 	for (const html of [cardHTML(mail), Panels.preview({}, mail), Panels.reader({}, mail)]) {
 		const dom = new JSDOM(html);
 		try {
-			assert.match(dom.window.document.body.textContent!, /今天 09:30/);
+			// One head row on the card and in the detail: sender · date, without a second line.
+			const head = dom.window.document.querySelector(".mail-sender");
+			assert.equal(head?.querySelector("b")?.textContent, "Sender");
+			assert.equal(head?.querySelector(".mail-date")?.textContent, "· 今天 09:30");
+			assert.equal(head?.querySelector("small"), null);
 		} finally {
 			dom.window.close();
 		}
@@ -415,7 +405,10 @@ test("PR has its own snapshot layout and never invents missing statistics", (t) 
 		detail.querySelector(".pr-date")?.textContent,
 		face.querySelector(".pr-date")?.textContent,
 	);
-	assert.match(detail.querySelector(".pr-date")?.getAttribute("title") || "", /快照时间/);
+	assert.match(detail.querySelector(".pr-date time")?.getAttribute("title") || "", /快照时间/);
+	// The date follows the number inside the source; only the state sits on the right.
+	assert.ok(face.querySelector(".pr-origin .pr-date"));
+	assert.equal(face.querySelector(".card-head-right .pr-date"), null);
 	assert.match(detail.body.textContent!, /已通过/);
 	assert.match(detail.body.textContent!, /build/);
 	assert.equal(detail.querySelector('[data-action="reader"]'), null);

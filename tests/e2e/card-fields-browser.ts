@@ -123,7 +123,7 @@ try {
 			try {
 				await page.goto(origin + "/#feed");
 				await page.waitForFunction(() => window.__app);
-				assert.equal(await page.locator('[data-card="mail-missing"] .sender').count(), 0);
+				assert.equal(await page.locator('[data-card="mail-missing"] .mail-sender').count(), 0);
 				assert.match(await page.locator('[data-card="mail-missing"]').innerText(), /Inbox source/);
 				for (const [id, expected] of [
 					["podcast-missing", "时长未知"],
@@ -140,8 +140,8 @@ try {
 					assert.equal(await dialog.locator("#modal-title").innerText(), card.title);
 					if (card.type === "mail") {
 						assert.equal(
-							(await dialog.locator(".preview-sender b").count())
-								? await dialog.locator(".preview-sender b").innerText()
+							(await dialog.locator(".mail-sender b").count())
+								? await dialog.locator(".mail-sender b").innerText()
 								: "",
 							card.authors?.[0]?.name || "",
 						);

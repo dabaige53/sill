@@ -168,8 +168,10 @@ test("all detail types keep card summaries out of the authored body", () => {
 		const card = { ...seed, summary: "CARD_ONLY_SENTINEL", body: "Authored detail body" };
 		const dom = new JSDOM(Panels.preview({}, card));
 		const summaries = dom.window.document.querySelectorAll(".detail-summary");
-		assert.equal(summaries.length, 1, card.type);
-		assert.equal(summaries[0].querySelector("p")?.textContent, card.summary, card.type);
+		// Photos show no summary block in their detail.
+		assert.equal(summaries.length, card.type === "photo" ? 0 : 1, card.type);
+		if (card.type !== "photo")
+			assert.equal(summaries[0].querySelector("p")?.textContent, card.summary, card.type);
 		for (const body of dom.window.document.querySelectorAll(".preview-full"))
 			assert.equal(body.textContent?.includes(card.summary), false, card.type);
 		dom.window.close();

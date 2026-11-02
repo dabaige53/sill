@@ -20,16 +20,7 @@ struct PhotoLightbox: View {
     let current = min(max(0, index), max(0, photos.count - 1))
     VStack(spacing: 0) {
       top
-      SummaryOverview(card: card).padding(.horizontal, AppleMetrics.photoPageGutter)
       stage(photos, current: current)
-      let metadata = [card.location, card.displayDate]
-        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
-      if !metadata.isEmpty {
-        Text(metadata)
-          .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading).padding(
-            .horizontal, AppleMetrics.photoPageGutter)
-      }
       if !photos.isEmpty { thumbs(photos, current: current) }
       if !state.note.isEmpty {
         NoteBox(note: state.note)
@@ -72,6 +63,13 @@ struct PhotoLightbox: View {
   private var top: some View {
     HStack {
       VStack(alignment: .leading, spacing: AppleMetrics.space2) {
+        // Place · date above the title, the same source row as the photo card.
+        let metadata = [card.location ?? "", card.displayDate].filter { !$0.isEmpty }
+          .joined(separator: " · ")
+        if !metadata.isEmpty {
+          card.metaText(metadata)
+            .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        }
         Text(card.title).font(.sans(AppleMetrics.font15, .semibold))
         Text("\(min(index + 1, Self.photos(card).count)) / \(Self.photos(card).count)")
           .font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)

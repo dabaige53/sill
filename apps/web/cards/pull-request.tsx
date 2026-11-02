@@ -1,9 +1,9 @@
 import type { Card } from "../../../contracts/card.ts";
 import { Avatar, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { cardDate, cardDateLabel, cardSummaryText, detailDate } from "../data/card-source.ts";
+import { cardDate, cardSummaryText, detailDate } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
-import { DetailSummary } from "./card-blocks.tsx";
+import { cardTime, DetailSummary } from "./card-blocks.tsx";
 import { DetailText } from "./markdown.tsx";
 import { SourceMark } from "./source-mark.tsx";
 
@@ -37,7 +37,13 @@ export function PullRequest({
 }) {
 	const pr = card.pullRequest;
 	const observed = cardDate(pr?.observedAt);
-	const date = observed ? detailDate(pr.observedAt, true) : cardDateLabel(card);
+	const date = observed ? (
+		<time dateTime={observed.datetime} title={`${copy("pr.observed")} · ${observed.text}`}>
+			{detailDate(pr.observedAt, true)}
+		</time>
+	) : (
+		cardTime(card)
+	);
 	const stats = (
 		<span className="pr-stats num">
 			{pr?.additions !== undefined && <span className="pr-additions">+{pr.additions}</span>}
@@ -68,16 +74,8 @@ export function PullRequest({
 					<span className="card-src pr-origin">
 						<span className="pr-repository">{pr?.repository || "GitHub"}</span>
 						{pr && <span className="pr-number"> #{pr.number}</span>}
+						{date && <span className="pr-date">· {date}</span>}
 					</span>
-					{date && (
-						<time
-							className="pr-date"
-							dateTime={observed?.datetime}
-							title={observed ? `${copy("pr.observed")} · ${observed.text}` : date}
-						>
-							{date}
-						</time>
-					)}
 					{!detail && <span className="card-head-right">{status}</span>}
 				</div>
 				{detail ? (

@@ -6,6 +6,13 @@ struct PodcastDetail: View {
   let card: CardModel
   let state: CardState
 
+  private var sourceRow: some View {
+    MetaRow(icon: AnyView(SourceIcon(card: card))) {
+      card.metaText(
+        [card.publicationName, card.displayDate].filter { !$0.isEmpty }.joined(separator: " · "))
+    }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.rhythmSection) {
       HStack(alignment: .top, spacing: AppleMetrics.space32) {
@@ -25,21 +32,13 @@ struct PodcastDetail: View {
           }
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-          if !card.displayDate.isEmpty {
-            Text(card.displayDate).font(.number(AppleMetrics.font13)).foregroundStyle(
-              AppleColors.secondary)
+          // Program · date, the same source row as the card; the program opens its page.
+          if let url = card.url {
+            Link(destination: url) { sourceRow }.buttonStyle(.plain)
+          } else {
+            sourceRow
           }
           Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
-          if let url = card.url {
-            Link(destination: url) {
-              MetaRow(icon: AnyView(SourceIcon(card: card))) {
-                Text(card.publicationName)
-                Icon("external", size: AppleMetrics.space14)
-              }
-            }.buttonStyle(.plain)
-          } else {
-            MetaRow(icon: AnyView(SourceIcon(card: card))) { Text(card.publicationName) }
-          }
           ReaderTags(tags: state.tags(of: card))
         }
         .frame(maxWidth: .infinity, alignment: .leading)

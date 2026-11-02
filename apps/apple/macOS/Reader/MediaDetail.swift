@@ -58,7 +58,7 @@ struct MediaDetail: View {
 
   private var source: some View {
     MetaRow(icon: AnyView(SourceIcon(card: card))) {
-      Text(
+      card.metaText(
         [
           card.publicationName, card.displayDate,
           card.duration.map(Format.duration) ?? "",

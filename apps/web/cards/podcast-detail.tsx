@@ -3,9 +3,9 @@ import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardDateLabel, detailDate } from "../data/card-source.ts";
+import { detailDate } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
-import { DetailSummary } from "./card-blocks.tsx";
+import { cardTime, DetailSummary, metaLine } from "./card-blocks.tsx";
 import { DetailText } from "./markdown.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
 
@@ -20,6 +20,15 @@ export function PodcastDetail({ card }: { card: Card }) {
 	const hosts = (card.authors || []).map((author) => author.name).filter(Boolean);
 	const byline = publicationName(card);
 	const tags = Store.tags(card);
+	// The program name opens its page, as the byline under the title once did.
+	const source =
+		card.url && byline ? (
+			<a className="podcast-source" href={card.url} target="_blank" rel="noreferrer">
+				{byline}
+			</a>
+		) : (
+			byline
+		);
 	const facts = [
 		[copy("web.media.program"), program],
 		[copy("web.media.host"), hosts.join("、")],
@@ -48,25 +57,11 @@ export function PodcastDetail({ card }: { card: Card }) {
 					</div>
 				)}
 				<div className="podcast-heading">
-					{cardDateLabel(card) && <div className="podcast-date num">{cardDateLabel(card)}</div>}
+					<div className="preview-meta podcast-meta">
+						<SourceMark card={card} />
+						<span>{metaLine([source, cardTime(card)])}</span>
+					</div>
 					<h1 id="modal-title">{card.title}</h1>
-					{byline &&
-						(card.url ? (
-							<a className="podcast-byline" href={card.url} target="_blank" rel="noreferrer">
-								<span className="podcast-byline-mark">
-									<SourceMark card={card} />
-								</span>
-								<span>{byline}</span>
-								<Icon name="chevron" size={14} />
-							</a>
-						) : (
-							<div className="podcast-byline">
-								<span className="podcast-byline-mark">
-									<SourceMark card={card} />
-								</span>
-								<span>{byline}</span>
-							</div>
-						))}
 					{!!tags.length && (
 						<div className="preview-tags">
 							{tags.map((tag) => (
