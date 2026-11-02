@@ -111,6 +111,11 @@
 	.check-item {
 		min-height: 44px;
 	}
+	.detail-task-list .check-item::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
 	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
 	.feed-item.feed-card {
 		border-radius: var(--card-radius-sm);
