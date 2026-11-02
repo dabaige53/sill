@@ -14,6 +14,8 @@ test("search and empty suggestions retain home order across read changes and sor
 		task.time = 1000;
 		task.priority = 10;
 		f.app.sort = "priority";
+		// The search panel fixed the first order; changed priorities take effect on refresh.
+		f.app.refreshFeedOrder();
 		const ids = (cards: { id: string }[]) => cards.map((card) => card.id);
 		assert.deepEqual(ids(f.app.filtered()), ["b", "a"]);
 		assert.deepEqual(ids(f.app.searchAll("Shared").desk), ["b", "a"]);

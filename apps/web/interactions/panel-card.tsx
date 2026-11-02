@@ -117,21 +117,10 @@ export const panelCard = {
 	},
 	own(this: PanelRenderers, c?: Card): ToolbarAction[] {
 		const s = Store.item(c.id);
+		// The external action routes through the MCP host and marks readable cards read.
 		const link = (url: string | undefined, label: string, glyph = "external") => {
-			const href = cardLinkURL(url);
-			return href ? (
-				<a
-					className="icon-button"
-					href={href}
-					target="_blank"
-					rel="noopener noreferrer"
-					aria-label={label}
-				>
-					{icon(glyph)}
-				</a>
-			) : (
-				cloneElement(button(glyph, label, "external", c.id), { disabled: true })
-			);
+			const openButton = button(glyph, label, "external", c.id);
+			return cardLinkURL(url) ? openButton : cloneElement(openButton, { disabled: true });
 		};
 		const open = link(c.url, this.externalLabel(c));
 		const reminder: ToolbarAction = FeedPolicy.supports(c)

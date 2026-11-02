@@ -12,9 +12,7 @@ const toolbar = (card: any) => {
 	const dom = new JSDOM(Panels.preview({}, card));
 	const bar = dom.window.document.querySelector(".float-bar");
 	const names = (selector: string) =>
-		[...(bar?.querySelectorAll(selector) || [])].map(
-			(n) => n.getAttribute("data-action") || (n.hasAttribute("href") ? "external" : null),
-		);
+		[...(bar?.querySelectorAll(selector) || [])].map((n) => n.getAttribute("data-action"));
 	return {
 		document: dom.window.document,
 		shared: names(".icon-button:not(.is-own)"),
@@ -47,13 +45,13 @@ test("card detail: shared verbs in ink, a rule, then at most three own verbs; no
 
 test("mail opens its web page, events download and reminders remind again from the toolbar", () => {
 	Store.state = Store.fresh();
-	const mail = toolbar(seed("mail"));
+	const mail = toolbar({ ...seed("mail"), url: "https://mail.example.com/message/1" });
 	const event = toolbar({ ...seed("event"), start: Date.now() + 60 * 60000 });
 	const reminder = toolbar(seed("reminder"));
 	try {
 		assert.deepEqual(mail.own, ["external"]);
 		assert.equal(mail.document.querySelector(".is-own")?.getAttribute("aria-label"), "打开邮件");
-		assert.equal(mail.document.querySelector(".is-own")?.getAttribute("href"), seed("mail").url);
+		assert.equal(mail.document.querySelector(".is-own")?.hasAttribute("disabled"), false);
 		assert.ok(event.own.includes("download-calendar"));
 		assert.ok(event.own.includes("snooze"));
 		assert.deepEqual(reminder.own, ["snooze", "dismiss-reminder"]);
@@ -73,7 +71,7 @@ test("mail opens its web page, events download and reminders remind again from t
 test("legacy hidden preferences do not remove shared or own detail actions", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["bookmark", "tag", "later"]);
-	const mail = toolbar(seed("mail"));
+	const mail = toolbar({ ...seed("mail"), url: "https://mail.example.com/message/1" });
 	try {
 		assert.deepEqual(mail.shared, ["bookmark", "edit", "later"]);
 		assert.deepEqual(mail.own, ["external"]);
