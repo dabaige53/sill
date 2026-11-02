@@ -14,6 +14,7 @@ import {
 	cardSummaryText,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 
 import { publicationName, SourceMark } from "./source-mark.tsx";
 
@@ -140,7 +141,55 @@ export function DetailSummary({ card }: { card: Card }) {
 	const [loading, setLoading] = useState<boolean | null>(null);
 	const [open, setOpen] = useState(true);
 	const timer = useRef(0);
+	const root = useRef<HTMLElement>(null);
+	const switched = useRef(false);
+	const shown = useRef(open);
 	useEffect(() => () => clearTimeout(timer.current), []);
+	// While the other length is written, the bar in the mark writes and the placeholders breathe.
+	useEffect(() => {
+		const section = root.current;
+		if (!section || loading === null) return;
+		const bar = section.querySelector(".sill-ai-bar") as HTMLElement | null;
+		const writing = MotionEngine.animate(
+			bar ?? undefined,
+			[{ transform: "scaleX(1)" }, { transform: "scaleX(0.3)" }, { transform: "scaleX(1)" }],
+			{ duration: 650, easing: "cubic-bezier(0.45, 0, 0.55, 1)", repeat: Infinity },
+		);
+		const bars = [...section.querySelectorAll<HTMLElement>(".summary-skeleton > span")];
+		for (const placeholder of bars) MotionEngine.breathe(placeholder);
+		return () => {
+			writing?.cancel();
+			for (const placeholder of bars) MotionEngine.loading(placeholder, false);
+		};
+	}, [loading]);
+	// The written length settles in once; opening the detail shows the summary as it is.
+	useEffect(() => {
+		if (!switched.current || loading !== null) return;
+		switched.current = false;
+		const text = root.current?.querySelector<HTMLElement>(".summary-points, .detail-summary > p");
+		MotionEngine.animate(
+			text ?? undefined,
+			[
+				{ opacity: 0, transform: "translateY(4px)" },
+				{ opacity: 1, transform: "none" },
+			],
+			{ duration: summaryTiming.reveal, easing: summaryTiming.revealEase },
+		);
+	}, [loading]);
+	useEffect(() => {
+		if (shown.current === open) return;
+		shown.current = open;
+		if (quietMotion()) return;
+		const icon = root.current?.querySelector<HTMLElement>(".summary-fold > .icon");
+		MotionEngine.animate(
+			icon ?? undefined,
+			[
+				{ transform: `rotate(${open ? 90 : -90}deg)` },
+				{ transform: `rotate(${open ? -90 : 90}deg)` },
+			],
+			{ duration: 260, easing: summaryTiming.revealEase },
+		);
+	}, [open]);
 	if (!card.summary?.trim()) return null;
 	const target = loading ?? long;
 	const toggle = () => {
@@ -153,6 +202,7 @@ export function DetailSummary({ card }: { card: Card }) {
 			return;
 		}
 		setLoading(next);
+		switched.current = true;
 		timer.current = window.setTimeout(() => {
 			setLong(next);
 			setLoading(null);
@@ -162,6 +212,7 @@ export function DetailSummary({ card }: { card: Card }) {
 	const skeleton = loading ? points.map((point) => point.length) : [100, 58];
 	return (
 		<section
+			ref={root}
 			className={`detail-summary${target ? " is-long" : ""}${loading === null ? "" : " is-loading"}`}
 			aria-label={copy("web.card.summary")}
 			aria-busy={loading !== null}
