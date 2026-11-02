@@ -13,7 +13,7 @@
 		"test:browser": "node tests/e2e/browser.ts",
 		"start": "node server/local/index.ts",
 		"check": "node scripts/check.ts",
-		"plugin:build": "npm run build && node scripts/build-plugin.ts",
+		"plugin:build": "node scripts/build-plugin.ts",
 		"test:core": "node --import tsx --test tests/web/*.test.ts",
 		"test:local": "node --import tsx --test tests/server/local.test.ts tests/server/plugin-package.test.ts",
 		"test:local-browser": "node tests/e2e/local-browser.ts",

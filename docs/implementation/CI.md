@@ -1,6 +1,6 @@
 # CI 运行说明
 
-更新：2026-11-01。说明 GitHub Actions 的检查入口、环境与编排。测试范围见[测试目录](../../tests/README.md)，发布与部署见[发布操作手册](operations/release-runbook.md)。
+更新：2026-11-02。说明 GitHub Actions 的检查入口、环境与编排。测试范围见[测试目录](../../tests/README.md)，发布与部署见[发布操作手册](operations/release-runbook.md)。
 
 ## 检查入口
 
@@ -27,9 +27,9 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 | 工作流 | Job | 触发 | 检查入口 | 超时 |
 | --- | --- | --- | --- | --- |
 | `verify.yml` | `verify` | main push、PR、复用调用 | `ci:verify:web`、`ci:test:web-browser` | 10 分钟 |
-| `test.yml` | `test` | 所有分支 push、PR、复用调用 | `npm test`、`plugin:build`、`test:local-browser` | 12 分钟 |
-| `supabase.yml` | `boundary` | 所有分支 push、PR、复用调用 | `test:supabase:postgres`、`build:cloud`，以及云端、宿主、操作、欢迎页、OAuth 浏览器入口 | 20 分钟 |
-| `consent-policy.yml` | `policy` | 所有分支 push、PR、复用调用 | `ci:test:consent` | 2 分钟 |
+| `test.yml` | `test` | main push、PR、复用调用 | `npm test`、`plugin:build`、`test:local-browser` | 12 分钟 |
+| `supabase.yml` | `boundary` | main push、PR、复用调用 | `test:supabase:postgres`、`build:cloud`，以及云端、宿主、操作、欢迎页、OAuth 浏览器入口 | 20 分钟 |
+| `consent-policy.yml` | `policy` | main push、PR、复用调用 | `ci:test:consent` | 2 分钟 |
 | `macos.yml` | `macos` | 匹配路径的 main push/PR、手动、复用调用 | `lint:apple`、`ci:test:apple`；手动可选 `ci:verify:card-content` | 30 分钟 |
 | `macos-package.yml` | `package` | 手动、复用调用 | `build:macos`、`package:macos` | 30 分钟 |
 | `release.yml` | `version`、复用检查、打包、`publish` | `v*` tag push、手动选择版本 tag | 版本检查 → 五类检查 → 云端与 Mac 打包 → 发布 | version 5、cloud-package 10、publish 10 分钟；复用任务沿用各自限制 |
@@ -64,6 +64,12 @@ Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托�
 发布沿用 `sill-release` 分组和 `cancel-in-progress: false`。这一设置不等于无限排队，也不构成人工上线审批。
 
 Web 浏览器集合保留全部入口执行后的统一失败结果。云端浏览器步骤保留构建和 Chromium 安装成功后继续检查的条件。Swift 测试保留未取消即继续运行的条件。其他步骤沿用 GitHub Actions 的前序成功条件。
+
+## 触发与构建去重
+
+工作分支通过 PR 检查，push 检查限定 main；未开 PR 的工作分支不自动运行。发布复用入口保持不变。
+
+`plugin:build` 只包装清单、skills 和宿主配置，包装脚本不读取 Web 产物。集成检查仍由 `npm test` 构建并验证 Web，不再为插件包装重复构建。Web 二次构建一致性检查保留。
 
 ## 维护与验证
 
