@@ -66,7 +66,9 @@ struct ReaderPage<Content: View>: View {
         )
         .onGeometryChange(for: Bool.self) {
           $0.size.width >= AppleMetrics.readerColumnsBreakpoint
-        } action: { roomy = $0 }
+        } action: {
+          roomy = $0
+        }
         .padding(.top, full ? (expandedWorkspace ? AppleMetrics.space64 : AppleMetrics.space88) : 0)
       }
       if full, card.kind != .media {

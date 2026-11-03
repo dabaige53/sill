@@ -84,8 +84,12 @@ export async function runRailMaterial({
 					returning: number | null;
 				} = { fading: null, returning: null };
 				(window as any).__railFadeSamples = samples;
+				// The rail only moves; its glass layers fade (chrome.ts `glassLayers`).
+				const layer = dock.querySelector<HTMLElement>(
+					":scope > :not(.ai-dock), :scope > .ai-dock > *",
+				);
 				const sample = () => {
-					const opacity = Number(getComputedStyle(dock).opacity);
+					const opacity = Number(getComputedStyle(layer).opacity);
 					const tucked = dock.classList.contains("is-tucked");
 					if (opacity > 0 && opacity < 1) {
 						if (tucked && !samples.fading) samples.fading = { opacity, inert: dock.inert };
@@ -114,7 +118,14 @@ export async function runRailMaterial({
 			const returning = await page.evaluate(() => (window as any).__railFadeSamples.returning);
 			assert.ok(returning > 0 && returning < 1);
 			await page.waitForTimeout(450);
-			assert.equal(await dock.evaluate((n: HTMLElement) => getComputedStyle(n).opacity), "1");
+			assert.equal(
+				await dock.evaluate(
+					(n: HTMLElement) =>
+						getComputedStyle(n.querySelector(":scope > :not(.ai-dock), :scope > .ai-dock > *"))
+							.opacity,
+				),
+				"1",
+			);
 			await page.locator('[data-extra="search"]').click();
 			await page.waitForFunction(() => window.__app.modalKind === "search");
 			assert.equal(

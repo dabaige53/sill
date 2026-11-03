@@ -12,13 +12,11 @@ const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/g, "$1</script>
 const css = [...markup.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
 	.map(([, value]) => value)
 	.join("\n");
-const topBlur = css.match(/\.home-top-edge::?before\s*\{([^}]+)\}/)?.[1];
-assert.ok(topBlur, "missing_top_bar_blur_layer");
-assert.match(
-	topBlur,
-	/(?:^|;)\s*backdrop-filter\s*:\s*var\(--edge-material\)/,
-	"missing_standard_top_bar_backdrop_filter",
-);
+const topEdge = css.match(/\.home-top-edge::?before\s*\{([^}]+)\}/)?.[1];
+assert.ok(topEdge, "missing_top_bar_edge_layer");
+// The edge is a tinted wash with a standard mask, not a blur; minification must keep both.
+assert.match(topEdge, /(?:^|;)\s*background\s*:\s*var\(--edge-tint\)/, "missing_top_bar_edge_tint");
+assert.match(topEdge, /(?:^|;)\s*mask-image\s*:/, "missing_standard_top_bar_mask");
 if (/<script\b[^>]*\bsrc=/i.test(markup) || /<link\b[^>]*rel=["']stylesheet/i.test(markup))
 	throw new Error("external_runtime_asset");
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
