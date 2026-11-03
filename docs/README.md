@@ -1,11 +1,12 @@
 # 文档目录
 
-更新：2026-11-01。按任务读取对应正文。分层、命名和维护方式见[文件管理规范](agent/file-management.md)。
+更新：2026-11-02。按任务读取对应正文。分层、命名和维护方式见[文件管理规范](agent/file-management.md)。
 
 ## 项目准则
 
 - [Sill · 窗台](agent/PRODUCT.md)
 - [项目准则](agent/README.md)
+- [受众与角色](agent/AUDIENCE.md)
 - [代码规范](agent/code-standards.md)
 - [部署规范](agent/deployment.md)
 - [术语与决策管理](agent/domain.md)
