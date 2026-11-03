@@ -2,7 +2,7 @@
 
 ## 问题与状态
 
-已修复待验证（2026-11-03）。用户反馈 GitHub Actions 打出的 1.2.32 DMG 与本地构建的 App 顶部玻璃不同，部分页面有性能问题。
+已修复并发布 1.2.33，外观待用户确认（2026-11-03）。用户反馈 GitHub Actions 打出的 1.2.32 DMG 与本地构建的 App 顶部玻璃不同，部分页面有性能问题。
 
 ## 环境与触发
 
@@ -31,4 +31,6 @@
 
 ## 验证与后续
 
-已核对两个包的 `LC_BUILD_VERSION`、签名、版本和 CI 日志中的 Xcode 版本；查看录屏截帧，未做 Instruments 性能追踪或窗口自动化。待新包发布后核对其 `LC_BUILD_VERSION` 与 Info.plist，并由用户在同一台 Mac 对比顶栏外观与滚动流畅度。
+已核对两个包的 `LC_BUILD_VERSION`、签名、版本和 CI 日志中的 Xcode 版本；查看录屏截帧，未做 Instruments 性能追踪或窗口自动化。独立打包 `41597875355` 的 DMG 与本机构建逐项一致：版本 1.2.33、`UIDesignRequiresCompatibility` true、`minos 14.0`、记录 SDK 14.0、链接器 27106.1。
+
+1.2.33 正式流程 `41599472236` 全部成功，部署 `5ef69dc9-ded9-4139-8be5-a9bb0183f336`（版本 `abe6c9ef-36e1-49a3-9d9a-2eee14e09948`）回执 verified，旧部署 `29c94987-9508-438f-91f2-8faaf2395cc1` 为回退依据；`/api/v1/health` 200 `ready`，未登录 `POST /mcp` 401。[GitHub Release](https://github.com/dabaige53/sill/releases/tag/v1.2.33) 附 `Sill-1.2.33-macOS-arm64-internal.dmg`。顶栏外观与滚动流畅度仍待用户安装后在真机确认。
