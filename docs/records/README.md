@@ -8,6 +8,8 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [Mac 线上包与本地包外观、性能不一致](2026-11-03-macos-build-parity/README.md)
+- [Mac 卡片 SVG 封面不显示](2026-11-03-macos-svg-cover/README.md)
 - [1.2.32 发布](2026-11-03-release-1.2.32/README.md)
 - [摘要与播客设计画板诊断](2026-11-03-summary-podcast-design/README.md)
 - [备份设计画板诊断](2026-11-03-backup-design/README.md)

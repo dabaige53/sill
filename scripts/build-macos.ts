@@ -113,6 +113,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>
+<key>UIDesignRequiresCompatibility</key><true/>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>Sill authentication</string><key>CFBundleURLSchemes</key><array><string>sill</string></array></dict></array>
 </dict></plist>
 `;
