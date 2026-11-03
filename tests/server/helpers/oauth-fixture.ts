@@ -5,7 +5,10 @@ import { cloudFixture } from "./cloud-fixture.ts";
 import { token } from "./signed-auth.ts";
 export const C = "33333333-3333-4333-8333-333333333333",
 	AUTH = "44444444-4444-4444-8444-444444444444";
-export async function oauthFixture({ authorizationId = AUTH }: any = {}): Promise<any> {
+export async function oauthFixture({
+	authorizationId = AUTH,
+	shared = false,
+}: any = {}): Promise<any> {
 	const f = await cloudFixture({ oauth: true });
 	f.config.oauthConsentEnabled = true;
 	f.config.oauthClientIds = [C];
@@ -15,15 +18,21 @@ export async function oauthFixture({ authorizationId = AUTH }: any = {}): Promis
 		audience: f.config.appOrigin + "/mcp",
 		redirectUris: ["http://127.0.0.1:5876/callback"],
 		identityScopes: ["openid"],
-		contentScopes: ["content:read", "content:write"],
+		contentScopes: shared ? ["content:read"] : ["content:read", "content:write"],
 		resources: ["*"],
 	};
 	f.config.agentAudience = policy.audience;
 	await f.db.exec("reset role");
-	await f.db.query(
-		"insert into sill_private.oauth_clients(owner_id,client_id,policy,enabled) values($1,$2,$3,true)",
-		[A, C, JSON.stringify(policy)],
-	);
+	if (shared)
+		await f.db.query(
+			"insert into sill_private.oauth_applications(client_id,policy,enabled) values($1,$2,true)",
+			[C, JSON.stringify(policy)],
+		);
+	else
+		await f.db.query(
+			"insert into sill_private.oauth_clients(owner_id,client_id,policy,enabled) values($1,$2,$3,true)",
+			[A, C, JSON.stringify(policy)],
+		);
 	const details: Record<string, any> = {
 		authorization_id: authorizationId,
 		client: { id: C, name: "Synthetic Codex" },

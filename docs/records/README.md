@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [Muse OAuth 接入检查](2026-11-03-muse-oauth/README.md)
 - [手机标签面板卡死与重做](2026-11-02-phone-tag-sheet/README.md)
 - [CI 初始化](2026-11-01-ci-init/README.md)
 - [生产功能与扩展压力验收](2026-10-31-production-acceptance/README.md)

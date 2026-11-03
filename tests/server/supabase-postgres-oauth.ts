@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 export async function runPostgresOauth({
 	asUser,
@@ -108,6 +109,68 @@ export async function runPostgresOauth({
 					sql(`${asUser()}select * from sill_private.${table};`),
 					/permission denied/,
 				);
+		},
+	);
+	await t.test(
+		"shared application enrollment installs without SUPERUSER and respects account RLS",
+		async () => {
+			await sql(
+				"set session authorization sill_installer;set createrole_self_grant='';" +
+					(await readFile(
+						new URL(
+							"../../supabase/migrations/20261103032753_shared_oauth_applications.sql",
+							import.meta.url,
+						),
+						"utf8",
+					)),
+			);
+			const client = "99999999-9999-4999-8999-999999999999";
+			const policy = {
+				clientId: client,
+				appOrigin: "https://sill.example",
+				audience: "https://sill.example/mcp",
+				redirectUris: ["https://muse.example/callback"],
+				identityScopes: ["openid"],
+				contentScopes: ["content:read"],
+				resources: ["*"],
+			};
+			await sql(
+				`insert into sill_private.oauth_applications(client_id,policy,enabled) values('${client}',${quote(JSON.stringify(policy))}::jsonb,true);`,
+			);
+			const policyRpc = `select public.sill_oauth_flow('policy',${quote(JSON.stringify({ clientId: client }))}::jsonb);`;
+			await Promise.all([sql(asUser(owner) + policyRpc), sql(asUser(owner) + policyRpc)]);
+			await sql(asUser(other) + policyRpc);
+			assert.equal(
+				await sql(`select count(*) from sill_private.oauth_clients where client_id='${client}';`),
+				"2",
+			);
+			assert.equal(
+				await sql(
+					`select count(*) from sill_private.caller_grants where caller_id='oauth:${client}';`,
+				),
+				"0",
+			);
+			await sql(
+				`update sill_private.oauth_clients set enabled=false where owner_id='${other}' and client_id='${client}';`,
+			);
+			await assert.rejects(sql(asUser(other) + policyRpc), /forbidden/);
+			await assert.rejects(sql(`${asUser(owner, client)}${policyRpc}`), /forbidden/);
+			await assert.rejects(
+				sql(`${asUser()}select * from sill_private.oauth_applications;`),
+				/permission denied/,
+			);
+			assert.equal(
+				await sql("select count(*) from pg_tables where tableowner='sill_consent_executor';"),
+				"0",
+			);
+			assert.equal(
+				await sql("select has_schema_privilege('sill_consent_executor','sill_private','CREATE');"),
+				"f",
+			);
+			await assert.rejects(
+				sql("set session authorization sill_installer;set role sill_consent_executor;"),
+				/permission denied/,
+			);
 		},
 	);
 	await t.test(

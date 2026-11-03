@@ -1,6 +1,6 @@
 # MCP 接口说明
 
-更新：2026-10-30。依据当前服务端与共享定义整理。本文描述源码能力；部署版本和当次宿主发现以实际回执为准。
+更新：2026-11-03。依据当前服务端与共享定义整理。本文描述源码能力；部署版本和当次宿主发现以实际回执为准。
 
 ## 能力入口
 
@@ -13,6 +13,39 @@
 | 工作区与卡片页面 | `sill_open_workspace`、`sill_open_cards` |
 
 工具注册和发现条件见 [mcp.ts](../../server/cloud/mcp.ts)。HTTP 与 MCP 共用能力、身份、资源范围、版本和幂等检查；直接数据操作无需内置模型。
+
+## 应用配置与个人授权
+
+OAuth 客户端按接入应用登记，Client ID 是应用编号，可供该应用的用户共用。
+用户各自使用 Sill 账号和密码登录，在同意页确认权限后返回宿主。
+令牌和卡片访问权限始终属于各自账号；已有 Sill 账号首次连接公共应用不需要管理员逐个补配客户端策略。
+
+公共应用的默认策略保存在 `sill_private.oauth_applications`。授权页读取策略时，
+只为具备工作区访问权限的当前账号初始化缺失的客户端策略，不创建卡片访问 grant。
+用户点击允许后，原有同意流程才生成授权。已有账号的策略、资源限制和停用状态不被默认配置覆盖。
+应用默认配置的变更仅影响后续首次接入，不改变已有授权。
+
+迁移仅将已确认固定回调的 Muse、ChatGPT 登记为公共应用，新账号默认只读个人工作区。
+Codex 本机回调沿用原登记方式。此能力不创建 Sill 账号或工作区，也不启用动态客户端注册。
+运行环境仍需在 `OAUTH_CLIENT_IDS` 中允许该应用，回调必须与提供方登记和 Sill 策略一致。
+
+当前 Muse 连接参数：
+
+| 参数 | 共用值 |
+| --- | --- |
+| MCP / 资源地址 | `https://sill-web-preview.scs1213-temp-email.workers.dev/mcp` |
+| 连接类型 | Streamable HTTP |
+| Client ID | `0a610891-c2a1-48c9-b0e9-add6f0312e1f` |
+| 回调 | `https://agent.meta.ai/api/hatch/oauth/callback` |
+| 发行方 | `https://moeabktxrgidrdkplvac.supabase.co/auth/v1` |
+| 授权地址 | 发行方后接 `/oauth/authorize` |
+| 令牌地址 | 发行方后接 `/oauth/token` |
+| 身份范围 | `openid profile email offline_access` |
+| 令牌认证 / PKCE | `none`，无客户端密钥 / `S256` |
+
+宿主要求 Client ID 时，使用同一个应用编号，不按用户新增客户端。
+实际启用需应用 [共享应用迁移](../../supabase/migrations/20261103032753_shared_oauth_applications.sql)；
+源码交付不代表目标数据库已迁移。
 
 ## 读写约定
 

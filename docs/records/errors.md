@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-03 | Muse / OAuth | 回调登记、invalid redirect_uri、客户端允许列表、Supabase 管理权限 | [Muse OAuth 接入检查](2026-11-03-muse-oauth/README.md) |
 | 2026-11-02 | Web/PWA 手机标签面板 | 点标签卡死、加载异常、键盘自动弹出、tag-new 聚焦、备注折叠、--kb、--visible-height | [手机标签面板卡死与重做](2026-11-02-phone-tag-sheet/README.md) |
 | 2026-10-31 | 卡片内容与操作 | summary 裁剪、详情概要、待办/提醒名称、截止位置、缺时间、6 项清单、邮件时间、PR 时间、搜索顺序、标签键盘、已保存、附到对话、MotionFlowTests、refreshFailureRetryAndSuccess | [卡片体验定位与修改](2026-10-31-card-content-consistency/README.md) |
 | 2026-10-31 | Linear 插件 | get_agent_context、Tool not found、-32602、发现与调用不一致 | [Linear 字段笔记发现与调用不一致](2026-10-31-production-acceptance/diagnosis.md#linear-字段笔记发现与调用不一致) |

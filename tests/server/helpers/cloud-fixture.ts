@@ -14,13 +14,23 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 	const db = new PGlite();
 	await setupBoundary(db);
 	await applyCardMigrations(db);
-	if (oauth)
+	if (oauth) {
 		await db.exec(
 			await (await import("node:fs/promises")).readFile(
 				new URL("../../../supabase/drafts/sill_v1_oauth_consent.sql", import.meta.url),
 				"utf8",
 			),
 		);
+		await db.exec(
+			await (await import("node:fs/promises")).readFile(
+				new URL(
+					"../../../supabase/migrations/20261103032753_shared_oauth_applications.sql",
+					import.meta.url,
+				),
+				"utf8",
+			),
+		);
+	}
 	let challenge = null,
 		redirect = null,
 		tail = Promise.resolve();
