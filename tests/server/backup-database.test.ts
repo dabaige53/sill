@@ -10,7 +10,8 @@ test("external backup: owner boundary, immutable capture, atomic replacement, re
 		await setupBoundary(db);
 		for (const name of (await readdir(new URL("../../supabase/migrations/", import.meta.url)))
 			.sort()
-			.filter((n) => n >= "20261016052843" && n.endsWith(".sql"))) {
+			// OAuth migrations build on the consent setup this boundary fixture skips.
+			.filter((n) => n >= "20261016052843" && n.endsWith(".sql") && !n.includes("oauth"))) {
 			await db.exec(
 				await readFile(new URL("../../supabase/migrations/" + name, import.meta.url), "utf8"),
 			);

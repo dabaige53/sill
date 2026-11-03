@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-03 | 发布检查 | missing_standard_top_bar_backdrop_filter、edge-material、AddLines、capsule fades、detail-summary | [1.2.31 发布检查失败](2026-11-03-release-1.2.31/diagnosis.md) |
 | 2026-11-03 | 摘要与播客设计画板 | html-validate、146 条诊断、Inline style、helmet、onClick | [摘要与播客设计画板诊断](2026-11-03-summary-podcast-design/README.md) |
 | 2026-11-03 | 备份设计画板 | html-validate、135 条诊断、Inline style、helmet、onClick、autocomplete | [备份设计画板诊断](2026-11-03-backup-design/README.md) |
 | 2026-11-03 | Mac 登录与签名 | 每次打开询问钥匙串、one.sill.cloud-session、始终允许、adhoc、cdhash | [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/diagnosis.md) |

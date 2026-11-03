@@ -3,6 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
@@ -31,6 +32,7 @@ function fixture() {
 		pretendToBeVisual: true,
 	});
 	const window = dom.window as any;
+	installReactBrowserAPIs(window);
 	window.IS_REACT_ACT_ENVIRONMENT = true;
 	window.eval(bundle);
 	const document = window.document;

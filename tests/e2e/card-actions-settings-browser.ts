@@ -141,10 +141,11 @@ try {
 				assert.equal(await page.locator('[data-action="reader"]').isVisible(), false);
 				await page.evaluate(() => window.__app.openCard("review-article", true));
 				await page.locator(".reader-body").waitFor();
-				// The reader moves the cover after the header (web-interaction handbook); the rest matches the preview.
+				// The reader keeps the cover on top, above the header (web-reading handbook); the rest matches the preview.
 				const readerBlocks = await blocks(".reader-body");
-				assert.equal(readerBlocks[1]?.[1], "detail-summary");
-				assert.equal(readerBlocks[2]?.[1], "preview-cover");
+				assert.equal(readerBlocks[0]?.[1], "preview-cover");
+				assert.match(String(readerBlocks[1]?.[1]), /\bdetail-header\b/);
+				assert.equal(readerBlocks[2]?.[1], "detail-summary");
 				assert.deepEqual(
 					readerBlocks.filter((block) => block[1] !== "preview-cover"),
 					previewBlocks,

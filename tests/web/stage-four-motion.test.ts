@@ -19,6 +19,11 @@ const bundle = buildSync({
 	format: "iife",
 	globalName: "ReviewTest",
 	alias: {
+		// The bare "motion" alias would otherwise capture the React entry as a subpath.
+		"motion/react": path.resolve(
+			import.meta.dirname,
+			"../../node_modules/motion/dist/es/react.mjs",
+		),
 		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
 		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
 	},

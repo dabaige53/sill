@@ -28,7 +28,7 @@ test("the phone text start is one design token with the same value in the web st
 	assert.match(tokensCSS, new RegExp(`--text-phone-scale: ${token.value.replace(".", "\\.")};`));
 });
 
-test("only phone cards and previews multiply the shared text settings by the phone start", () => {
+test("only phone cards and details multiply the shared text settings by the phone start", () => {
 	const phone = phoneBlock();
 	assert.match(
 		phone,
@@ -36,17 +36,16 @@ test("only phone cards and previews multiply the shared text settings by the pho
 	);
 	assert.match(
 		phone,
-		/\.preview-body \{\s*--content-text-scale: calc\(var\(--reader-text-scale, 1\) \* var\(--text-phone-scale, 1\)\);/,
+		/\.preview-body,\s*\.reader-body \{\s*--content-text-scale: calc\(var\(--reader-text-scale, 1\) \* var\(--text-phone-scale, 1\)\);/,
 	);
 	// Preview text matches the reader body, so expanding keeps the same size.
 	assert.match(
 		phone,
-		/\.preview-body \.preview-full \{\s*font-size: calc\(var\(--text-reader-body\) \* var\(--reader-text-scale, 1\)\);/,
+		/:is\(\.preview-body, \.reader-body\) \.preview-full \{\s*font-size: calc\(var\(--text-reader-body\) \* var\(--reader-text-scale, 1\)\);/,
 	);
-	// Desktop rules keep the plain setting; the reader body is never multiplied.
+	// Desktop rules keep the plain setting (foundation handbook: phone content only).
 	const desktop = appearance.slice(0, appearance.indexOf("@media (max-width: 650px) {"));
 	assert.doesNotMatch(desktop, /text-phone-scale/);
-	assert.doesNotMatch(phone, /\.reader-body \{[^}]*text-phone-scale/);
 });
 
 test("navigation and controls do not use the phone text start", () => {

@@ -242,7 +242,11 @@ import Testing
       scroll.scrolled(offset: offset, visible: 600, content: 4000)
     }
     #expect(scroll.moving.active)
-    try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.1))
+    // Poll past the rest instead of one fixed sleep, so a busy runner cannot miss the release.
+    let deadline = ContinuousClock.now + .seconds(AppleMetrics.gestureWheelRest + 2)
+    while scroll.moving.active, ContinuousClock.now < deadline {
+      try await Task.sleep(for: .milliseconds(50))
+    }
     #expect(!scroll.moving.active)
   }
 

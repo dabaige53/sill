@@ -15,6 +15,11 @@ const bundle = buildSync({
 	loader: { ".png": "empty" },
 	alias: {
 		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		// The bare "motion" alias would otherwise capture the React entry as a subpath.
+		"motion/react": path.resolve(
+			import.meta.dirname,
+			"../../node_modules/motion/dist/es/react.mjs",
+		),
 		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
 	},
 	write: false,
