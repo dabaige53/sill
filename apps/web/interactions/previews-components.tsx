@@ -216,7 +216,9 @@ const detailBlocks: Record<string, DetailBlock> = {
 	},
 	schedule: (c, _o, { s }) => <CardSchedule card={c} state={s} />,
 	reminderMark: (c, _o, { s }) => <ReminderMark card={c} done={!!s.reminderDone} />,
-	cover: (c, _o, { mode }) => (cardCover(c) && mode === "reader" ? coverImage(c) : null),
+	// A hoisted cover leads the whole detail instead (detailContent, detailPreview).
+	cover: (c, o, { mode }) =>
+		cardCover(c) && mode === "reader" && o.preview !== "hoist" ? coverImage(c) : null,
 	body: (c, o) =>
 		o.section === "agenda" ? (
 			c.body?.trim() && (
@@ -297,6 +299,13 @@ function renderDetail(
 
 const INFO_ROWS = new Set(["facts", "info", "participants"]);
 
+/** Articles show their cover above the source and title, in the preview and expanded alike. */
+function hoistsCover(recipe: DetailRecipe) {
+	return !!recipe.body?.some(
+		(entry) => entryName(entry) === "cover" && entryOptions(entry).preview === "hoist",
+	);
+}
+
 /** One detail surface: the recipe's head inside the header, then its body blocks. */
 function detailContent(
 	this: PanelRenderers,
@@ -312,6 +321,7 @@ function detailContent(
 	while (rows < body.length && INFO_ROWS.has(entryName(body[rows]))) rows++;
 	return (
 		<>
+			{mode === "reader" && hoistsCover(recipe) && cardCover(c) ? coverImage(c) : null}
 			<header className={`detail-header ${recipe.ruled ? "ruled-header" : ""}`}>
 				{renderDetail.call(this, recipe.head, c, scope)}
 			</header>
@@ -343,14 +353,11 @@ function detailPreview(
 				{tools}
 			</>
 		);
-	const hoisted = recipe.body?.some(
-		(entry) => entryName(entry) === "cover" && entryOptions(entry).preview === "hoist",
-	);
 	return (
 		<>
 			{sheet(
 				detailContent.call(this, c, recipe, "preview", s),
-				hoisted && cardCover(c) ? coverImage(c) : "",
+				hoistsCover(recipe) && cardCover(c) ? coverImage(c) : "",
 				"",
 				recipe.end && c.body?.trim() ? (
 					<div className="reader-end" id="reader-end" aria-hidden="true" />

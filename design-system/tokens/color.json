@@ -108,6 +108,11 @@
 				"usage": "桌面顶栏渐进模糊的上沿。"
 			},
 			{
+				"name": "edge-tint",
+				"value": "color-mix(in srgb, var(--canvas) 85%, transparent)",
+				"usage": "桌面顶栏的提亮底色，对应 Mac regularMaterial：底下文字保持清晰、不做模糊，自上而下 100%、45% 处 70%、到底 0。"
+			},
+			{
 				"name": "glass-thick",
 				"value": "rgba(255,255,255,.88)",
 				"usage": "字多的玻璃：多选操作菜单、增强对比度时的工具条；深色 rgba(36,36,40,.9)。"

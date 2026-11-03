@@ -12,11 +12,11 @@ const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/g, "$1</script>
 const css = [...markup.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
 	.map(([, value]) => value)
 	.join("\n");
-const topBlur = css.match(/\.home-top::?before\s*\{([^}]+)\}/)?.[1];
+const topBlur = css.match(/\.home-top-edge::?before\s*\{([^}]+)\}/)?.[1];
 assert.ok(topBlur, "missing_top_bar_blur_layer");
 assert.match(
 	topBlur,
-	/(?:^|;)\s*backdrop-filter\s*:\s*var\(--edge-blur-soft\)/,
+	/(?:^|;)\s*backdrop-filter\s*:\s*var\(--edge-material\)/,
 	"missing_standard_top_bar_backdrop_filter",
 );
 if (/<script\b[^>]*\bsrc=/i.test(markup) || /<link\b[^>]*rel=["']stylesheet/i.test(markup))

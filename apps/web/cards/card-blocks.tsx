@@ -1,4 +1,5 @@
-import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { markdownBlocks } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
@@ -126,6 +127,10 @@ export function Summary({ card: c }: { card: Card }) {
 }
 
 const summaryTiming = tokens.motion.summaryLength;
+const summaryEase = summaryTiming.revealEase
+	.slice("cubic-bezier(".length, -1)
+	.split(",")
+	.map(Number) as [number, number, number, number];
 const quietMotion = () =>
 	document.documentElement.dataset.inputModality === "keyboard" ||
 	matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -140,11 +145,37 @@ export function DetailSummary({ card }: { card: Card }) {
 	const [long, setLong] = useState(false);
 	const [loading, setLoading] = useState<boolean | null>(null);
 	const [open, setOpen] = useState(true);
+	const [instant, setInstant] = useState(false);
 	const timer = useRef(0);
 	const root = useRef<HTMLElement>(null);
+	const content = useRef<HTMLDivElement>(null);
+	const [contentHeight, setContentHeight] = useState<number | null>(null);
 	const switched = useRef(false);
 	const shown = useRef(open);
+	const foldFrom = useRef("rotate(-90deg)");
 	useEffect(() => () => clearTimeout(timer.current), []);
+	useLayoutEffect(() => {
+		const node = content.current;
+		if (!node) return;
+		// Opening and resizing scale the surrounding surface; use untransformed layout sizes.
+		setContentHeight(node.offsetHeight);
+		const observer = new ResizeObserver(([entry]) =>
+			setContentHeight(entry.borderBoxSize[0].blockSize),
+		);
+		observer.observe(node);
+		return () => observer.disconnect();
+	}, []);
+	// A short preview normally centers itself. Summary changes keep its current top edge.
+	const anchorPreview = () => {
+		const dialog = root.current?.closest<HTMLDialogElement>("dialog.preview");
+		if (!dialog || dialog.querySelector(".preview-sheet.is-full")) return;
+		if (!dialog.style.getPropertyValue("--summary-preview-top"))
+			dialog.style.setProperty("--summary-preview-top", `${dialog.offsetTop}px`);
+	};
+	useEffect(() => {
+		const dialog = root.current?.closest("dialog");
+		return () => dialog?.style.removeProperty("--summary-preview-top");
+	}, []);
 	// While the other length is written, the bar in the mark writes and the placeholders breathe.
 	useEffect(() => {
 		const section = root.current;
@@ -166,7 +197,7 @@ export function DetailSummary({ card }: { card: Card }) {
 	useEffect(() => {
 		if (!switched.current || loading !== null) return;
 		switched.current = false;
-		const text = root.current?.querySelector<HTMLElement>(".summary-points, .detail-summary > p");
+		const text = content.current?.querySelector<HTMLElement>(".summary-points, p");
 		MotionEngine.animate(
 			text ?? undefined,
 			[
@@ -181,18 +212,18 @@ export function DetailSummary({ card }: { card: Card }) {
 		shown.current = open;
 		if (quietMotion()) return;
 		const icon = root.current?.querySelector<HTMLElement>(".summary-fold > .icon");
-		MotionEngine.animate(
+		const animation = MotionEngine.animate(
 			icon ?? undefined,
-			[
-				{ transform: `rotate(${open ? 90 : -90}deg)` },
-				{ transform: `rotate(${open ? -90 : 90}deg)` },
-			],
-			{ duration: 260, easing: summaryTiming.revealEase },
+			[{ transform: foldFrom.current }, { transform: `rotate(${open ? -90 : 90}deg)` }],
+			{ duration: summaryTiming.reveal, easing: summaryTiming.revealEase },
 		);
+		return () => animation?.cancel();
 	}, [open]);
 	if (!card.summary?.trim()) return null;
 	const target = loading ?? long;
 	const toggle = () => {
+		anchorPreview();
+		setInstant(quietMotion());
 		clearTimeout(timer.current);
 		const next = !target;
 		setOpen(true);
@@ -230,39 +261,63 @@ export function DetailSummary({ card }: { card: Card }) {
 						<Icon name="sill-ai" size={20} />
 					</button>
 				)}
+				{!points.length && (
+					<span className="summary-mark" aria-hidden="true">
+						<Icon name="sill-ai" size={20} />
+					</span>
+				)}
 				<span className="detail-summary-label">{copy("web.card.summary")}</span>
 				<button
 					type="button"
 					className="summary-fold"
 					aria-expanded={open}
 					aria-label={copy(open ? "web.card.summaryFold" : "web.card.summaryUnfold")}
-					onClick={() => setOpen(!open)}
+					onClick={() => {
+						anchorPreview();
+						setInstant(quietMotion());
+						const icon = root.current?.querySelector(".summary-fold > .icon");
+						if (icon) foldFrom.current = getComputedStyle(icon).transform;
+						setOpen(!open);
+					}}
 				>
 					<Icon name="chevron" size={16} />
 				</button>
 			</div>
-			{open &&
-				(loading !== null ? (
-					<div className="summary-skeleton" aria-hidden="true">
-						{skeleton.map((size, i) => (
-							<span
-								// biome-ignore lint/suspicious/noArrayIndexKey: Placeholder bars are fixed and stateless.
-								key={i}
-								className={loading ? "is-point" : undefined}
-								style={{ width: `${loading ? Math.min(96, 30 + size) : size}%` }}
-							/>
-						))}
-					</div>
-				) : long ? (
-					<ul key="long" className="summary-points">
-						{points.map((point, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: Points may repeat; these list items have no component state.
-							<li key={i}>{point}</li>
-						))}
-					</ul>
-				) : (
-					<p key="short">{card.summary}</p>
-				))}
+			<motion.div
+				className="summary-content"
+				initial={false}
+				animate={{ height: open ? (contentHeight ?? "auto") : 0, opacity: open ? 1 : 0 }}
+				transition={{
+					duration: instant ? 0 : summaryTiming.reveal / 1000,
+					ease: summaryEase,
+				}}
+				inert={!open}
+				aria-hidden={!open}
+			>
+				<div ref={content} className="summary-content-inner">
+					{loading !== null ? (
+						<div className="summary-skeleton" aria-hidden="true">
+							{skeleton.map((size, i) => (
+								<span
+									// biome-ignore lint/suspicious/noArrayIndexKey: Placeholder bars are fixed and stateless.
+									key={i}
+									className={loading ? "is-point" : undefined}
+									style={{ width: `${loading ? Math.min(96, 30 + size) : size}%` }}
+								/>
+							))}
+						</div>
+					) : long ? (
+						<ul key="long" className="summary-points">
+							{points.map((point, i) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: Points may repeat; these list items have no component state.
+								<li key={i}>{point}</li>
+							))}
+						</ul>
+					) : (
+						<p key="short">{card.summary}</p>
+					)}
+				</div>
+			</motion.div>
 		</section>
 	);
 }

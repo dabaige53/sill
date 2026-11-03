@@ -33,6 +33,8 @@ export function appearanceVariables(preferences: Appearance) {
 				: preferences.readerWidth === "standard"
 					? `${metrics.layoutReaderStandard}px`
 					: "none",
+		// The expanded article column keeps the narrow width when that is chosen.
+		"--reader-column": `${preferences.readerWidth === "narrow" ? metrics.layoutReaderNarrow : metrics.readerColumn}px`,
 		"--content-weight-add": preferences.textWeight === "strong" ? "100" : "0",
 	};
 }

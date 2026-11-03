@@ -347,10 +347,11 @@
 }
 /* status-bar.ts marks an open page; WebKit missed :has() on the dialog and left the row over search.
    Settings restores the row in its own, more specific rule. */
-body.has-open-page .home-top {
+body.has-open-page :is(.home-top, .home-top-edge) {
 	visibility: hidden;
 }
-body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+body:has(:is(#modal, .phone-layer)[open].page .settings-layout)
+	:is(.home-top:not(.is-tucked), .home-top-edge) {
 	visibility: visible;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -362,7 +363,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 .home-logo,
 .home-menu-toggle,
-.home-edge-blur,
+.home-top-edge,
 .home-menu,
 .home-search,
 .home-kinds {
@@ -378,7 +379,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		opacity: 1;
 	}
 	.home-top.is-tucked {
-		/* Include the sticky offset and glass feather in the shared travel. */
+		/* Include the sticky offset and feather in the travel, so the controls leave the blur fully. */
 		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
 		opacity: 1;
 		visibility: hidden;
@@ -388,38 +389,42 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		.home-top {
 			background: transparent;
 		}
-		.home-top > .home-heading,
-		.home-top > .home-kinds {
-			position: relative;
-			z-index: 1;
+		/* The edge blur sits behind the bar and stays when the controls tuck away while reading.
+		   It covers the sticky offset, the 64px row, the chip row while it shows and the feather. */
+		.home-top-edge {
+			display: block;
+			position: fixed;
+			z-index: 20;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: calc(var(--space-10) + var(--space-64) + var(--space-12));
+			pointer-events: none;
 		}
-		.home-top::before,
-		.home-top::after,
-		.home-edge-blur {
+		body:has(#home-kinds:not([hidden])) .home-top-edge {
+			height: calc(
+				var(--space-10) +
+				var(--space-64) +
+				var(--space-32) +
+				var(--space-2) +
+				var(--space-12)
+			);
+		}
+		/* Mac's material over the feed reads as a lift, not a blur: the cards stay sharp under a
+		   bright wash. The mask follows Mac: full at the top, 70% at 45%, gone below. */
+		.home-top-edge::before {
 			content: "";
 			display: block;
 			position: absolute;
-			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
-			z-index: 0;
-			pointer-events: none;
-		}
-		.home-top::before {
-			-webkit-backdrop-filter: var(--edge-blur-soft);
-			backdrop-filter: var(--edge-blur-soft);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-		}
-		.home-top::after {
-			-webkit-backdrop-filter: var(--edge-blur-mid);
-			backdrop-filter: var(--edge-blur-mid);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-		}
-		.home-edge-blur {
-			-webkit-backdrop-filter: var(--edge-blur-strong);
-			backdrop-filter: var(--edge-blur-strong);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
-			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			inset: 0;
+			background: var(--edge-tint);
+			-webkit-mask-image: linear-gradient(
+				to bottom,
+				#000 0%,
+				rgb(0 0 0 / 0.7) 45%,
+				transparent 100%
+			);
+			mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.7) 45%, transparent 100%);
 		}
 	}
 
@@ -450,20 +455,38 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	.home-logo {
 		display: flex;
 	}
+	.home-mark > .sill-wordmark {
+		display: none;
+	}
 	.home-menu-toggle {
-		display: grid;
-		place-items: center;
-		width: var(--space-36);
-		height: var(--space-36);
-		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		gap: var(--space-4);
+		min-width: var(--space-44);
+		height: var(--space-44);
+		padding: 0 var(--space-8);
+		font-size: var(--text-control);
+		white-space: nowrap;
 		border: 0;
 		border-radius: var(--space-10);
 		background: none;
 		color: var(--muted);
 	}
+	.home-menu-toggle .sill-wordmark {
+		font-size: var(--text-figure);
+		color: var(--ink);
+	}
 	.home-menu-toggle .icon {
 		rotate: 90deg;
 	}
+	@media (hover: hover) {
+		.home-menu-toggle:hover {
+			background: var(--faint);
+		}
+	}
+	.home-menu-toggle:focus-visible,
 	.home-menu-toggle[aria-expanded="true"] {
 		background: var(--faint);
 		color: var(--ink);
@@ -584,7 +607,29 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		font-size: var(--text-body);
 	}
 	.home-search input::placeholder {
-		color: var(--secondary);
+		color: var(--muted);
+		opacity: 1;
+	}
+	.home-search::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background: var(--glass-shade);
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--line-hover),
+			var(--shadow);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-hover) var(--ease);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search:hover::after {
+			opacity: 0.35;
+		}
+	}
+	.home-search:focus-within::after {
 		opacity: 1;
 	}
 	.home-search input:focus-visible {
@@ -647,6 +692,12 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	}
 	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
 	.home-search .search-hash {
+		background: var(--glass-thick);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
+		box-shadow:
+			inset 0 0 0 var(--space-1) var(--glass-edge),
+			var(--shadow-float);
 		z-index: 60;
 		padding: var(--space-4);
 		top: calc(100% + var(--space-8));
@@ -720,7 +771,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		width: var(--space-40);
 		height: var(--space-40);
 		background: var(--card);
-		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
 	}
 	.home-tabs {
@@ -814,7 +864,17 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		right: var(--space-4);
 		height: var(--space-40);
 		border-radius: var(--space-8);
-		background: var(--faint);
+		background: var(--glass-press);
 		pointer-events: none;
 	}
+}
+
+.sill-wordmark {
+	display: inline-block;
+	font-family: Georgia, "Times New Roman", serif;
+	font-weight: 400;
+	font-style: normal;
+	letter-spacing: -0.02em;
+	line-height: 1;
+	flex: none;
 }

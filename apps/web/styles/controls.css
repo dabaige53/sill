@@ -88,11 +88,16 @@
 #dock > * {
 	pointer-events: auto;
 }
+/* The rail only moves; its glass fades layer by layer (chrome.ts `glassLayers`). A fading
+   ancestor would leave the glass a blank backdrop that snaps white when the fade ends. */
 #dock.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(20px));
-	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
+}
+#dock.is-tucked > :not(.ai-dock),
+#dock.is-tucked > .ai-dock > * {
+	opacity: 0;
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,

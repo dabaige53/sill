@@ -14,9 +14,17 @@ struct ReaderPage<Content: View>: View {
   let scroll: ReaderScroll
   let content: Content
   @State private var currentHeading: Int?
+  /// Web hides the outline below 900; the article column then centers alone.
+  @State private var roomy = true
   @Namespace private var outlineIndicator
   private var full: Bool { layer.full }
   private var expandedWorkspace: Bool { card.kind == .media || card.kind == .article }
+  /// Web `--reader-column`: the narrow width when chosen, else the shared column.
+  private var column: CGFloat {
+    full && card.kind == .article
+      ? min(workspace.preferences.readerWidth.width, AppleMetrics.readerColumn) : .infinity
+  }
+  private var showsOutline: Bool { full && roomy && !headings.isEmpty }
   private var headings: [(index: Int, block: MarkdownBody.Block)] {
     card.kind == .article
       ? card.markdown.blocks.enumerated().compactMap {
@@ -29,8 +37,10 @@ struct ReaderPage<Content: View>: View {
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     ZStack(alignment: .top) {
       ScrollViewReader { proxy in
-        HStack(alignment: .top, spacing: full ? AppleMetrics.space40 : 0) {
+        // The article column and its outline center as one group with matching margins.
+        HStack(alignment: .top, spacing: showsOutline ? AppleMetrics.space64 : 0) {
           content
+            .frame(maxWidth: column)
             .onPreferenceChange(ReaderHeadingPositions.self) { positions in
               let passed = headings.last {
                 (positions[$0.index] ?? .infinity) <= AppleMetrics.space40
@@ -42,13 +52,21 @@ struct ReaderPage<Content: View>: View {
               let selected = atEnd ? headings.last?.index : passed?.index ?? headings.first?.index
               if selected != currentHeading { currentHeading = selected }
             }
-          if full, !headings.isEmpty {
+          if showsOutline {
             outline(proxy: proxy)
+              .modifier(DetailReveal())
               .frame(width: AppleMetrics.readerOutlineWidth)
-              .padding(.top, AppleMetrics.space24)
+              .padding(.top, AppleMetrics.space16)
           }
         }
-        .padding(.horizontal, full ? AppleMetrics.readerPageGutter : 0)
+        .frame(maxWidth: .infinity)
+        .padding(
+          .horizontal,
+          full ? (card.kind == .article ? AppleMetrics.space32 : AppleMetrics.space30) : 0
+        )
+        .onGeometryChange(for: Bool.self) {
+          $0.size.width >= AppleMetrics.readerColumnsBreakpoint
+        } action: { roomy = $0 }
         .padding(.top, full ? (expandedWorkspace ? AppleMetrics.space64 : AppleMetrics.space88) : 0)
       }
       if full, card.kind != .media {
@@ -105,40 +123,48 @@ struct ReaderPage<Content: View>: View {
         .font(.sans(AppleMetrics.font15, .medium))
         .foregroundStyle(AppleColors.primary)
         .padding(.bottom, AppleMetrics.space6)
-        ForEach(headings, id: \.index) { heading in
-          let selected = (currentHeading ?? headings.first?.index) == heading.index
-          Button {
-            Motion.instantly { proxy.scrollTo("reader-section-\(heading.index)", anchor: .top) }
-          } label: {
-            OutlineTitle(text: heading.block.text, selected: selected)
-              .multilineTextAlignment(.leading)
-              .fixedSize(horizontal: false, vertical: true)
-              .padding(
-                .leading,
-                CGFloat(
-                  min(
-                    2,
-                    max(0, heading.block.heading - (headings.map { $0.block.heading }.min() ?? 1))))
-                  * AppleMetrics.space12
-              )
-              .padding(.trailing, AppleMetrics.space12)
-              .padding(.vertical, AppleMetrics.space4)
-              .frame(maxWidth: .infinity, minHeight: AppleMetrics.space32, alignment: .leading)
-              .overlay(alignment: .leading) {
-                if selected {
-                  Circle().fill(AppleColors.accent)
-                    .frame(width: AppleMetrics.space6, height: AppleMetrics.space6)
-                    .matchedGeometryEffect(id: "outline", in: outlineIndicator)
-                    .animation(
-                      Motion.keyboardDriven
-                        ? nil
-                        : .spring(
-                          duration: AppleMetrics.outlineTravelDuration,
-                          bounce: AppleMetrics.outlineTravelBounce), value: currentHeading)
+        // A thin rail runs down the links; the current one is marked on it (Web the same).
+        VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+          ForEach(headings, id: \.index) { heading in
+            let selected = (currentHeading ?? headings.first?.index) == heading.index
+            Button {
+              Motion.instantly { proxy.scrollTo("reader-section-\(heading.index)", anchor: .top) }
+            } label: {
+              OutlineTitle(text: heading.block.text, selected: selected)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(
+                  .leading,
+                  AppleMetrics.space12
+                    + CGFloat(
+                      min(
+                        2,
+                        max(
+                          0, heading.block.heading - (headings.map { $0.block.heading }.min() ?? 1))
+                      )) * AppleMetrics.space12
+                )
+                .padding(.vertical, AppleMetrics.space4)
+                .frame(maxWidth: .infinity, minHeight: AppleMetrics.space32, alignment: .leading)
+                .overlay(alignment: .leading) {
+                  if selected {
+                    Capsule().fill(AppleColors.accent)
+                      .frame(width: AppleMetrics.space2)
+                      .matchedGeometryEffect(id: "outline", in: outlineIndicator)
+                      .animation(
+                        Motion.keyboardDriven
+                          ? nil
+                          : .spring(
+                            duration: AppleMetrics.outlineTravelDuration,
+                            bounce: AppleMetrics.outlineTravelBounce), value: currentHeading)
+                  }
                 }
-              }
-          }.buttonStyle(.plain)
-            .accessibilityAddTraits(selected ? .isSelected : [])
+                .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+              .accessibilityAddTraits(selected ? .isSelected : [])
+          }
+        }
+        .background(alignment: .leading) {
+          AppleColors.lineCard.frame(width: AppleMetrics.lineWidth)
         }
       }
     }.scrollIndicators(.hidden).accessibilityLabel(Copy.text("web.reader.outline"))
@@ -177,11 +203,6 @@ private struct OutlineTitle: View {
           }.accessibilityHidden(true)
       }
       .font(.sans(AppleMetrics.font15))
-      .offset(x: selected ? AppleMetrics.space14 : 0)
-      .padding(.trailing, AppleMetrics.space14)
-      .animation(
-        Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.outlineShiftDuration),
-        value: selected)
   }
 }
 

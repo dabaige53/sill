@@ -616,6 +616,8 @@
 		},
 		"detailContentDelay": 100,
 		"detailFade": 120,
+		"expandedContentFade": 280,
+		"expandedContentY": 8,
 		"cardContentReturn": {
 			"delay": 80,
 			"duration": 140,

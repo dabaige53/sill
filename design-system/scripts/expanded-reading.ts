@@ -109,6 +109,9 @@ for (const [kind, label] of [
 		article.classList.add("is-article");
 		article.id = "article-scroll";
 		article.querySelector(".body")!.classList.add("preview-full", "typeset");
+		// Expanded articles lead with the cover, as the preview does.
+		const cover = article.querySelector(".rcover");
+		if (cover) article.prepend(cover);
 		const paragraphs = article.querySelectorAll(".body p");
 		for (const [index, title] of [
 			[1, "少开窗口"],

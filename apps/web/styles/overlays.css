@@ -77,6 +77,14 @@ dialog::backdrop {
 	align-items: center;
 	gap: 0;
 }
+@media (min-width: 651px) {
+	dialog.preview[open]:has(.detail-summary):not(:has(.preview-sheet.is-full)) {
+		margin-top: var(--summary-preview-top, auto);
+	}
+	dialog.preview[open]:has(.detail-summary) > .preview-sheet:not(.is-full) {
+		max-height: min(88dvh, 900px, calc(100dvh - var(--summary-preview-top, 0px) - var(--space-24)));
+	}
+}
 .preview-sheet {
 	position: relative;
 	z-index: 1;
@@ -123,7 +131,7 @@ dialog::backdrop {
 	visibility: hidden;
 	pointer-events: none;
 }
-/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+/* Scroll edges are real layers. The bottom one tucks with the capsule; the top one stays once scrolled. */
 .preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
@@ -223,7 +231,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.preview-sheet > .sheet-edge.is-top.is-tucked,
 .preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }

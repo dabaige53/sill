@@ -338,7 +338,6 @@ const blocks: Record<string, Block> = {
 							<>
 								<Icon name={(CardTypes[r.type] || CardTypes.note).icon} size={15} />
 								<span>{r.title}</span>
-								<Icon name="chevron" size={14} />
 							</>
 						);
 						return ctx.passive ? (

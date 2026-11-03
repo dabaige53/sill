@@ -143,7 +143,6 @@ struct RelatedRow: View {
         Icon(card.kind.icon, size: AppleMetrics.font15).foregroundStyle(AppleColors.iconSecondary)
         Text(card.title).lineLimit(1).truncationMode(.tail)
           .frame(maxWidth: .infinity, alignment: .leading)
-        Icon("chevron", size: AppleMetrics.font14).foregroundStyle(AppleColors.iconSecondary)
       }
       .textStyle(AppleMetrics.font13)
       .foregroundStyle(AppleColors.primary)

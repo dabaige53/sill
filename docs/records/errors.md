@@ -4,7 +4,12 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-03 | 备份设计画板 | html-validate、135 条诊断、Inline style、helmet、onClick、autocomplete | [备份设计画板诊断](2026-11-03-backup-design/README.md) |
+| 2026-11-03 | Mac 登录与签名 | 每次打开询问钥匙串、one.sill.cloud-session、始终允许、adhoc、cdhash | [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/diagnosis.md) |
+| 2026-11-03 | Web 放大阅读 | 封面顶部空白过大、旧 88px 留白、正文嵌套选择器未匹配 | [放大阅读页封面顶部留白](2026-11-03-reader-cover-spacing/README.md) |
+| 2026-11-03 | Web / Mac 概要 | 正文裁切只露一条、缩放高度误测、无展开收起动画、收起带动标题、缺少图标、右侧点击范围 | [概要展开收起与图标](2026-11-03-summary-fold/README.md) |
 | 2026-11-03 | Muse / OAuth | 回调登记、invalid redirect_uri、客户端允许列表、Supabase 管理权限 | [Muse OAuth 接入检查](2026-11-03-muse-oauth/README.md) |
+| 2026-11-03 | Mac 卡片列表滚动 | 滚动卡顿、起手掉帧、跳帧、主线程占满、悬停命中测试、HoverResponder、SourceBrandShape、SVGPathParser | [Mac 卡片列表滚动卡顿](2026-11-03-macos-feed-scroll/README.md) |
 | 2026-11-02 | Web/PWA 手机标签面板 | 点标签卡死、加载异常、键盘自动弹出、tag-new 聚焦、备注折叠、--kb、--visible-height | [手机标签面板卡死与重做](2026-11-02-phone-tag-sheet/README.md) |
 | 2026-10-31 | 卡片内容与操作 | summary 裁剪、详情概要、待办/提醒名称、截止位置、缺时间、6 项清单、邮件时间、PR 时间、搜索顺序、标签键盘、已保存、附到对话、MotionFlowTests、refreshFailureRetryAndSuccess | [卡片体验定位与修改](2026-10-31-card-content-consistency/README.md) |
 | 2026-10-31 | Linear 插件 | get_agent_context、Tool not found、-32602、发现与调用不一致 | [Linear 字段笔记发现与调用不一致](2026-10-31-production-acceptance/diagnosis.md#linear-字段笔记发现与调用不一致) |

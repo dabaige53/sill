@@ -36,11 +36,6 @@
 	background: transparent;
 	font-size: var(--text-meta);
 }
-.tag-hint {
-	margin: var(--space-8) 0 0;
-	font-size: var(--text-caption);
-	color: var(--muted);
-}
 .editor-note {
 	width: 100%;
 	min-height: 120px;
@@ -61,6 +56,124 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-6);
+	margin-top: var(--space-8);
+}
+
+.tag-editor-sheet {
+	display: flex;
+	flex-direction: column;
+	max-height: min(78dvh, var(--visible-height, 100dvh));
+}
+.tag-panel-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.tag-panel-fields {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.tag-panel-content .panel-footer {
+	flex: none;
+	justify-content: flex-end;
+}
+/* The sheet holds focus on a phone so no control opens with a ring. */
+.tag-editor-sheet:focus {
+	outline: 0;
+}
+/* With no title above it, the tag field keeps clear of the round close button. */
+.tag-panel-fields > .tag-editor {
+	margin-right: var(--space-36);
+}
+/* The note is always a field, never a fold. On a phone it is a row that opens the note page. */
+.note-field {
+	display: block;
+	width: 100%;
+	margin-top: var(--space-16);
+	padding: var(--space-10) var(--space-12);
+	border-radius: 14px;
+	background: var(--surface);
+}
+textarea.note-field {
+	min-height: 96px;
+	line-height: 1.6;
+}
+button.note-field {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	border: 0;
+	color: var(--ink);
+	font-size: var(--text-input);
+	text-align: left;
+	cursor: pointer;
+}
+button.note-field.is-empty {
+	color: var(--muted);
+}
+.note-field-text {
+	flex: 1;
+	min-width: 0;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	white-space: pre-line;
+}
+button.note-field > .icon {
+	flex: none;
+	color: var(--secondary);
+}
+.tag-editor-sheet {
+	position: relative;
+}
+#tag-layer.panel .tag-editor-sheet:is(.note-open, .note-leaving) {
+	overflow: hidden;
+}
+.note-page {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: none;
+	flex-direction: column;
+	padding: var(--space-12) var(--space-20) max(var(--space-12), env(safe-area-inset-bottom));
+	background: var(--card);
+}
+.tag-editor-sheet:is(.note-open, .note-leaving) > .note-page {
+	display: flex;
+}
+.tag-editor-sheet.note-open {
+	height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - var(--space-8));
+}
+.tag-editor-sheet.note-open > .sheet-close {
+	visibility: hidden;
+}
+.note-page-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--hit-target);
+}
+.note-page-bar h2 {
+	margin: 0;
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.note-done {
+	min-height: var(--hit-target);
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border: 0;
+	background: none;
+	color: var(--accent);
+	font-size: var(--text-input);
+	font-weight: 600;
+}
+.note-page .editor-note {
+	flex: 1;
+	min-height: 0;
 	margin-top: var(--space-8);
 }
 

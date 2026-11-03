@@ -153,12 +153,16 @@ struct SummaryBlock: View {
 
 /// Web `DetailSummary`: short by default; when the card has a long summary, the Sill mark at
 /// the top left switches between the two after a brief writing pause, and the chevron folds it.
+/// While the other length is written, the bar in the mark writes and the placeholders breathe;
+/// the written length settles in once. Opening the detail shows the summary as it is.
 struct SummaryOverview: View {
   let card: CardModel
   @State private var long = false
   @State private var loading: Bool?
   @State private var open = true
   @State private var pending: Task<Void, Never>?
+  /// Counts written switches; each one plays the settle-in once.
+  @State private var written = 0
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
@@ -168,12 +172,18 @@ struct SummaryOverview: View {
         HStack(spacing: AppleMetrics.space6) {
           if !card.longSummary.isEmpty {
             Button(action: toggle) {
-              Icon("sill-ai", size: AppleMetrics.space20)
-                .foregroundStyle(target ? AppleColors.accent : AppleColors.secondary)
-                .opacity(loading == nil ? 1 : 0.55)
-                .animation(
-                  loading == nil || reduceMotion
-                    ? .default : .easeInOut(duration: 0.33).repeatForever(), value: loading)
+              Group {
+                if loading != nil {
+                  PhaseAnimator([1, AppleMetrics.summaryWritingScale]) { scale in
+                    Icon("sill-ai", size: AppleMetrics.space20, parts: ["sill-ai-bar": scale])
+                  } animation: { _ in
+                    .easeInOut(duration: AppleMetrics.summaryWriting / 2)
+                  }
+                } else {
+                  Icon("sill-ai", size: AppleMetrics.space20)
+                }
+              }
+              .foregroundStyle(target ? AppleColors.accent : AppleColors.secondary)
             }
             .buttonStyle(.plain)
             .help(Copy.text(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong"))
@@ -181,29 +191,40 @@ struct SummaryOverview: View {
               Copy.text(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong")
             )
             .accessibilityAddTraits(target ? .isSelected : [])
+          } else {
+            Icon("sill-ai", size: AppleMetrics.space20)
+              .foregroundStyle(AppleColors.secondary)
+              .accessibilityHidden(true)
           }
           Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
             .foregroundStyle(AppleColors.secondary)
-          Spacer(minLength: 0)
           Button {
-            withAnimation(Motion.ease(0.26)) { open.toggle() }
+            open.toggle()
           } label: {
-            Icon("chevron", size: AppleMetrics.font14)
-              .rotationEffect(.degrees(open ? -90 : 90))
-              .foregroundStyle(AppleColors.secondary)
+            // The body folds below the stationary heading.
+            HStack {
+              Spacer(minLength: 0)
+              Icon("chevron", size: AppleMetrics.font14)
+                .rotationEffect(.degrees(open ? -90 : 90))
+                .animation(
+                  reduceMotion || Motion.keyboardDriven
+                    ? nil : Motion.sheet(AppleMetrics.summaryReveal), value: open
+                )
+                .foregroundStyle(AppleColors.secondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: AppleMetrics.space20)
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .accessibilityLabel(Copy.text(open ? "web.card.summaryFold" : "web.card.summaryUnfold"))
         }
         if open {
-          Group {
+          VStack(alignment: .leading, spacing: 0) {
             if let loading {
-              VStack(alignment: .leading, spacing: AppleMetrics.space12) {
-                ForEach(0..<(loading ? card.longSummary.count : 2), id: \.self) { index in
-                  Capsule().fill(AppleColors.primary.opacity(0.07))
-                    .frame(height: AppleMetrics.space10)
-                    .frame(maxWidth: index % 2 == 1 ? 220 : .infinity, alignment: .leading)
-                }
+              PhaseAnimator([1, AppleMetrics.loadingBreatheOpacity]) { opacity in
+                SummarySkeleton(points: loading ? card.longSummary : nil).opacity(opacity)
+              } animation: { _ in
+                .easeInOut(duration: AppleMetrics.loadingBreathe / 2)
               }
             } else if long {
               VStack(alignment: .leading, spacing: AppleMetrics.space8) {
@@ -222,9 +243,30 @@ struct SummaryOverview: View {
                 .textSelection(.enabled)
             }
           }
+          .keyframeAnimator(initialValue: SummaryReveal(), trigger: written) { content, reveal in
+            content.opacity(reveal.opacity).offset(y: reveal.y)
+          } keyframes: { _ in
+            KeyframeTrack(\.opacity) {
+              MoveKeyframe(0)
+              CubicKeyframe(1, duration: AppleMetrics.summaryReveal)
+            }
+            KeyframeTrack(\.y) {
+              MoveKeyframe(AppleMetrics.summaryRevealY)
+              CubicKeyframe(0, duration: AppleMetrics.summaryReveal)
+            }
+          }
           .transition(.opacity)
         }
       }
+      .animation(
+        reduceMotion || Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.summaryReveal),
+        value: open
+      )
+      .animation(
+        reduceMotion || Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.summaryReveal),
+        value: loading
+      )
+      .clipped()
       .padding(AppleMetrics.space16)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space12).fill(AppleColors.surface))
@@ -243,13 +285,44 @@ struct SummaryOverview: View {
     }
     loading = next
     pending = Task { @MainActor in
-      try? await Task.sleep(for: .milliseconds(520))
+      try? await Task.sleep(for: .seconds(AppleMetrics.summaryLoading))
       guard !Task.isCancelled else { return }
-      withAnimation(Motion.ease(0.28)) {
-        long = next
-        loading = nil
+      long = next
+      loading = nil
+      written += 1
+    }
+  }
+}
+
+private struct SummaryReveal {
+  var opacity: Double = 1
+  var y: CGFloat = 0
+}
+
+/// Web `.summary-skeleton`: the short summary as two bars; the long one as a bar per point,
+/// indented like the points and sized by their length.
+private struct SummarySkeleton: View {
+  let points: [String]?
+
+  var body: some View {
+    // Each bar keeps half the row gap above and below it, as the Web grid does.
+    let row = AppleMetrics.space10 + AppleMetrics.space14
+    GeometryReader { proxy in
+      VStack(alignment: .leading, spacing: 0) {
+        ForEach(Array(widths.enumerated()), id: \.offset) { _, share in
+          Capsule().fill(AppleColors.primary.opacity(AppleMetrics.summarySkeletonOpacity))
+            .frame(width: proxy.size.width * share, height: AppleMetrics.space10)
+            .frame(height: row)
+            .padding(.leading, points == nil ? 0 : AppleMetrics.space20)
+        }
       }
     }
+    .frame(height: CGFloat(widths.count) * row)
+  }
+
+  private var widths: [CGFloat] {
+    guard let points else { return [1, 0.58] }
+    return points.map { min(0.96, (30 + CGFloat($0.count)) / 100) }
   }
 }
 

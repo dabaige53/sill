@@ -244,6 +244,8 @@ test("a long summary adds the Sill switch, and the summary follows the info rows
 	const plain = new JSDOM(Panels.preview({}, { ...pr, longSummary: undefined }));
 	try {
 		assert.equal(plain.window.document.querySelector(".summary-length"), null);
+		assert.ok(plain.window.document.querySelector(".summary-mark .icon"));
+		assert.equal(plain.window.document.querySelector(".summary-mark button"), null);
 	} finally {
 		plain.window.close();
 	}

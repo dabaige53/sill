@@ -88,14 +88,24 @@ export const panelMotion: Record<string, any> = {
 	detailTools(el: HTMLElement): HTMLElement[] {
 		return [...el.querySelectorAll<HTMLElement>(".float-bar, .sheet-head-tools, .reader-head")];
 	},
-	revealDetail(el: HTMLElement, delay: number): Playback | null {
+	revealDetail(el: HTMLElement, delay: number, rise = false): Playback | null {
 		const inert = el.inert;
 		el.inert = true;
-		const animation = this.animate(el, [{ opacity: 0 }, { opacity: 1 }], {
-			duration: tokens.motion.detailFade,
-			delay,
-			fill: "backwards",
-		});
+		// Resizing: the new layout rises into place with the opening frame instead of popping in.
+		const animation = this.animate(
+			el,
+			rise
+				? [
+						{ opacity: 0, transform: `translateY(${tokens.motion.expandedContentY}px)` },
+						{ opacity: 1, transform: "none" },
+					]
+				: [{ opacity: 0 }, { opacity: 1 }],
+			{
+				duration: rise ? tokens.motion.expandedContentFade : tokens.motion.detailFade,
+				delay,
+				fill: "backwards",
+			},
+		);
 		if (!animation) {
 			el.inert = inert;
 			return null;
@@ -303,17 +313,39 @@ export const panelMotion: Record<string, any> = {
 			const target = sheet.getBoundingClientRect();
 			if (!target.width || !target.height) return;
 			const from = cardTransform(origin, target);
-			// The same surface flight as card opening, in either resize direction.
 			// New content hands over during travel instead of waiting for a second phase.
 			const carried = this.carryCapsule(el, sheet, from, "none", true);
-			const animation = this.animate(
-				sheet,
-				[
-					{ opacity: 1, transform: from },
-					{ opacity: 1, transform: "translate(0px,0px) scale(1,1)" },
-				],
-				{ duration: this.time("dur-open"), spring: "card" },
-			);
+			// Expanding: the full page is clipped to the preview's frame and the frame opens, so the
+			// text never scales (Mac the same). Shrinking keeps the surface flight to the smaller sheet.
+			const expanding = origin.width < target.width;
+			const inset = (top: number, right: number, bottom: number, left: number, radius: string) =>
+				`inset(${top}px ${right}px ${bottom}px ${left}px round ${radius})`;
+			const animation = expanding
+				? this.animate(
+						sheet,
+						[
+							{
+								opacity: 1,
+								clipPath: inset(
+									origin.top - target.top,
+									target.right - origin.right,
+									target.bottom - origin.bottom,
+									origin.left - target.left,
+									getComputedStyle(el).getPropertyValue("--sheet-radius").trim() || "0px",
+								),
+							},
+							{ opacity: 1, clipPath: inset(0, 0, 0, 0, "0px") },
+						],
+						{ duration: this.time("dur-open"), spring: "expanded" },
+					)
+				: this.animate(
+						sheet,
+						[
+							{ opacity: 1, transform: from },
+							{ opacity: 1, transform: "translate(0px,0px) scale(1,1)" },
+						],
+						{ duration: this.time("dur-open"), spring: "expanded" },
+					);
 			if (el.classList.contains("reader")) el.dataset.readerGrowing = "";
 			const cleanup = () => {
 				delete el.dataset.readerGrowing;
@@ -323,8 +355,9 @@ export const panelMotion: Record<string, any> = {
 			this.panelAnimations.set(el, [
 				animation,
 				carried,
-				...(body ? [this.revealDetail(body, tokens.motion.detailContentDelay)] : []),
-				...(outline ? [this.revealDetail(outline, tokens.motion.detailContentDelay)] : []),
+				// No wait: an empty frame reads as a white flash.
+				...(body ? [this.revealDetail(body, 0, true)] : []),
+				...(outline ? [this.revealDetail(outline, 0, true)] : []),
 				...this.detailEntry(el),
 				{ cancel: cleanup, complete: cleanup },
 			]);

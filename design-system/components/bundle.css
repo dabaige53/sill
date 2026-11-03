@@ -434,11 +434,16 @@ a {
 #dock > * {
 	pointer-events: auto;
 }
+/* The rail only moves; its glass fades layer by layer (chrome.ts `glassLayers`). A fading
+   ancestor would leave the glass a blank backdrop that snaps white when the fade ends. */
 #dock.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(20px));
-	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
+}
+#dock.is-tucked > :not(.ai-dock),
+#dock.is-tucked > .ai-dock > * {
+	opacity: 0;
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
@@ -1513,10 +1518,11 @@ body.is-dragging #toast {
 }
 /* status-bar.ts marks an open page; WebKit missed :has() on the dialog and left the row over search.
    Settings restores the row in its own, more specific rule. */
-body.has-open-page .home-top {
+body.has-open-page :is(.home-top, .home-top-edge) {
 	visibility: hidden;
 }
-body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+body:has(:is(#modal, .phone-layer)[open].page .settings-layout)
+	:is(.home-top:not(.is-tucked), .home-top-edge) {
 	visibility: visible;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -1528,7 +1534,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 .home-logo,
 .home-menu-toggle,
-.home-edge-blur,
+.home-top-edge,
 .home-menu,
 .home-search,
 .home-kinds {
@@ -1544,7 +1550,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		opacity: 1;
 	}
 	.home-top.is-tucked {
-		/* Include the sticky offset and glass feather in the shared travel. */
+		/* Include the sticky offset and feather in the travel, so the controls leave the blur fully. */
 		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
 		opacity: 1;
 		visibility: hidden;
@@ -1554,38 +1560,42 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		.home-top {
 			background: transparent;
 		}
-		.home-top > .home-heading,
-		.home-top > .home-kinds {
-			position: relative;
-			z-index: 1;
+		/* The edge blur sits behind the bar and stays when the controls tuck away while reading.
+		   It covers the sticky offset, the 64px row, the chip row while it shows and the feather. */
+		.home-top-edge {
+			display: block;
+			position: fixed;
+			z-index: 20;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: calc(var(--space-10) + var(--space-64) + var(--space-12));
+			pointer-events: none;
 		}
-		.home-top::before,
-		.home-top::after,
-		.home-edge-blur {
+		body:has(#home-kinds:not([hidden])) .home-top-edge {
+			height: calc(
+				var(--space-10) +
+				var(--space-64) +
+				var(--space-32) +
+				var(--space-2) +
+				var(--space-12)
+			);
+		}
+		/* Mac's material over the feed reads as a lift, not a blur: the cards stay sharp under a
+		   bright wash. The mask follows Mac: full at the top, 70% at 45%, gone below. */
+		.home-top-edge::before {
 			content: "";
 			display: block;
 			position: absolute;
-			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
-			z-index: 0;
-			pointer-events: none;
-		}
-		.home-top::before {
-			-webkit-backdrop-filter: var(--edge-blur-soft);
-			backdrop-filter: var(--edge-blur-soft);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-		}
-		.home-top::after {
-			-webkit-backdrop-filter: var(--edge-blur-mid);
-			backdrop-filter: var(--edge-blur-mid);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-		}
-		.home-edge-blur {
-			-webkit-backdrop-filter: var(--edge-blur-strong);
-			backdrop-filter: var(--edge-blur-strong);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
-			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			inset: 0;
+			background: var(--edge-tint);
+			-webkit-mask-image: linear-gradient(
+				to bottom,
+				#000 0%,
+				rgb(0 0 0 / 0.7) 45%,
+				transparent 100%
+			);
+			mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.7) 45%, transparent 100%);
 		}
 	}
 
@@ -2144,6 +2154,12 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+/* The time a card entered Sill has no label; a dotted underline tells it from a content date. */
+.card-time.is-added {
+	text-decoration: underline dotted;
+	text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+	text-underline-offset: 3px;
+}
 .card-head-right {
 	margin-left: auto;
 	flex: none;
@@ -2360,30 +2376,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 
 /* data and list blocks */
-.sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-/* Name and time share one baseline: the bold name is larger, so centering left the time high. */
-.sender > span:last-child {
-	display: flex;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-.sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-	font-weight: calc(600 + var(--content-weight-add, 0));
-	line-height: 1.3;
-}
-.sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	line-height: 1.4;
-	color: var(--muted);
-}
 .avatar {
 	display: inline-grid;
 	place-items: center;
@@ -3066,6 +3058,14 @@ dialog::backdrop {
 	align-items: center;
 	gap: 0;
 }
+@media (min-width: 651px) {
+	dialog.preview[open]:has(.detail-summary):not(:has(.preview-sheet.is-full)) {
+		margin-top: var(--summary-preview-top, auto);
+	}
+	dialog.preview[open]:has(.detail-summary) > .preview-sheet:not(.is-full) {
+		max-height: min(88dvh, 900px, calc(100dvh - var(--summary-preview-top, 0px) - var(--space-24)));
+	}
+}
 .preview-sheet {
 	position: relative;
 	z-index: 1;
@@ -3112,7 +3112,7 @@ dialog::backdrop {
 	visibility: hidden;
 	pointer-events: none;
 }
-/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+/* Scroll edges are real layers. The bottom one tucks with the capsule; the top one stays once scrolled. */
 .preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
@@ -3140,17 +3140,14 @@ dialog::backdrop {
 	height: 44px;
 }
 .preview-sheet :is(#modal-title, .phone-layer-title),
-.preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
+.preview-sheet .preview-body .preview-meta {
 	padding-right: var(--space-48);
 }
 .preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
-.preview-sheet:has(.sheet-head [data-action="reader"])
-	.preview-body
-	:is(.preview-sender, .preview-meta) {
+.preview-sheet:has(.sheet-head [data-action="reader"]) .preview-body .preview-meta {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta))
-	:is(#modal-title, .phone-layer-title) {
+.preview-sheet:has(.preview-body .preview-meta) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
@@ -3215,7 +3212,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.preview-sheet > .sheet-edge.is-top.is-tucked,
 .preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
@@ -3405,27 +3401,6 @@ dialog::backdrop {
 	font: inherit;
 	color: inherit;
 }
-.preview-sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-/* Name and time share one baseline, as on the card. */
-.preview-sender > span:last-child {
-	display: flex;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-.preview-sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.preview-sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	color: var(--muted);
-}
 .detail-rows {
 	display: flex;
 	flex-direction: column;
@@ -3517,8 +3492,10 @@ button.detail-row:active {
 .why-line .icon {
 	color: var(--secondary);
 }
+/* Rows keep the card's rhythm; the phone widens the touch area without spacing them out. */
 .detail-task-list .check-item {
-	min-height: 44px;
+	position: relative;
+	min-height: var(--space-36);
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-tags {
@@ -3729,6 +3706,11 @@ button.detail-row:active {
 	background: var(--accent-fill);
 	z-index: 4;
 }
+/* The reading line belongs to the open page; it does not fly home with the surface. */
+:has(> [data-return-face]) .reader-progress,
+.reader-progress:has(~ [data-return-face]) {
+	visibility: hidden;
+}
 .reader-scroll {
 	height: 100dvh;
 	overflow-y: auto;
@@ -3747,7 +3729,7 @@ button.detail-row:active {
 }
 .reader-body h1,
 .reader-body .preview-title-row {
-	font-size: calc(34px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-detail-title) * var(--content-text-scale, 1));
 	line-height: calc(1.3 * var(--reader-line-scale, 1));
 	font-weight: calc(600 + var(--content-weight-add, 0));
 	letter-spacing: -0.035em;
@@ -3755,13 +3737,13 @@ button.detail-row:active {
 	white-space: pre-line;
 }
 .reader-body p {
-	font-size: calc(18px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.9 * var(--reader-line-scale, 1));
 	margin: 0;
 	color: var(--ink);
 }
 .reader-body .preview-full li {
-	font-size: calc(18px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.9 * var(--reader-line-scale, 1));
 }
 .reader-body .reader-cover {
@@ -3821,13 +3803,6 @@ button.detail-row:active {
 	width: 62%;
 }
 
-.lightbox-caption {
-	flex: none;
-	text-align: center;
-	padding: var(--space-12) var(--space-20);
-	font-size: var(--text-control);
-	color: var(--muted);
-}
 .lightbox > .preview-note {
 	flex: none;
 	margin: var(--space-12) var(--space-20);
@@ -5191,11 +5166,6 @@ body.has-open-search #feed-grid {
 	background: transparent;
 	font-size: var(--text-meta);
 }
-.tag-hint {
-	margin: var(--space-8) 0 0;
-	font-size: var(--text-caption);
-	color: var(--muted);
-}
 .editor-note {
 	width: 100%;
 	min-height: 120px;
@@ -5216,6 +5186,124 @@ body.has-open-search #feed-grid {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-6);
+	margin-top: var(--space-8);
+}
+
+.tag-editor-sheet {
+	display: flex;
+	flex-direction: column;
+	max-height: min(78dvh, var(--visible-height, 100dvh));
+}
+.tag-panel-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.tag-panel-fields {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.tag-panel-content .panel-footer {
+	flex: none;
+	justify-content: flex-end;
+}
+/* The sheet holds focus on a phone so no control opens with a ring. */
+.tag-editor-sheet:focus {
+	outline: 0;
+}
+/* With no title above it, the tag field keeps clear of the round close button. */
+.tag-panel-fields > .tag-editor {
+	margin-right: var(--space-36);
+}
+/* The note is always a field, never a fold. On a phone it is a row that opens the note page. */
+.note-field {
+	display: block;
+	width: 100%;
+	margin-top: var(--space-16);
+	padding: var(--space-10) var(--space-12);
+	border-radius: 14px;
+	background: var(--surface);
+}
+textarea.note-field {
+	min-height: 96px;
+	line-height: 1.6;
+}
+button.note-field {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	border: 0;
+	color: var(--ink);
+	font-size: var(--text-input);
+	text-align: left;
+	cursor: pointer;
+}
+button.note-field.is-empty {
+	color: var(--muted);
+}
+.note-field-text {
+	flex: 1;
+	min-width: 0;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	white-space: pre-line;
+}
+button.note-field > .icon {
+	flex: none;
+	color: var(--secondary);
+}
+.tag-editor-sheet {
+	position: relative;
+}
+#tag-layer.panel .tag-editor-sheet:is(.note-open, .note-leaving) {
+	overflow: hidden;
+}
+.note-page {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: none;
+	flex-direction: column;
+	padding: var(--space-12) var(--space-20) max(var(--space-12), env(safe-area-inset-bottom));
+	background: var(--card);
+}
+.tag-editor-sheet:is(.note-open, .note-leaving) > .note-page {
+	display: flex;
+}
+.tag-editor-sheet.note-open {
+	height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - var(--space-8));
+}
+.tag-editor-sheet.note-open > .sheet-close {
+	visibility: hidden;
+}
+.note-page-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--hit-target);
+}
+.note-page-bar h2 {
+	margin: 0;
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.note-done {
+	min-height: var(--hit-target);
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border: 0;
+	background: none;
+	color: var(--accent);
+	font-size: var(--text-input);
+	font-weight: 600;
+}
+.note-page .editor-note {
+	flex: 1;
+	min-height: 0;
 	margin-top: var(--space-8);
 }
 
@@ -5548,7 +5636,8 @@ body.is-pulling main {
 	background: transparent;
 }
 
-/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars.
+   The top edge stays while the bars tuck; only the bottom one leaves with the toolbar. */
 .reader-edge {
 	position: fixed;
 	left: 0;
@@ -5576,7 +5665,7 @@ body.is-pulling main {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.reader-edge.is-tucked {
+.reader-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
 /* Local AI conversation preview: no messages or connected send action. */
@@ -5809,11 +5898,12 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	.feed-card {
 		--content-text-scale: calc(var(--card-text-scale, 1) * var(--text-phone-scale, 1));
 	}
-	.preview-body {
+	.preview-body,
+	.reader-body {
 		--content-text-scale: calc(var(--reader-text-scale, 1) * var(--text-phone-scale, 1));
 	}
 	/* Detail text reads at the reader's body size, so expanding does not change it. */
-	.preview-body .preview-full {
+	:is(.preview-body, .reader-body) .preview-full {
 		font-size: calc(var(--text-reader-body) * var(--reader-text-scale, 1));
 	}
 	.search-card-grid {

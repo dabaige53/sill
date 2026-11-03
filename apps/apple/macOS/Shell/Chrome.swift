@@ -48,11 +48,29 @@ import SwiftUI
   }
 }
 
+/// Whether the feed is moving. Only the card layer reads it, so a flip redraws that layer alone.
+/// Changes at the start of a scroll and once it rests, never per frame.
+@MainActor @Observable final class FeedMoving {
+  private(set) var active = false
+  @ObservationIgnored private var rest: Task<Void, Never>?
+
+  func moved() {
+    if !active { active = true }
+    rest?.cancel()
+    rest = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
+      guard !Task.isCancelled else { return }
+      self?.active = false
+    }
+  }
+}
+
 /// Reads the feed's scroll position from AppKit: tucks the chrome (down 28, up 14, rest 450ms,
 /// edges), loads the next page near the end, and keeps each scope's position.
 @MainActor final class FeedScroll {
   weak var scrollView: NSScrollView?
   let chrome: Chrome
+  let moving = FeedMoving()
   var nearEnd: () -> Void = {}
   var didScroll: (CGFloat) -> Void = { _ in }
   let refresh = FeedRefresh()
@@ -76,6 +94,7 @@ import SwiftUI
     let offset = raw + top
     didScroll(offset)
     let delta = offset - last
+    if delta != 0 { moving.moved() }
     last = offset
     rest?.cancel()
     chrome.rest(atTop: offset <= 0)

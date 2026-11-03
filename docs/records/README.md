@@ -8,7 +8,12 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [备份设计画板诊断](2026-11-03-backup-design/README.md)
+- [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/README.md)
+- [放大阅读页封面顶部留白](2026-11-03-reader-cover-spacing/README.md)
+- [概要展开收起与图标](2026-11-03-summary-fold/README.md)
 - [Muse OAuth 接入检查](2026-11-03-muse-oauth/README.md)
+- [Mac 卡片列表滚动卡顿](2026-11-03-macos-feed-scroll/README.md)
 - [手机标签面板卡死与重做](2026-11-02-phone-tag-sheet/README.md)
 - [CI 初始化](2026-11-01-ci-init/README.md)
 - [生产功能与扩展压力验收](2026-10-31-production-acceptance/README.md)

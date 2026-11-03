@@ -117,7 +117,8 @@
 				"article-meta",
 				"article-measure",
 				"article-gutter",
-				"reader-measure",
+				"reader-column",
+				"reader-cover-ratio",
 				"reader-outline-width"
 			],
 			"adr": "0065",

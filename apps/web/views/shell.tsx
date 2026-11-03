@@ -25,55 +25,60 @@ import { HomeSearchField } from "./home-search-field.tsx";
 /**
  * Phone: title, avatar and a row of solid tabs (ADR 0048).
  * Desktop: brand, a ⌄ tab menu, the search field and the avatar on one 40px line (ADR 0049).
+ * The desktop edge blur is its own layer: the controls tuck away while reading, the blur stays.
  */
 export function HomeTop() {
 	return (
-		<header id="home-top" className="home-top">
-			<span className="home-edge-blur" aria-hidden="true" />
-			<div className="home-heading">
-				<div className="home-brand">
+		<>
+			<div className="home-top-edge" id="home-top-edge" aria-hidden="true">
+				<span className="home-edge-blur" />
+			</div>
+			<header id="home-top" className="home-top">
+				<div className="home-heading">
+					<div className="home-brand">
+						<button
+							type="button"
+							className="home-mark"
+							data-action="top"
+							aria-label={copy("web.home.top")}
+						>
+							<span className="home-logo">{sillIcon(40)}</span>
+							<SillWordmark />
+						</button>
+						<HomeScopeMenu />
+					</div>
+					<HomeSearchField />
 					<button
 						type="button"
-						className="home-mark"
-						data-action="top"
-						aria-label={copy("web.home.top")}
+						className="home-account"
+						id="account"
+						data-action="nav"
+						data-extra="settings"
+						aria-label={copy("web.nav.settings")}
 					>
-						<span className="home-logo">{sillIcon(40)}</span>
-						<SillWordmark />
+						<span className="account-wrap">
+							<AccountRing />
+						</span>
 					</button>
-					<HomeScopeMenu />
 				</div>
-				<HomeSearchField />
-				<button
-					type="button"
-					className="home-account"
-					id="account"
-					data-action="nav"
-					data-extra="settings"
-					aria-label={copy("web.nav.settings")}
-				>
-					<span className="account-wrap">
-						<AccountRing />
-					</span>
-				</button>
-			</div>
-			{/* biome-ignore lint/a11y/useSemanticElements: This group contains navigation filters, not form fields; preserve the existing layout and semantics. */}
-			<div className="home-tabs" role="group" aria-label={copy("web.home.tabs")}>
-				{homeTabs.map(([key, label]) => (
-					<button
-						key={key}
-						type="button"
-						className="home-tab"
-						data-action="home-tab"
-						data-extra={key}
-						aria-pressed={key === "all"}
-					>
-						{copy(label)}
-					</button>
-				))}
-			</div>
-			<div className="home-kinds" id="home-kinds" hidden />
-		</header>
+				{/* biome-ignore lint/a11y/useSemanticElements: This group contains navigation filters, not form fields; preserve the existing layout and semantics. */}
+				<div className="home-tabs" role="group" aria-label={copy("web.home.tabs")}>
+					{homeTabs.map(([key, label]) => (
+						<button
+							key={key}
+							type="button"
+							className="home-tab"
+							data-action="home-tab"
+							data-extra={key}
+							aria-pressed={key === "all"}
+						>
+							{copy(label)}
+						</button>
+					))}
+				</div>
+				<div className="home-kinds" id="home-kinds" hidden />
+			</header>
+		</>
 	);
 }
 export function AccountRing() {

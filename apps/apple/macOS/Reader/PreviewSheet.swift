@@ -14,9 +14,11 @@ struct PreviewSheet: View {
   @Environment(Workspace.self) private var workspace
   let scroll: ReaderScroll
   @State private var contentHeight: CGFloat = 0
+  @State private var previewTop: CGFloat?
   @State private var firstRow: CGFloat = 0
 
-  private var narrowDetail: Bool {
+  /// Short details keep less room above the toolbar; the sheet width stays the shared one.
+  private var briefDetail: Bool {
     [.media, .suggestion, .reminder].contains(card.kind) || (card.kind == .note && card.shortDetail)
   }
 
@@ -33,26 +35,26 @@ struct PreviewSheet: View {
       layer.full
       ? size.width
       : min(
-        card.kind == .media
-          ? AppleMetrics.mediaPreviewWidth
-          : narrowDetail ? AppleMetrics.compactReaderWidth : AppleMetrics.previewWidth,
+        card.kind == .media ? AppleMetrics.mediaPreviewWidth : AppleMetrics.previewWidth,
         size.width - AppleMetrics.previewMargin)
     let maxHeight = min(
       size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight)
     // A card may open directly in full mode. Its first preview measurement must not
     // collapse the already visible surface to one point or hide it for a frame.
+    let availableHeight = min(maxHeight, size.height - (previewTop ?? 0) - AppleMetrics.space24)
     let height =
-      layer.full ? size.height : (contentHeight > 0 ? min(maxHeight, contentHeight) : maxHeight)
+      layer.full
+      ? size.height : (contentHeight > 0 ? min(availableHeight, contentHeight) : availableHeight)
     let target = CGRect(
       x: (size.width - width) / 2,
-      y: (size.height - height) / 2,
+      y: layer.full ? 0 : previewTop ?? (size.height - height) / 2,
       width: width, height: height)
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     let barRoom =
       tools.isEmpty
       ? AppleMetrics.previewPaddingX
-      : AppleMetrics.railRow + (narrowDetail ? AppleMetrics.space24 : AppleMetrics.space40)
+      : AppleMetrics.railRow + (briefDetail ? AppleMetrics.space24 : AppleMetrics.space40)
     VStack(spacing: 0) {
       if let below, !layer.full {
         Button {
@@ -82,7 +84,7 @@ struct PreviewSheet: View {
             ReaderContent(
               card: card, state: state, type: layer.full ? .page : .preview,
               discRoom: layer.full ? 0 : discRoom,
-              mediaWidth: layer.full ? size.width - 2 * AppleMetrics.readerPageGutter : nil,
+              mediaWidth: layer.full ? size.width - 2 * AppleMetrics.space30 : nil,
               mediaHeight: layer.full
                 ? max(
                   AppleMetrics.mediaPlayerMinHeight,
@@ -111,7 +113,12 @@ struct PreviewSheet: View {
             .onGeometryChange(for: CGFloat.self) {
               $0.size.height
             } action: { value in
-              if !layer.full { contentHeight = value }
+              if !layer.full {
+                if previewTop == nil, value > 0, card.kind != .photo, !card.summary.isEmpty {
+                  previewTop = (size.height - min(maxHeight, value)) / 2
+                }
+                contentHeight = value
+              }
             }
             .background(ReaderScrollProbe(scroll: scroll))
             .modifier(ReaderPullOffset(motion: scroll.motion))
@@ -134,7 +141,8 @@ struct PreviewSheet: View {
         if !layer.full {
           HeadDiscs(
             motion: scroll.motion,
-            firstRow: card.kind == .article && card.cover != nil ? AppleMetrics.space44 : firstRow,
+            // A hoisted cover keeps the discs at the same height as every other detail.
+            firstRow: firstRow,
             expand: expandable ? { reader.open(card.id, full: true) } : nil,
             close: { reader.close() }
           )
@@ -164,7 +172,8 @@ struct PreviewSheet: View {
       )
 
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .padding(.top, target.minY)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }
     .onChange(of: layer.full) {
@@ -253,6 +262,7 @@ struct Disc: View {
 }
 
 /// Once the text has moved under the discs, a soft edge keeps the two apart.
+/// It stays while the discs tuck away and leaves only back at the top (Web `.sheet-edge.is-top`).
 struct TopFade: View {
   let motion: ReaderMotion
   var body: some View {
@@ -263,8 +273,8 @@ struct TopFade: View {
       ], startPoint: .top, endPoint: .bottom
     )
     .frame(height: AppleMetrics.headerEdgeHeight)
-    .opacity(motion.scrolled && !motion.toolsHidden ? 1 : 0)
-    .animation(Motion.state, value: motion.scrolled && !motion.toolsHidden)
+    .opacity(motion.scrolled ? 1 : 0)
+    .animation(Motion.state, value: motion.scrolled)
     .allowsHitTesting(false)
   }
 }

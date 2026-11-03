@@ -168,6 +168,10 @@
 	color: var(--success);
 }
 .ai-result.is-failed .ai-result-state,
+.ai-result.is-failed .ai-result-text .is-warn {
+	color: var(--error);
+}
+
 .ai-result.is-unknown .ai-result-state {
 	color: var(--alert);
 }
@@ -566,4 +570,9 @@
 	.ai-dock:is([data-height="panel"], [data-height="full"]) > .ai-dock-tools {
 		display: none;
 	}
+}
+
+/* The embedded host owns the conversation composer. */
+#ai-dock[hidden] {
+	display: none;
 }

@@ -30,6 +30,7 @@ const MotionEngine: Record<string, any> = {
 	layoutAnimations: new WeakMap(),
 	visibilityAnimations: new WeakMap(),
 	contentAnimations: new WeakMap(),
+	layerFades: new WeakMap(),
 	loops: new WeakMap(),
 	menuAnimations: new WeakMap(),
 	exits: new Map(),
@@ -100,10 +101,16 @@ const MotionEngine: Record<string, any> = {
 		update: () => void,
 		duration = this.time("base"),
 		timing: { easing?: string; spring?: "card" } = {},
+		// Glass reads a blank backdrop under a fading ancestor, then snaps when the fade ends.
+		// A bar holding glass fades these layers on its timing and keeps its own opacity at 1.
+		layers: HTMLElement[] = [],
 	) {
 		const before = getComputedStyle(el);
 		const from = { opacity: before.opacity, transform: before.transform };
+		const fades = layers.map((layer) => [layer, getComputedStyle(layer).opacity] as const);
 		this.cancel(el);
+		// Only the fade this bar started; a layer may run its own motion meanwhile.
+		for (const layer of layers) this.layerFades.get(layer)?.cancel();
 		update();
 		if (
 			!timing.easing &&
@@ -117,6 +124,14 @@ const MotionEngine: Record<string, any> = {
 		const to = { opacity: after.opacity, transform: after.transform };
 		const visibility = after.visibility;
 		if (this.keyboard) return null;
+		for (const [layer, opacity] of fades) {
+			const target = getComputedStyle(layer).opacity;
+			if (target !== opacity)
+				this.layerFades.set(
+					layer,
+					this.animate(layer, [{ opacity }, { opacity: target }], { duration, ...timing }),
+				);
+		}
 		// A constant opacity animation still creates a compositing boundary for glass
 		// descendants. Animate only properties that change so their backdrop stays live.
 		const keys = (Object.keys(from) as (keyof typeof from)[]).filter(

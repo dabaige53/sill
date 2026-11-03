@@ -32,11 +32,12 @@
 	.feed-card {
 		--content-text-scale: calc(var(--card-text-scale, 1) * var(--text-phone-scale, 1));
 	}
-	.preview-body {
+	.preview-body,
+	.reader-body {
 		--content-text-scale: calc(var(--reader-text-scale, 1) * var(--text-phone-scale, 1));
 	}
 	/* Detail text reads at the reader's body size, so expanding does not change it. */
-	.preview-body .preview-full {
+	:is(.preview-body, .reader-body) .preview-full {
 		font-size: calc(var(--text-reader-body) * var(--reader-text-scale, 1));
 	}
 	.search-card-grid {

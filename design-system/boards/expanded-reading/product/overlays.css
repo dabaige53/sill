@@ -77,6 +77,14 @@ dialog::backdrop {
 	align-items: center;
 	gap: 0;
 }
+@media (min-width: 651px) {
+	dialog.preview[open]:has(.detail-summary):not(:has(.preview-sheet.is-full)) {
+		margin-top: var(--summary-preview-top, auto);
+	}
+	dialog.preview[open]:has(.detail-summary) > .preview-sheet:not(.is-full) {
+		max-height: min(88dvh, 900px, calc(100dvh - var(--summary-preview-top, 0px) - var(--space-24)));
+	}
+}
 .preview-sheet {
 	position: relative;
 	z-index: 1;
@@ -123,7 +131,7 @@ dialog::backdrop {
 	visibility: hidden;
 	pointer-events: none;
 }
-/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+/* Scroll edges are real layers. The bottom one tucks with the capsule; the top one stays once scrolled. */
 .preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
@@ -151,17 +159,14 @@ dialog::backdrop {
 	height: 44px;
 }
 .preview-sheet :is(#modal-title, .phone-layer-title),
-.preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
+.preview-sheet .preview-body .preview-meta {
 	padding-right: var(--space-48);
 }
 .preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
-.preview-sheet:has(.sheet-head [data-action="reader"])
-	.preview-body
-	:is(.preview-sender, .preview-meta) {
+.preview-sheet:has(.sheet-head [data-action="reader"]) .preview-body .preview-meta {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta))
-	:is(#modal-title, .phone-layer-title) {
+.preview-sheet:has(.preview-body .preview-meta) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
@@ -226,7 +231,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.preview-sheet > .sheet-edge.is-top.is-tucked,
 .preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
@@ -416,22 +420,6 @@ dialog::backdrop {
 	font: inherit;
 	color: inherit;
 }
-.preview-sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-.preview-sender > span:last-child {
-	display: flex;
-	flex-direction: column;
-}
-.preview-sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.preview-sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	color: var(--muted);
-}
 .detail-rows {
 	display: flex;
 	flex-direction: column;
@@ -523,8 +511,10 @@ button.detail-row:active {
 .why-line .icon {
 	color: var(--secondary);
 }
+/* Rows keep the card's rhythm; the phone widens the touch area without spacing them out. */
 .detail-task-list .check-item {
-	min-height: 44px;
+	position: relative;
+	min-height: var(--space-36);
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-tags {

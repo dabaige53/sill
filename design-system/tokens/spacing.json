@@ -347,14 +347,19 @@
 				"usage": "官方嵌入视频播放器的最小高度。"
 			},
 			{
-				"name": "reader-measure",
-				"value": "920px",
-				"usage": "资讯放大页正文最大宽度，不影响预览。"
+				"name": "reader-column",
+				"value": "800px",
+				"usage": "资讯放大页正文列最大宽度；正文宽度设为窄时取窄档。不影响预览。"
+			},
+			{
+				"name": "reader-cover-ratio",
+				"value": "2 / 1",
+				"usage": "资讯放大页封面宽高比，封面与正文列同宽。"
 			},
 			{
 				"name": "reader-outline-width",
-				"value": "160px",
-				"usage": "桌面资讯目录宽度。"
+				"value": "200px",
+				"usage": "桌面资讯目录宽度；与正文列相隔 space-64，两者作为一组居中。"
 			},
 			{
 				"name": "ai-dock-width",
