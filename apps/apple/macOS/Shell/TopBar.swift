@@ -25,9 +25,12 @@ struct TopBar: View {
     .padding(.top, (AppleMetrics.topBarInset / 2))
     .padding(.leading, edge)
     .padding(.trailing, edge)
+    .coordinateSpace(.named(TopBarSpace.name))
+    // An open card owns the desktop: the controls step aside until it closes, except at the top.
+    .modifier(TopBarReveal())
     .background {
-      // Attach the system material to the controls so both share the same reveal.
-      // A custom window cannot rely on automatic scroll-edge coverage alone.
+      // The material sits outside the reveal: the controls tuck away while reading, the blur stays
+      // at the bar's full height. A custom window cannot rely on automatic scroll-edge coverage alone.
       Rectangle().fill(.regularMaterial)
         .mask(
           LinearGradient(
@@ -41,9 +44,6 @@ struct TopBar: View {
         .padding(.bottom, -AppleMetrics.space12)
         .allowsHitTesting(false)
     }
-    .coordinateSpace(.named(TopBarSpace.name))
-    // An open card owns the desktop: the bar steps aside until it closes, except at the top.
-    .modifier(TopBarReveal())
   }
 
   /// Icon, Sill, ⌄, search and avatar on one 64-high line.
@@ -86,7 +86,7 @@ struct TopBar: View {
   static func showsKinds(_ feed: Feed) -> Bool { !Feed.searchText(feed.query).isEmpty }
 }
 
-/// One transition owns the controls and material, including the first mounted frame.
+/// One transition owns the controls, including the first mounted frame; the material stays put.
 /// Scrolling takes its animation from `Chrome`; an open card and the first entrance set their own.
 private struct TopBarReveal: ViewModifier {
   @Environment(Chrome.self) private var chrome
@@ -118,7 +118,8 @@ struct AccountButton: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Image("account-avatar", bundle: AppResources.bundle)
+      // A loose PNG in the resource bundle: SwiftUI's named lookup draws nothing for it.
+      Image(nsImage: Cover.image("account-avatar") ?? NSImage())
         .resizable()
         .scaledToFill()
         .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)

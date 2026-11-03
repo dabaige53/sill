@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import recipes from "../design-system/recipes.json" with { type: "json" };
 import { Card, cardTypes, id } from "./card.ts";
 import { cardIssues } from "./card-rules.ts";
 import { CardState, Preferences } from "./local.ts";
@@ -70,9 +71,19 @@ const expectedFields: Record<string, string[]> = {
 	reminder: ["sources"],
 	file: ["sources"],
 };
-/** Agent-created cards need a card-face summary; the app's own editor is not bound by this. */
+// Kinds whose title, list or time already carry the conclusion; a summary stays optional.
+const summaryOptional = new Set(["task", "reminder", "event"]);
+/** Whether an agent-created card must carry summary; quotes and notes whose body fits the face are exempt. */
+function summaryRequired(card: Record<string, unknown>) {
+	if (summaryOptional.has(String(card.type))) return false;
+	if (card.type !== "note") return true;
+	if (card.form === "quote") return false;
+	const body = typeof card.body === "string" ? card.body.trim() : "";
+	return Array.from(body).length > recipes.content.summaryCharacters;
+}
+/** Agent-created cards need a card-face summary when required; the app's own editor is not bound by this. */
 export function agentCardIssues(card: Record<string, unknown>) {
-	return typeof card.summary === "string" && card.summary.trim()
+	return !summaryRequired(card) || (typeof card.summary === "string" && card.summary.trim())
 		? []
 		: [{ path: ["summary"], message: "missing_summary" }];
 }

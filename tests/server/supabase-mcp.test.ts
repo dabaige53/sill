@@ -109,7 +109,7 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 			name: "sill_createContent",
 			arguments: {
 				idempotency_key: "mcp_no_summary",
-				body: { type: "note", title: "No summary", body: "Text" },
+				body: { type: "article", title: "No summary", body: "Text" },
 			},
 		});
 		assert.equal(noSummary.isError, true);
@@ -117,6 +117,18 @@ test("official MCP client discovers/calls ten contracts over authenticated state
 		assert.deepEqual(JSON.parse(noSummary.content[0].text).error.issues, [
 			{ path: "body.summary", message: "missing_summary" },
 		]);
+		const shortTask = await client.callTool({
+			name: "sill_createContent",
+			arguments: {
+				idempotency_key: "mcp_task_no_summary",
+				body: {
+					type: "task",
+					title: "Send the review notes",
+					tasks: [{ id: "send", text: "Send" }],
+				},
+			},
+		});
+		assert.ok(!shortTask.isError);
 		const bare = await client.callTool({
 			name: "sill_createContent",
 			arguments: {

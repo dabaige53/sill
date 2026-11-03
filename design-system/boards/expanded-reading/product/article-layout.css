@@ -7,16 +7,8 @@
 		var(--reader-space-scale, 1)
 	);
 }
-.reader-body.is-article .preview-full.typeset {
-	--typeset-flow: calc(
-		var(--text-reader-body) *
-		var(--content-text-scale, 1) *
-		1.25 *
-		var(--reader-space-scale, 1)
-	);
-}
 @media (max-width: 650px) {
-	.preview-body.is-article .preview-full.typeset {
+	:is(.preview-body, .reader-body).is-article .preview-full.typeset {
 		--typeset-flow: calc(
 			var(--text-reader-body) *
 			var(--reader-text-scale, 1) *

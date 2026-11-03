@@ -125,17 +125,17 @@
 		top: calc(var(--space-8) + var(--space-44) + var(--space-24));
 	}
 	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
-	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
+	:is(#modal, .phone-layer).preview .preview-body .preview-meta {
 		padding-right: var(--space-52);
 	}
 	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		:is(#modal-title, .phone-layer-title),
 	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		.preview-body
-		:is(.preview-sender, .preview-meta) {
+		.preview-meta {
 		padding-right: var(--space-104);
 	}
-	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+	:is(#modal, .phone-layer).preview:has(.preview-body .preview-meta)
 		:is(#modal-title, .phone-layer-title) {
 		padding-right: 0;
 	}
@@ -240,7 +240,7 @@
 	}
 	.reader-body h1,
 	.reader-body .preview-title-row {
-		font-size: calc(27px * var(--content-text-scale, 1));
+		font-size: calc(var(--space-24) * var(--content-text-scale, 1));
 	}
 	.reader-body p {
 		font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));

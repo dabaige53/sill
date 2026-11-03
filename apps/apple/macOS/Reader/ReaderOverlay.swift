@@ -208,13 +208,23 @@ struct DetailReveal: ViewModifier {
     // Returning to the card: the tools leave first instead of riding the edge back; the text
     // stays in the surface until the handoff.
     let leaving = tools && reader.returning
+    // Expanding or shrinking: the text takes its new layout at once, so it fades in while the
+    // frame travels instead of jumping inside it (Web `revealDetail` the same).
+    let settling = !tools && reader.resizeSource != nil && !reader.resizeShown
     let opacity: Double =
-      leaving ? 0 : reader.matching || visible ? 1 : 0
+      leaving || settling ? 0 : reader.matching || visible ? 1 : 0
     content.opacity(opacity)
+      // The new layout rises into place with the opening frame instead of popping in.
+      .offset(y: settling ? AppleMetrics.expandedContentY : 0)
       .allowsHitTesting(visible && !leaving)
       .accessibilityHidden(!visible || leaving)
       .animation(
-        reader.matching && !leaving ? nil : Motion.ease(AppleMetrics.motionDetailFade),
+        settling
+          ? nil
+          : reader.resizeSource != nil
+            // No wait: an empty frame reads as a white flash.
+            ? Motion.ease(AppleMetrics.motionExpandedContentFade)
+            : reader.matching && !leaving ? nil : Motion.ease(AppleMetrics.motionDetailFade),
         value: opacity)
   }
 }

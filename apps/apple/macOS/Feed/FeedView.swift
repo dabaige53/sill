@@ -40,6 +40,7 @@ struct FeedView: View {
             if shelf { ShelfEntry(count: feed.shelfCount).transition(.opacity) }
           }
           .frame(width: geometry.width)
+          .modifier(RestingHover(moving: scroll.moving))
           .animation(
             feed.animateChanges && !Motion.keyboardDriven ? Motion.layout : nil, value: feed.entries
           )
@@ -105,6 +106,13 @@ struct FeedView: View {
   static let arrival = AnyTransition.asymmetric(
     insertion: .opacity.combined(with: .offset(y: -AppleMetrics.motionDetailEnterY)),
     removal: .opacity.animation(Motion.fast))
+}
+
+/// Cards take the pointer only while the feed rests. Under a still pointer a moving feed would
+/// re-test every card's hover on every frame; the card under the pointer lifts once it rests.
+private struct RestingHover: ViewModifier {
+  let moving: FeedMoving
+  func body(content: Content) -> some View { content.allowsHitTesting(!moving.active) }
 }
 
 extension FeedEntry {

@@ -18,7 +18,6 @@ struct MediaDetail: View {
       Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
         .frame(maxWidth: .infinity, alignment: .leading)
       ReaderTags(tags: state.tags(of: card))
-      SummaryOverview(card: card)
       if let id = OfficialVideoPlayer.videoID(card.url) {
         OfficialVideoPlayer(
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
@@ -52,7 +51,7 @@ struct MediaDetail: View {
           }.buttonStyle(TextLinkStyle(padded: false))
         }
       }
-
+      SummaryOverview(card: card)
     }
   }
 

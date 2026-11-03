@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-03T06:00:00Z"},
+  "title": "Sill · 备份与恢复",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 880, "expand": "fill", "title": "备份与恢复 · 桌面", "is_interactive": true},
+    "Connect.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 880, "expand": "fill", "title": "添加备份位置", "is_interactive": true},
+    "Mobile.dc.html": {"x": 2720, "y": 0, "w": 390, "h": 844, "title": "备份与恢复 · 手机"},
+    "Configured.dc.html": {"x": 0, "y": 1000, "w": 1280, "h": 880, "expand": "fill", "title": "添加后 · 备份与恢复", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Connect.dc.html", "Mobile.dc.html", "Configured.dc.html"],
+  "notes": {},
+  "designSystems": []
+}

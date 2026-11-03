@@ -103,7 +103,6 @@ export function CloudSettings({
 	if (section === "backup")
 		return (
 			<>
-				<h2>{copy("web.backup.navigation")}</h2>
 				{user && backupApi && backupOwner && (
 					<BackupSettings
 						key={backupOwner}

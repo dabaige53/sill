@@ -27,11 +27,10 @@
 	[data-vaul-drawer-wrapper] {
 		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
 		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness)) !important;
-	}
-	/* Vaul clips the page; the home page's cards clip themselves instead (base.css), so glass and
-	   shadows draw the same way during and after the drawer. Search keeps Vaul's clip. */
-	#workspace-background[data-vaul-drawer-wrapper] {
-		overflow: visible !important;
+		/* Vaul removes its inline overflow at exit start; keep the viewport clipped until unmount. */
+		overflow: clip !important;
+		/* Vaul supplies duration/easing, and sets duration to zero while dragging. */
+		transition-property: transform, --phone-drawer-roundness !important;
 	}
 	/* The top bar and the status bar fill carry the page's top corners. */
 	#workspace-background[data-vaul-drawer-wrapper] .home-top,
@@ -43,8 +42,8 @@
 	/* Safari redraws every blur under the scaled, rounded page on each frame. The page is dimmed
 	   under the detail, so its glass stays flat while the drawer is open. A zero blur, not none:
 	   iOS builds a new glass layer when the filter comes back, and the top bar and the dock
-	   vanished for a frame as the drawer finished closing. The dock keeps its glass: it is small,
-	   and turning it clear changed its colour in one frame as the drawer opened and closed. */
+	   vanished for a frame as the drawer finished closing. The dock's bars have no glass on a
+	   phone (below), so nothing there changes as the drawer opens and closes. */
 	[data-vaul-drawer-wrapper] > :not(#dock) {
 		--glass-filter: blur(0);
 		--edge-blur-soft: blur(0);
@@ -59,12 +58,6 @@
 	   page looking as it did when the drawer opened. */
 	[data-vaul-drawer-wrapper] .home-top {
 		background: var(--canvas) !important;
-	}
-	/* The cards keep one layer of their own. When a closing drawer returns the frozen page to normal
-	   scrolling, iOS then moves that layer instead of repainting every card, and the card shadows
-	   no longer appear a beat after the page. */
-	#feed-grid {
-		will-change: transform;
 	}
 	/* The black behind the scaled page. It switches while the page still covers the screen, so only
 	   the page's movement reveals it, never a fade of its fill. */
@@ -103,8 +96,8 @@
 	:is(#modal, .phone-layer).preview .phone-drawer {
 		position: absolute;
 		inset: auto 0 0;
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 		height: auto;
 		min-height: 70dvh;
 		/* 24px under the status bar, as Vaul shifts the page by the bar plus 14px. A home-screen app
@@ -112,12 +105,15 @@
 		max-height: calc(100dvh - env(safe-area-inset-top) - 24px);
 		background: var(--card);
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		overflow: clip;
 		outline: none;
 	}
+	/* iOS paints the drawer as one large tiled layer, and on a first open its lower tiles arrived a few
+	   frames after the slide began: every card showed the page through the drawer's lower half.
+	   Vaul's overdrag fill (transparent here, so it painted nothing) stretched that layer to three
+	   times the drawer's height; without it the layer is only the drawer. */
 	:is(#modal, .phone-layer).preview .phone-drawer::after {
-		/* Keep Vaul’s scroll boundary without painting over the black bottom inset. */
-		background: transparent;
-		pointer-events: none;
+		content: none;
 	}
 	.phone-drawer .sheet-handle {
 		display: none;
@@ -130,21 +126,43 @@
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .preview-sheet {
 		position: relative;
-		flex: 1 1 auto;
+		/* Let the bounded drawer assign the row; a second viewport cap left unused space below it. */
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 		min-height: 0;
 		height: auto;
-		max-height: inherit;
+		max-height: none;
 		border-radius: inherit;
 		transform: none;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .sheet-scroll {
-		flex: 1 1 auto;
+		min-height: 0;
 		/* A scroll that reaches the end stays in the drawer instead of moving the page behind it. */
 		overscroll-behavior: contain;
 		height: auto;
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - env(safe-area-inset-bottom));
+		max-height: none;
+		/* Keep the bounded native scroll layer painted while its parent slides out. */
+		background: var(--card);
+		transform: translateZ(0);
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;
+		/* Without phone glass the toolbar fell into the drawer layer and arrived with its late tiles. */
+		will-change: transform;
+	}
+}
+
+/* Phone bottom capsules use a near-solid fill instead of live glass. iOS rebuilt their blur whenever
+   the page started or stopped scaling under a card, and while the rail faded back in the blur was
+   cut off and snapped in on the last frame: the capsules blinked. The glass rules stay for wider
+   windows; remove this block to bring the phone glass back. */
+@media (max-width: 650px) {
+	#dock .glass,
+	#search-selection-bar.glass,
+	.float-bar.glass,
+	#toast.glass {
+		background: var(--glass-thick);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
 	}
 }

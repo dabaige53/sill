@@ -17,6 +17,12 @@ const REST_MS = Number.parseFloat(
 const EDGE = 24; // near the top or the end, the bars always show
 const FINISH_ZONE = 120; // the last stretch before a read-end push, kept clear for the check
 
+/** The rail's glass fades layer by layer (controls.css `#dock.is-tucked`); the rail only moves. */
+const glassLayers = (target: Element) =>
+	target.id === "dock"
+		? [...target.querySelectorAll<HTMLElement>(":scope > :not(.ai-dock), :scope > .ai-dock > *")]
+		: [];
+
 class ChromeAutoHide {
 	declare source: Source;
 	declare targets: () => Element[];
@@ -91,6 +97,7 @@ class ChromeAutoHide {
 		clearTimeout(this.timer);
 		this.timer = 0;
 		const animations = this.targets()
+			.flatMap((target) => [target, ...glassLayers(target)])
 			.flatMap((target) => target.getAnimations())
 			.filter((animation) => animation.playState === "running");
 		for (const animation of animations) animation.pause();
@@ -149,6 +156,8 @@ class ChromeAutoHide {
 				t as HTMLElement,
 				() => t.classList.add("is-tucked"),
 				MotionEngine.time("dur-tuck"),
+				{},
+				glassLayers(t),
 			);
 		}
 	}
@@ -164,9 +173,8 @@ class ChromeAutoHide {
 			(t as HTMLElement).inert = false;
 			// Top bars, on the desk and in a detail alike, return at the gentler desktop pace.
 			const duration =
-				t.matches(
-					"#home-top, .reader-head, .sheet-head-tools, :is(.reader-edge, .sheet-edge).is-top",
-				) && matchMedia("(min-width: 651px)").matches
+				t.matches("#home-top, .reader-head, .sheet-head-tools") &&
+				matchMedia("(min-width: 651px)").matches
 					? "dur-top-reveal"
 					: "dur-reveal";
 			MotionEngine.change(
@@ -174,6 +182,7 @@ class ChromeAutoHide {
 				() => t.classList.remove("is-tucked"),
 				reveal ? MotionEngine.time(duration) : MotionEngine.time("dur-show"),
 				withCard ? { spring: "card" } : reveal ? { easing: MotionEngine.curve("ease-reveal") } : {},
+				glassLayers(t),
 			);
 		}
 	}
@@ -184,6 +193,7 @@ class ChromeAutoHide {
 		document.removeEventListener("focusin", this.onFocus);
 		for (const target of this.targets()) {
 			MotionEngine.cancel(target);
+			for (const layer of glassLayers(target)) MotionEngine.layerFades.get(layer)?.cancel();
 			target.classList.remove("is-tucked");
 			(target as HTMLElement).inert = false;
 			(target as HTMLElement).style.visibility = "";

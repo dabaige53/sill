@@ -216,12 +216,12 @@
       "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
     },
     "summary": {
-      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
       "type": "string",
       "maxLength": 10000
     },
     "longSummary": {
-      "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+      "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
       "minItems": 2,
       "maxItems": 8,
       "type": "array",

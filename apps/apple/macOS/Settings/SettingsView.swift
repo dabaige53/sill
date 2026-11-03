@@ -37,12 +37,14 @@ struct SettingsView: View {
           nav
           ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 0) {
-              Text(group.title)
-                .font(.sans(AppleMetrics.font22, .bold))
-                .foregroundStyle(AppleColors.primary)
-                .padding(.trailing, AppleMetrics.space40)
-                .padding(.bottom, AppleMetrics.space18)
-                .accessibilityAddTraits(.isHeader)
+              if group != .backup {
+                Text(group.title)
+                  .font(.sans(AppleMetrics.font22, .bold))
+                  .foregroundStyle(AppleColors.primary)
+                  .padding(.trailing, AppleMetrics.space40)
+                  .padding(.bottom, AppleMetrics.space18)
+                  .accessibilityAddTraits(.isHeader)
+              }
               page
             }
             .padding(.vertical, AppleMetrics.space28)

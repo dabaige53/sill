@@ -8,7 +8,7 @@
 
 正式版本由 `v<package.json version>` tag 固定源码。`.github/workflows/release.yml` 复用全部现行 CI：集成测试、Web 浏览器回归、Postgres 与云端浏览器、授权策略、Swift 后台测试。任一必需检查失败，不生成发布包、不部署。手动重跑也必须选择同一版本 tag，不能使用 main 代替。
 
-通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：临时签名、未经公证，DMG 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
+通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：固定自签证书签名、未经公证，DMG 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
 
 发布 job 使用 `production` environment。需要 `CLOUDFLARE_API_TOKEN` secret、`SILL_RELEASE_URL` variable，以及 `SILL_DATABASE_VERIFIED_COMMIT` variable。后者必须等于 tag 的完整提交号，只能在核对线上迁移和存量卡片兼容性后填写，是人工检查回执，不是自动数据库验证。该流程不自动清空数据或运行数据库迁移。
 
@@ -24,7 +24,9 @@ DMG 使用原 App icon、小栖静态背景和指向 /Applications 的“应用�
 
 构建检查包含磁盘映像完整性、包内 App 签名、快捷方式目标、背景和布局文件存在性。独立打包不替代发布流程中的完整测试。
 
-当前仍使用临时签名，未经 Apple 公证；DMG 格式不会消除 Gatekeeper 拦截。正式分发前需配置 Developer ID Application 证书与公证认证，再增加签名、公证和票据附加流程。当前工作流不读取签名凭据，也不宣称已经公证。
+打包工作流从 secrets `SILL_MAC_SIGNING_P12`、`SILL_MAC_SIGNING_P12_PASSWORD` 导入 `Sill Self-Signed` 证书到临时钥匙串，并用它签名；缺少 secret 时构建失败，不退回临时签名。签名后检查指定要求绑定证书，使各版本在钥匙串中保持同一身份，用户点一次“始终允许”后更新不再询问登录会话。证书由 `scripts/create-macos-signing-cert.sh` 一次性生成；重新生成会让用户在下次更新后再确认一次。本地 `npm run build:macos` 未设置 `SILL_MAC_SIGNING_IDENTITY` 时仍为临时签名。
+
+自签证书未经 Apple 公证，DMG 格式不会消除 Gatekeeper 拦截。正式分发前需配置 Developer ID Application 证书与公证认证，再增加公证和票据附加流程。
 
 ## 1. 在 GitHub 准备候选
 

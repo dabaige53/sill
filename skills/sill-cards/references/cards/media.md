@@ -2,7 +2,7 @@
 
 视频（`media:"video"`）和播客单集（`media:"podcast"`）。`type` 都是 `media`。
 
-示例是合成资料，只展示 `sill_createContent` 参数里外层的 `body` 对象，不能当作用户资料保存。通用要求见[类型索引](../types.md)，字段格式见[字段字典](../fields.md)。
+通用要求见[类型索引](../types.md)，字段格式见[字段字典](../fields.md)。
 
 ## 显示
 

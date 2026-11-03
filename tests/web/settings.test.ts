@@ -28,7 +28,7 @@ test("about settings displays the package version and shared project links", () 
 	}
 });
 
-test("backup settings separates configuration, creation and history without exposing host credentials", () => {
+test("backup settings keeps setup separate from the overview without exposing host credentials", () => {
 	for (const host of [false, true]) {
 		const dom = new JSDOM(
 			renderToStaticMarkup(
@@ -41,15 +41,23 @@ test("backup settings separates configuration, creation and history without expo
 		);
 		try {
 			const document = dom.window.document;
-			assert.equal(document.querySelector("h2")?.textContent, "备份与恢复");
+			assert.equal(document.querySelector(".backup-overview h2")?.textContent, "备份与恢复");
 			assert.deepEqual(
 				[...document.querySelectorAll("h3")].map((heading) => heading.textContent),
-				["配置备份位置", "手动备份", "备份记录"],
+				["备份记录"],
 			);
-			assert.equal(document.querySelectorAll("input[type=password]").length, host ? 0 : 1);
+			assert.equal(document.querySelectorAll("input[type=password]").length, host ? 0 : 2);
 			assert.equal(document.querySelectorAll("form").length, host ? 0 : 1);
-			assert.equal(document.querySelector("button.solid-button")?.textContent, "立即备份");
-			assert.equal(document.querySelector("button.solid-button")?.hasAttribute("disabled"), true);
+			assert.equal(document.querySelector("form")?.hidden, host ? undefined : true);
+			assert.equal(
+				document.querySelector(".backup-create-actions .solid-button")?.textContent,
+				"立即备份",
+			);
+			assert.equal(
+				document.querySelector(".backup-create-actions .solid-button")?.hasAttribute("disabled"),
+				true,
+			);
+			assert.equal(document.querySelectorAll(".backup-add-target").length, host ? 0 : 1);
 			assert.ok(document.querySelector(".settings-empty")?.textContent?.includes("还没有备份"));
 		} finally {
 			dom.window.close();

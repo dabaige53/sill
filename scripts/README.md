@@ -18,6 +18,7 @@
 | 插件候选包 | `npm run plugin:build` | 根产品版本、无独立版本的 `plugin.json` 元数据模板、`.app.json`、身份检查与 `skills/`（`sill-cards`、`sill-operations`）→ `dist/plugin/sill/` |
 | Mac 原生包 | `npm run build:macos` | Swift 源码、Schema、tokens、文案 → `dist/macos/Sill.app`；签名前用 `CheckMacResources.swift` 在临时包内检查实际资源入口和 PNG 解码，不打开窗口；见 [原生说明](../apps/apple/README.md) |
 | Mac DMG | `npm run package:macos` | 已构建的 App、安装背景、共享文案与尺寸 → 内部测试 DMG、检查回执、背景预览；`macos-package.yml` 在 Actions 执行，使用系统 Swift/AppKit、Finder、hdiutil，无新增依赖 |
+| Mac 固定签名证书 | `scripts/create-macos-signing-cert.sh [owner/repo]` | 一次性生成 `Sill Self-Signed` 自签代码签名证书 → 写入 GitHub secrets `SILL_MAC_SIGNING_P12`、`SILL_MAC_SIGNING_P12_PASSWORD`；不输出、不保留证书文件；重新生成会让钥匙串在下次更新后再询问一次 |
 | Mac 性能追踪 | `npm run perf:macos`；显式模式 `benchmark / ui / manual / report` | 默认后台 XCTest；UI 专项与人工 Instruments 单独运行 → 临时目录中的 xcresult、trace 和离线报告；见 [性能指南](../docs/implementation/operations/macos-performance.md) |
 | Mac 演示数据 | `node scripts/macos-demo-data.ts <绝对路径>` | Web `SeedCards`、`SeedItems` → `<绝对路径>/cards.json`；不覆盖已有文件，供 `--data-directory` 使用 |
 | 本地卡片 CLI | `node scripts/sill.ts capabilities` | 本地服务协议 → 能力说明；写入用法见 [本地操作](../docs/implementation/operations/local-operations.md) |

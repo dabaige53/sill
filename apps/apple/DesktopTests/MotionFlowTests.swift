@@ -233,6 +233,19 @@ import Testing
     #expect(scroll.offset == 40)
   }
 
+  /// Cards stop taking the pointer while the feed moves and take it back once it rests.
+  @Test func feedPausesCardHoverOnlyWhileMoving() async throws {
+    let scroll = FeedScroll(chrome: Chrome())
+    scroll.scrolled(offset: 0, visible: 600, content: 4000)
+    #expect(!scroll.moving.active, "a bounds change without movement is not a scroll")
+    for offset in stride(from: CGFloat(40), through: 400, by: 40) {
+      scroll.scrolled(offset: offset, visible: 600, content: 4000)
+    }
+    #expect(scroll.moving.active)
+    try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.1))
+    #expect(!scroll.moving.active)
+  }
+
   @Test func feedRestorationAppliesOnlyTheLatestRequestAfterLayout() async {
     let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
     view.automaticallyAdjustsContentInsets = false

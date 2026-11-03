@@ -119,7 +119,7 @@ end tell`;
 				architecture: cpu,
 				commit: process.env.GITHUB_SHA ?? null,
 				file: `${name}.dmg`,
-				signing: "ad-hoc",
+				signing: process.env.SILL_MAC_SIGNING_IDENTITY ? "self-signed" : "ad-hoc",
 				notarized: false,
 				checks: [
 					"disk-image-integrity",

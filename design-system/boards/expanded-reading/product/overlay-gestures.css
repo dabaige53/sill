@@ -178,7 +178,8 @@ body.is-pulling main {
 	background: transparent;
 }
 
-/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars.
+   The top edge stays while the bars tuck; only the bottom one leaves with the toolbar. */
 .reader-edge {
 	position: fixed;
 	left: 0;
@@ -206,7 +207,7 @@ body.is-pulling main {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.reader-edge.is-tucked {
+.reader-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
 /* Local AI conversation preview: no messages or connected send action. */

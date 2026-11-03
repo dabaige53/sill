@@ -97,7 +97,6 @@
 		bottom: 4px;
 	}
 	.card-head,
-	.sender,
 	.card-head:has(.card-head-right),
 	.has-cover .card-head {
 		padding-right: 0;
@@ -111,6 +110,11 @@
 	}
 	.check-item {
 		min-height: 44px;
+	}
+	.detail-task-list .check-item::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
 	}
 	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
 	.feed-item.feed-card {
@@ -128,34 +132,8 @@
 	.feed-item .card-summary.reading-summary {
 		-webkit-line-clamp: var(--summary-reading-lines);
 	}
-	.feed-item :is(.card-head, .sender) {
+	.feed-item .card-head {
 		padding-right: 0;
-	}
-	/* Keep sender and source on separate lines, aligned beside the portrait. */
-	.feed-item .sender {
-		gap: var(--space-8);
-	}
-	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
-	.feed-item .sender .avatar {
-		width: 20px !important;
-		height: 20px !important;
-		font-size: calc(11px * var(--content-text-scale, 1));
-	}
-	.feed-item .sender > span:last-child {
-		flex: 1;
-		flex-direction: column;
-		align-items: stretch;
-		gap: var(--space-4);
-		min-width: 0;
-		white-space: normal;
-		overflow-wrap: anywhere;
-	}
-	.feed-item .sender b {
-		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
-	}
-	.feed-item .sender small {
-		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
-		display: block;
 	}
 	/* Article covers remain above the card body on phones. */
 	.feed-item.type-article .card-cover {
@@ -187,6 +165,7 @@
 		width: 18px;
 		height: 18px;
 		flex-basis: 18px;
+		margin-top: calc((1lh - var(--space-18)) / 2);
 	}
 	/* Navigation and selection */
 

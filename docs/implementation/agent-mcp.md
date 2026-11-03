@@ -51,7 +51,7 @@ Codex 本机回调沿用原登记方式。此能力不创建 Sill 账号或工�
 
 完整工作区读取与关键词搜索要求全工作区的 `content:read` 范围。`sill_getWorkspace` 传 `compact:true` 时返回不含正文、章节和转录的精简快照（附 `bodyChars`），只供读取，精简卡片作为批量写入的 `card` 或 `before` 会被拒绝。
 
-经 MCP 新建的卡片必须带 `summary`（`missing_summary`），Web 自带编辑器不受此限。新建成功后，工具结果另附一段纯文本，列出该类型通常应有但缺失的字段（规则见 [cloud.ts](../../contracts/cloud.ts) 的 `missingFields`），只作提示，不影响写入。批量返回完整快照，因此也要求该读取范围，并分别校验各操作的写入或删除权限。
+经 MCP 新建的卡片必须带 `summary`（`missing_summary`），待办、提醒、日程、金句笔记和正文不超过 120 字的笔记除外（见 [cloud.ts](../../contracts/cloud.ts) 的 `agentCardIssues`）；Web 自带编辑器不受此限。新建成功后，工具结果另附一段纯文本，列出该类型通常应有但缺失的字段（规则见 [cloud.ts](../../contracts/cloud.ts) 的 `missingFields`），只作提示，不影响写入。批量返回完整快照，因此也要求该读取范围，并分别校验各操作的写入或删除权限。
 
 批量支持卡片更新与删除、个人状态、偏好、阅读时长累加，整批成功或回滚。保存带读取时的卡片版本、原始字段或工作区版本；重试使用相同幂等键和请求内容。
 

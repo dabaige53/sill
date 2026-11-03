@@ -143,6 +143,14 @@ try {
 } finally {
 	await rm(resourceCheck, { recursive: true, force: true });
 }
-execFileSync("codesign", ["--force", "--deep", "--sign", "-", app], { stdio: "inherit" });
+// A stable identity keeps Keychain access across updates; local builds stay ad-hoc.
+const identity = process.env.SILL_MAC_SIGNING_IDENTITY;
+execFileSync(
+	"codesign",
+	identity
+		? ["--force", "--deep", "--timestamp=none", "--sign", identity, app]
+		: ["--force", "--deep", "--sign", "-", app],
+	{ stdio: "inherit" },
+);
 execFileSync("codesign", ["--verify", "--deep", "--strict", app], { stdio: "inherit" });
 console.log(app);

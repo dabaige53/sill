@@ -1,14 +1,8 @@
 # 内容格式与传输
 
-## 区分三种类型
-
-- `type` 是卡片用途：article、pr、mail、note、task、event、reminder、media、digest、suggestion、photo、file。
-- `media` 仅区分视频 video 与播客 podcast，卡片 `type` 仍为 media。
-- `files[].mimeType` 是文件或附件 MIME，例如 application/pdf、audio/mpeg。它们不是卡片类型。
-
 ## 正文怎么写
 
-标题、卡面摘要和正文的写法见 [书写规范](writing.md)。传输层只要求：`summary` 是纯文本，`body` 是一个 CommonMark 字符串，结构化数据放进专门字段。Markdown 复选框、列表或链接不会自动转换成 `tasks`、`files`、`chapters` 等结构。
+标题、卡面摘要和正文的写法见 [书写规范](writing.md)。
 
 ## MCP 参数怎么传
 
@@ -54,9 +48,9 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 
 省略的字段保留原值。`state` 按子字段合并；正文、数组、嵌套对象整体替换。改一项任务、附件或 PR 检查时，先保留原有其他项。字段不接受 null；要移除字段时用批量 `card.upsert` 整卡替换。空数组/空文本仍须满足卡片要求，例如不能清空待办全部 tasks 或文件卡全部 files。
 
-批量使用 `sill_applyOperations` 的 `{idempotency_key,body:{operations,expectedRevision?}}`。新卡 `card.upsert` 传新 `card.id` 和 `before:null`；修改整卡带原始 `before` 或工作区版本。`card` 不带 state 和服务端字段，个人状态另用同批 `item.patch`；整卡替换须保留不改的事实；未知字段会被拒绝。示例和权限见 sill-operations 的 [操作协议](../../sill-operations/references/operations.md)。
+批量用 `sill_applyOperations`，参数为 `{idempotency_key, body:{operations, expectedRevision?}}`，整批成功或整批回滚。`card.upsert` 的 `card` 不带 `state` 和服务端字段，个人状态用同批 `item.patch`；整卡替换要保留不改的事实。新卡 ID、`before`、上限和拆批见[导入细节](import.md#写入)。
 
-单卡创建不自填 ID；更新不传服务端 `created_at`、`updated_at`、`revision`、`deleted` 到 changes。`expectedRevision` 是请求条件，不是卡片事实。
+`expectedRevision` 是请求条件，不是卡片事实。
 
 ## 日期、单位与大小
 
@@ -73,6 +67,6 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 
 1. 读取当前工具定义。`images`、`publishedAt`、pr 类型或 playbackPosition 未出现，或仍出现 `sender`、`attachments`、`readingEstimate` 等旧字段时，说明当前宿主定义过旧，需要核对部署并刷新连接，不丢字段。
 2. 检查类型必需结构、日期单位、来源、数组 ID 与状态。系统版本和时间由服务端生成。
-3. 新建卡片未传 `time` 时由服务器使用真实创建时刻补齐，不改写来源 `publishedAt`；每张待办最多 6 项，超出先按事项拆卡。已有超量清单未修改时仍可更新其他字段。新建卡片必须带 `summary`，否则返回 `missing_summary`。新建成功后，工具结果可能多一段文字，列出这类卡片通常应有、但这次没写的字段（例如文章的 `url`、`authors`、`publishedAt`）。来源里有这些信息就读取卡片后补上；来源确实没有就不用管。
+3. 新建成功后，工具结果可能多一段文字，列出这类卡片通常应有、但这次没写的字段（例如文章的 `url`、`authors`、`publishedAt`）。来源里有这些信息就读取卡片后补上；来源确实没有就不用管。
 4. 单卡成功后按返回 ID 重新读取；逐项比较本次提交的字段，允许服务端生成元字段和补齐默认状态。正文须保留换行，PR、媒体、文件等结构不得丢失。批量核对返回快照；需要最新状态时另读工作区。
-5. 结果不明按 sill-operations 的操作协议处理；发生版本冲突先重读并合并。仅收到工具名、空响应或未检查的成功标记不算确认保存。
+5. 发生版本冲突先重读并合并。仅收到工具名、空响应或未检查的成功标记不算确认保存。

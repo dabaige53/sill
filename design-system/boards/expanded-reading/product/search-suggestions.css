@@ -187,7 +187,8 @@
 		caret-color: transparent;
 	}
 	/* Editing owns the capsule until the user cancels, including keyboard dismissal. */
-	body:has(:is(#modal, .phone-layer).search.search-editing[open]) #dock {
+	body.has-search-editing #dock,
+	body.has-search-editing #dock > * {
 		visibility: hidden !important;
 		pointer-events: none;
 	}

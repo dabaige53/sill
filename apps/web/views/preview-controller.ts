@@ -219,7 +219,7 @@ export function bindSheetChrome(this: AppController) {
 		scroll,
 		() => [
 			...this.dialog.querySelectorAll(
-				":scope > .phone-drawer > .float-bar, :scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools, .preview-sheet > .sheet-edge",
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar, :scope > .reader-head, :scope > .reader-edge.is-bottom, .sheet-head-tools, .preview-sheet > .sheet-edge.is-bottom",
 			),
 		],
 		() =>
@@ -243,7 +243,9 @@ export function bindSheetChrome(this: AppController) {
 			const height = `${sheet.offsetHeight}px`;
 			const cover = sheet.querySelector(".sheet-scroll > .gesture-content > .preview-cover");
 			const podcast = sheet.querySelector(".podcast-detail");
-			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
+			// A cover keeps the discs where the 36px source row puts them in every other detail:
+			// 26px body padding + half the row - half the 44px head.
+			let titleTop = cover ? "22px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");
 			// The disc sits in the source row above the title, so the title keeps the full width.
 			const row = sheet.querySelector(".preview-body .preview-meta, .pr-detail .card-head");

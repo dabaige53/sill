@@ -1,0 +1,21 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-03T04:06:36Z"},
+  "title": "Sill · 摘要与播客阅读",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "建议 · 手机内容优先", "is_interactive": true},
+    "Current.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "当前 · 源码结构示意"},
+    "Alternative.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "备选 · 小封面与标题并排", "is_interactive": true},
+    "Desktop.dc.html": {"x": 1410, "y": 0, "w": 1280, "h": 1000, "title": "建议 · 桌面阅读", "expand": "fill", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Current.dc.html", "Alternative.dc.html", "Desktop.dc.html"],
+  "notes": {
+    "scope": {"x": 0, "y": -220, "w": 390, "text": "对照材料：当前画板是源码结构示意，未经浏览器渲染核对。内容沿用仓库 CardTypeDetails 的既有示意文案，不代表真实节目记录。产品代码尚未修改。"},
+    "proposal": {"x": 470, "y": -220, "w": 390, "text": "首屏先读标题和摘要。封面缩至 96px，收听记录作为辅助信息。保留左侧图标切换长短摘要，去掉文字切换按钮，下拉箭头在最右侧。收藏等操作继续使用产品原有底部工具。"},
+    "alternative": {"x": 940, "y": -220, "w": 390, "text": "备选把 76px 封面和标题并排，首屏更紧凑；中文长标题可用宽度更少。建议方案把完整标题放在封面下面。"},
+    "implementation": {"x": 1410, "y": -220, "w": 500, "text": "摘要状态演示：点击左侧图标切换已有的长短摘要；点击「概要」文字右侧到最右箭头之间的区域折叠、展开。新方案是可编辑布局探索，产品动画与跨端同步尚未实现。现有 Sill bundle 导出 HTML 字符串工具，不是可挂载 React 组件，本画布仅使用现有变量。"}
+  },
+  "designSystems": [{"title": "Sill", "namespace": "sill", "artifact": "/Users/w/code/sill/design-system", "version": null, "copiedAt": "2026-11-03T04:06:36Z"}]
+}

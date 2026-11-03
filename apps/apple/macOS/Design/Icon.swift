@@ -7,12 +7,18 @@ struct Icon: View {
   var size: CGFloat = 18
   var weight: CGFloat? = nil
   var filled = false
+  /// Horizontal scale of named parts, from the part's leading edge (Web `transform-box: fill-box`).
+  var parts: [String: CGFloat] = [:]
 
-  init(_ name: String, size: CGFloat = 18, weight: CGFloat? = nil, filled: Bool = false) {
+  init(
+    _ name: String, size: CGFloat = 18, weight: CGFloat? = nil, filled: Bool = false,
+    parts: [String: CGFloat] = [:]
+  ) {
     self.name = name
     self.size = size
     self.weight = weight
     self.filled = filled
+    self.parts = parts
   }
 
   var body: some View {
@@ -22,13 +28,20 @@ struct Icon: View {
     ZStack {
       ForEach(glyph.layers.indices, id: \.self) { index in
         let layer = glyph.layers[index]
-        if filled {
-          IconLayerShape(path: layer.path).fill()
-        } else {
-          IconLayerShape(path: layer.path).stroke(
-            style: StrokeStyle(
-              lineWidth: layer.width.map { $0 * scale } ?? base, lineCap: .round, lineJoin: .round))
+        let bounds = layer.path.boundingRect
+        Group {
+          if filled {
+            IconLayerShape(path: layer.path).fill()
+          } else {
+            IconLayerShape(path: layer.path).stroke(
+              style: StrokeStyle(
+                lineWidth: layer.width.map { $0 * scale } ?? base, lineCap: .round,
+                lineJoin: .round))
+          }
         }
+        .scaleEffect(
+          x: layer.part.flatMap { parts[$0] } ?? 1, y: 1,
+          anchor: UnitPoint(x: bounds.minX / 24, y: bounds.midY / 24))
       }
     }
     .frame(width: size, height: size)
@@ -47,6 +60,8 @@ struct IconGlyph: Sendable {
   struct Layer: Sendable {
     var path: Path
     var width: CGFloat?
+    /// The SVG `class` of a part that moves on its own, such as `sill-ai-bar`.
+    var part: String?
   }
   var layers: [Layer]
 
@@ -83,7 +98,10 @@ struct IconGlyph: Sendable {
         path.addRoundedRect(
           in: rect, cornerSize: CGSize(width: radius, height: radius), style: .circular)
       }
-      if let width = attributes["stroke-width"].flatMap(Double.init) {
+      if let part = attributes["class"] {
+        let width = attributes["stroke-width"].flatMap(Double.init).map { CGFloat($0) }
+        layers.append(Layer(path: path, width: width, part: part))
+      } else if let width = attributes["stroke-width"].flatMap(Double.init) {
         layers.append(Layer(path: path, width: width))
       } else {
         shared.addPath(path)

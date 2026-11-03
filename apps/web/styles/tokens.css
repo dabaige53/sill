@@ -3,8 +3,12 @@
 	--edge-blur-soft: blur(4px);
 	--edge-blur-mid: blur(8px);
 	--edge-blur-strong: blur(16px);
+	--edge-tint: color-mix(in srgb, var(--canvas) 85%, transparent);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
+	--reader-column: 800px;
+	--reader-cover-ratio: 2 / 1;
+	--reader-outline-width: 200px;
 	--search-width: 280px;
 	--search-tagged-width: 360px;
 	--search-focused-width: 315px;

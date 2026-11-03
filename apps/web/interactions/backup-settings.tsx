@@ -32,6 +32,44 @@ export function BackupSettings({
 		[message, setMessage] = useState(""),
 		[preview, setPreview] = useState<any>(null),
 		[pending, setPending] = useState<any>(null);
+	const [editor, setEditor] = useState<"add" | "update" | null>(null);
+	const formRef = useRef<HTMLFormElement>(null);
+	const returnFocus = useRef<HTMLButtonElement | null>(null);
+	const overviewRef = useRef<HTMLDivElement>(null);
+	const formContext = useRef("add");
+	const drafts = useRef(new Map<string, { provider: string; values: Record<string, string> }>());
+	useEffect(() => {
+		if (editor)
+			formRef.current
+				?.querySelector<HTMLInputElement>("input:not(:disabled):not([readonly])")
+				?.focus();
+		else if (returnFocus.current?.isConnected) returnFocus.current.focus();
+		else
+			overviewRef.current?.querySelector<HTMLElement>("select, .backup-target-row button")?.focus();
+	}, [editor]);
+	function openEditor(mode: "add" | "update", button: HTMLButtonElement) {
+		returnFocus.current = button;
+		const context = mode === "add" ? "add" : target;
+		if (context !== formContext.current) {
+			const inputs = [...(formRef.current?.querySelectorAll("input") ?? [])];
+			drafts.current.set(formContext.current, {
+				provider,
+				values: Object.fromEntries(inputs.map((input) => [input.name, input.value])),
+			});
+			const config =
+				mode === "update" ? data.targets.find((item: any) => item.id === target).config : {};
+			const draft = drafts.current.get(context);
+			setProvider(draft?.provider ?? config.provider ?? "webdav");
+			formRef.current?.reset();
+			for (const [name, value] of Object.entries(draft?.values ?? config)) {
+				const input = formRef.current?.elements.namedItem(name);
+				if (input instanceof HTMLInputElement) input.value = String(value);
+			}
+			formContext.current = context;
+		}
+		setEditor(mode);
+		setMessage("");
+	}
 	const active = useRef(true);
 	const creation = useRef<{ targetId: string; idempotencyKey: string } | null>(null);
 	const get = (path: string) => api("/api/v1/backups" + path);
@@ -83,12 +121,18 @@ export function BackupSettings({
 		event.preventDefault();
 		const form = event.currentTarget;
 		const values = Object.fromEntries(new FormData(form));
-		const update =
-			(event.nativeEvent as SubmitEvent).submitter?.getAttribute("data-update") === "true";
+		const update = editor === "update";
 		await run(async () => {
-			await post("/targets", { provider, ...values, ...(update ? { id: target } : {}) });
+			const saved = await post("/targets", {
+				provider,
+				...values,
+				...(update ? { id: target } : {}),
+			});
 			form.reset();
+			drafts.current.delete(formContext.current);
 			await refresh();
+			setTarget(saved.id);
+			setEditor(null);
 			setMessage(text("connected"));
 		});
 	}
@@ -131,14 +175,15 @@ export function BackupSettings({
 			} else setMessage(text("notRestored"));
 		});
 	}
-	const field = (name: string, secret = false) => (
+	const field = (name: string, group: string, secret = false) => (
 		<label className="setting-row">
 			<span>{text(name)}</span>
 			<input
 				name={name}
 				type={secret ? "password" : "text"}
 				required
-				disabled={busy}
+				disabled={busy || provider !== group}
+				readOnly={editor === "update" && ["endpoint", "accountId", "bucket"].includes(name)}
 				autoComplete="off"
 				spellCheck={false}
 			/>
@@ -146,108 +191,172 @@ export function BackupSettings({
 	);
 	return (
 		<section className="backup-settings" aria-label={text("title")} aria-busy={busy}>
-			<h2>{text("title")}</h2>
-			<p className="panel-sub">{text("hint")}</p>
-			<BackupHeading glyph="folder" title="configure" hint="configureHint" />
-			{!host ? (
-				<form onSubmit={save} className="settings-card">
-					<div className="setting-row backup-provider">
-						<span>{text("provider")}</span>
-						<fieldset className="segmented">
-							<legend className="sr-only">{text("provider")}</legend>
-							{["webdav", "r2"].map((value) => (
-								<button
-									key={value}
-									type="button"
-									className={provider === value ? "on" : ""}
-									aria-pressed={provider === value}
-									disabled={busy}
-									onClick={() => setProvider(value)}
-								>
-									{text(value)}
-								</button>
-							))}
-						</fieldset>
+			<div className="backup-editor" hidden={!editor}>
+				<button
+					type="button"
+					className="text-link backup-back"
+					disabled={busy}
+					onClick={() => setEditor(null)}
+				>
+					{icon("back", 16)}
+					{text("title")}
+				</button>
+				<h2>{text(editor === "update" ? "connectionSettings" : "addTarget")}</h2>
+			</div>
+			{!host && (
+				<form ref={formRef} onSubmit={save} className="backup-editor" hidden={!editor}>
+					<div className="settings-card">
+						<div className="setting-row backup-provider">
+							<fieldset className="segmented">
+								<legend className="sr-only">{text("provider")}</legend>
+								{["webdav", "r2"].map((value) => (
+									<button
+										key={value}
+										type="button"
+										className={provider === value ? "on" : ""}
+										aria-pressed={provider === value}
+										disabled={busy || editor === "update"}
+										onClick={() => setProvider(value)}
+									>
+										{text(value)}
+									</button>
+								))}
+							</fieldset>
+						</div>
+						<div hidden={provider !== "webdav"}>
+							{field("endpoint", "webdav")}
+							{field("username", "webdav")}
+							{field("password", "webdav", true)}
+						</div>
+						<div hidden={provider !== "r2"}>
+							{field("accountId", "r2")}
+							{field("bucket", "r2")}
+							{field("accessKeyId", "r2")}
+							{field("secretAccessKey", "r2", true)}
+						</div>
 					</div>
-					{provider === "webdav" ? (
-						<>
-							{field("endpoint")}
-							{field("username")}
-							{field("password", true)}
-						</>
-					) : (
-						<>
-							{field("accountId")}
-							{field("bucket")}
-							{field("accessKeyId")}
-							{field("secretAccessKey", true)}
-						</>
-					)}
-					<div className="setting-row settings-actions">
-						<button type="submit" className="text-link" disabled={busy}>
-							{icon("plus", 16)}
-							{text("save")}
-						</button>
+					<div className="backup-form-actions settings-actions">
 						<button
-							type="submit"
-							data-update="true"
+							type="button"
 							className="text-link"
-							disabled={busy || !target}
+							disabled={busy}
+							onClick={() => setEditor(null)}
 						>
-							{icon("lock", 16)}
-							{text("updateSecret")}
+							{copy("web.cancel")}
+						</button>
+						<button type="submit" className="solid-button" disabled={busy}>
+							{icon("shield-check", 16)}
+							{text(editor === "update" ? "updateSecret" : "save")}
 						</button>
 					</div>
 				</form>
-			) : (
-				<p className="panel-sub">{text("hostSetup")}</p>
 			)}
-			<BackupHeading glyph="cloud-upload" title="manual" hint="manualHint" />
-			<div className="settings-card">
-				<label className="setting-row">
-					<span>{text("target")}</span>
-					<select
-						value={target}
+			<div ref={overviewRef} className="backup-overview" hidden={!!editor}>
+				<h2>{text("title")}</h2>
+				<div className="settings-card backup-target-card">
+					{data.targets.length ? (
+						<div className="setting-row backup-target-row">
+							{icon("folder", 20)}
+							{data.targets.length === 1 ? (
+								<span className="backup-target-name">
+									{data.targets[0].config.provider === "webdav"
+										? data.targets[0].config.endpoint
+										: `R2 · ${data.targets[0].config.bucket}`}
+								</span>
+							) : (
+								<select
+									aria-label={text("target")}
+									value={target}
+									disabled={busy || !!creation.current}
+									onChange={(e) => setTarget(e.target.value)}
+								>
+									{data.targets.map((t: any) => (
+										<option key={t.id} value={t.id}>
+											{t.config.provider === "webdav"
+												? t.config.endpoint
+												: `R2 · ${t.config.bucket}`}
+										</option>
+									))}
+								</select>
+							)}
+							{!host && (
+								<button
+									type="button"
+									className="text-link"
+									disabled={busy || !!creation.current}
+									onClick={(event) => openEditor("update", event.currentTarget)}
+								>
+									{icon("gear", 16)}
+									{text("connectionSettings")}
+								</button>
+							)}
+						</div>
+					) : !host ? (
+						<button
+							type="button"
+							className="backup-add-target setting-row text-link"
+							disabled={busy || !!creation.current}
+							onClick={(event) => openEditor("add", event.currentTarget)}
+						>
+							{icon("plus", 20)}
+							{text("addTarget")}
+							{icon("chevron", 16)}
+						</button>
+					) : (
+						<p className="panel-sub">{text("hostSetup")}</p>
+					)}
+					<div className="setting-row settings-actions backup-create-actions">
+						{!!data.targets.length && (
+							<button
+								type="button"
+								className="text-link"
+								disabled={busy || !target}
+								onClick={() =>
+									run(async () => {
+										await post(`/targets/${target}/check`, {});
+										setMessage(text("connected"));
+									})
+								}
+							>
+								{icon("shield-check", 16)}
+								{text("check")}
+							</button>
+						)}
+						<button
+							type="button"
+							className="solid-button"
+							disabled={busy || !target || !!pending}
+							onClick={create}
+						>
+							{icon("cloud-upload", 16)}
+							{creation.current ? text("retry") : text("create")}
+						</button>
+					</div>
+				</div>
+				{!!data.targets.length && !host && (
+					<button
+						type="button"
+						className="text-link backup-add-another"
 						disabled={busy || !!creation.current}
-						onChange={(e) => setTarget(e.target.value)}
+						onClick={(event) => openEditor("add", event.currentTarget)}
 					>
-						<option value="">{text("choose")}</option>
-						{data.targets.map((t: any) => (
-							<option key={t.id} value={t.id}>
-								{t.config.provider === "webdav" ? t.config.endpoint : `R2 · ${t.config.bucket}`}
-							</option>
-						))}
-					</select>
-				</label>
-				<div className="setting-row settings-actions">
-					<button
-						type="button"
-						className="text-link"
-						disabled={busy || !target}
-						onClick={() =>
-							run(async () => {
-								await post(`/targets/${target}/check`, {});
-								setMessage(text("connected"));
-							})
-						}
-					>
-						{icon("shield-check", 16)}
-						{text("check")}
+						{icon("plus", 16)}
+						{text("addTarget")}
 					</button>
-					<button
-						type="button"
-						className="solid-button"
-						disabled={busy || !target || !!pending}
-						onClick={create}
-					>
-						{icon("cloud-upload", 16)}
-						{creation.current ? text("retry") : text("create")}
-					</button>
+				)}
+				<div className="backup-history-head">
+					<h3>{text("history")}</h3>
 					<button type="button" className="text-link" disabled={busy} onClick={() => run(refresh)}>
 						{icon("refresh", 16)}
 						{text("refresh")}
 					</button>
 				</div>
+				{!data.backups.length && (
+					<div className="settings-card settings-empty">
+						<span className="muted">{icon("history", 20)}</span>
+						<p>{text("empty")}</p>
+					</div>
+				)}
 			</div>
 			{message && (
 				<p className="settings-feedback" role="status">
@@ -255,124 +364,124 @@ export function BackupSettings({
 					{message}
 				</p>
 			)}
-			<BackupHeading glyph="history" title="history" hint="historyHint" />
-			{!data.backups.length && (
-				<div className="settings-card settings-empty">
-					<span className="muted">{icon("history", 20)}</span>
-					<p>{text("empty")}</p>
-				</div>
-			)}
-			{data.backups.map((b: any) => (
-				<div className="settings-card backup-record" key={b.id}>
-					<div className="setting-row">
-						<span className="settings-link-label">
-							{icon("file", 18)}
-							<time dateTime={b.createdAt}>{new Date(b.createdAt).toLocaleString()}</time>
-						</span>
-						<span className="backup-status">{text(b.status)}</span>
+			<div hidden={!!editor}>
+				{data.backups.map((b: any) => (
+					<div className="settings-card backup-record" key={b.id}>
+						<div className="setting-row">
+							<span className="settings-link-label">
+								{icon("file", 18)}
+								<time dateTime={b.createdAt}>{new Date(b.createdAt).toLocaleString()}</time>
+							</span>
+							<span className="backup-status">{text(b.status)}</span>
+						</div>
+						<div className="setting-row settings-actions">
+							<button
+								type="button"
+								className="text-link"
+								disabled={busy || !!pending}
+								onClick={() =>
+									run(async () => {
+										setPreview(await get(`/${b.id}/preview`));
+									})
+								}
+							>
+								{icon("eye", 16)}
+								{text("preview")}
+							</button>
+							<button
+								type="button"
+								className="text-link"
+								disabled={busy}
+								onClick={() =>
+									run(async () => {
+										await get(`/${b.id}/check`);
+										await refresh();
+										setMessage(text("verified"));
+									})
+								}
+							>
+								{icon("shield-check", 16)}
+								{text("verify")}
+							</button>
+							<button
+								type="button"
+								className="text-link"
+								disabled={busy}
+								onClick={() =>
+									run(async () => {
+										const snapshot = await get(`/${b.id}/download`);
+										if (!active.current) return;
+										const url = URL.createObjectURL(
+											new Blob([JSON.stringify(snapshot)], { type: "application/json" }),
+										);
+										const a = document.createElement("a");
+										a.href = url;
+										a.download = `sill-${b.id}.json`;
+										a.click();
+										URL.revokeObjectURL(url);
+									})
+								}
+							>
+								{icon("download", 16)}
+								{text("download")}
+							</button>
+						</div>
 					</div>
-					<div className="setting-row settings-actions">
-						<button
-							type="button"
-							className="text-link"
-							disabled={busy || !!pending}
-							onClick={() =>
-								run(async () => {
-									setPreview(await get(`/${b.id}/preview`));
-								})
-							}
-						>
-							{icon("eye", 16)}
-							{text("preview")}
-						</button>
-						<button
-							type="button"
-							className="text-link"
-							disabled={busy}
-							onClick={() =>
-								run(async () => {
-									await get(`/${b.id}/check`);
-									await refresh();
-									setMessage(text("verified"));
-								})
-							}
-						>
-							{icon("shield-check", 16)}
-							{text("verify")}
-						</button>
-						<button
-							type="button"
-							className="text-link"
-							disabled={busy}
-							onClick={() =>
-								run(async () => {
-									const snapshot = await get(`/${b.id}/download`);
-									if (!active.current) return;
-									const url = URL.createObjectURL(
-										new Blob([JSON.stringify(snapshot)], { type: "application/json" }),
-									);
-									const a = document.createElement("a");
-									a.href = url;
-									a.download = `sill-${b.id}.json`;
-									a.click();
-									URL.revokeObjectURL(url);
-								})
-							}
-						>
-							{icon("download", 16)}
-							{text("download")}
-						</button>
+				))}
+				{preview && (
+					<div className="settings-card backup-restore">
+						<BackupHeading glyph="history" title="restoreTitle" hint="replaceWarning" />
+						<p>
+							{text("cards")}: {preview.cards} · {text("added")}: {preview.added} ·{" "}
+							{text("removed")}: {preview.removed}
+						</p>
+						<div className="setting-row settings-actions">
+							{pending ? (
+								<>
+									<button
+										type="button"
+										className="text-link"
+										disabled={busy}
+										onClick={verifyRestore}
+									>
+										{text("verifyRestore")}
+									</button>
+									<button
+										type="button"
+										className="text-link"
+										disabled={busy}
+										onClick={() =>
+											run(async () => {
+												await post("/restore", pending);
+												setPending(null);
+												setPreview(null);
+												await onRestore?.();
+												setMessage(text("restored"));
+											})
+										}
+									>
+										{text("retryRestore")}
+									</button>
+								</>
+							) : (
+								<>
+									<button type="button" className="text-link" disabled={busy} onClick={restore}>
+										{text("confirm")}
+									</button>
+									<button
+										type="button"
+										className="text-link"
+										disabled={busy}
+										onClick={() => setPreview(null)}
+									>
+										{copy("web.cancel")}
+									</button>
+								</>
+							)}
+						</div>
 					</div>
-				</div>
-			))}
-			{preview && (
-				<div className="settings-card backup-restore">
-					<BackupHeading glyph="history" title="restoreTitle" hint="replaceWarning" />
-					<p>
-						{text("cards")}: {preview.cards} · {text("added")}: {preview.added} · {text("removed")}:{" "}
-						{preview.removed}
-					</p>
-					<div className="setting-row settings-actions">
-						{pending ? (
-							<>
-								<button type="button" className="text-link" disabled={busy} onClick={verifyRestore}>
-									{text("verifyRestore")}
-								</button>
-								<button
-									type="button"
-									className="text-link"
-									disabled={busy}
-									onClick={() =>
-										run(async () => {
-											await post("/restore", pending);
-											setPending(null);
-											setPreview(null);
-											await onRestore?.();
-											setMessage(text("restored"));
-										})
-									}
-								>
-									{text("retryRestore")}
-								</button>
-							</>
-						) : (
-							<>
-								<button type="button" className="text-link" disabled={busy} onClick={restore}>
-									{text("confirm")}
-								</button>
-								<button
-									type="button"
-									className="text-link"
-									disabled={busy}
-									onClick={() => setPreview(null)}
-								>
-									{copy("web.cancel")}
-								</button>
-							</>
-						)}
-					</div>
-				</div>
-			)}
+				)}
+			</div>
 		</section>
 	);
 }

@@ -3,8 +3,12 @@
 	--edge-blur-soft: blur(4px);
 	--edge-blur-mid: blur(8px);
 	--edge-blur-strong: blur(16px);
+	--edge-tint: color-mix(in srgb, var(--canvas) 85%, transparent);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
+	--reader-column: 800px;
+	--reader-cover-ratio: 2 / 1;
+	--reader-outline-width: 200px;
 	--search-width: 280px;
 	--search-tagged-width: 360px;
 	--search-focused-width: 315px;
@@ -676,11 +680,16 @@ a {
 #dock > * {
 	pointer-events: auto;
 }
+/* The rail only moves; its glass fades layer by layer (chrome.ts `glassLayers`). A fading
+   ancestor would leave the glass a blank backdrop that snaps white when the fade ends. */
 #dock.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(20px));
-	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
+}
+#dock.is-tucked > :not(.ai-dock),
+#dock.is-tucked > .ai-dock > * {
+	opacity: 0;
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
@@ -1755,10 +1764,11 @@ body.is-dragging #toast {
 }
 /* status-bar.ts marks an open page; WebKit missed :has() on the dialog and left the row over search.
    Settings restores the row in its own, more specific rule. */
-body.has-open-page .home-top {
+body.has-open-page :is(.home-top, .home-top-edge) {
 	visibility: hidden;
 }
-body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+body:has(:is(#modal, .phone-layer)[open].page .settings-layout)
+	:is(.home-top:not(.is-tucked), .home-top-edge) {
 	visibility: visible;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -1770,7 +1780,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 .home-logo,
 .home-menu-toggle,
-.home-edge-blur,
+.home-top-edge,
 .home-menu,
 .home-search,
 .home-kinds {
@@ -1786,7 +1796,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		opacity: 1;
 	}
 	.home-top.is-tucked {
-		/* Include the sticky offset and glass feather in the shared travel. */
+		/* Include the sticky offset and feather in the travel, so the controls leave the blur fully. */
 		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
 		opacity: 1;
 		visibility: hidden;
@@ -1796,38 +1806,42 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		.home-top {
 			background: transparent;
 		}
-		.home-top > .home-heading,
-		.home-top > .home-kinds {
-			position: relative;
-			z-index: 1;
+		/* The edge blur sits behind the bar and stays when the controls tuck away while reading.
+		   It covers the sticky offset, the 64px row, the chip row while it shows and the feather. */
+		.home-top-edge {
+			display: block;
+			position: fixed;
+			z-index: 20;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: calc(var(--space-10) + var(--space-64) + var(--space-12));
+			pointer-events: none;
 		}
-		.home-top::before,
-		.home-top::after,
-		.home-edge-blur {
+		body:has(#home-kinds:not([hidden])) .home-top-edge {
+			height: calc(
+				var(--space-10) +
+				var(--space-64) +
+				var(--space-32) +
+				var(--space-2) +
+				var(--space-12)
+			);
+		}
+		/* Mac's material over the feed reads as a lift, not a blur: the cards stay sharp under a
+		   bright wash. The mask follows Mac: full at the top, 70% at 45%, gone below. */
+		.home-top-edge::before {
 			content: "";
 			display: block;
 			position: absolute;
-			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
-			z-index: 0;
-			pointer-events: none;
-		}
-		.home-top::before {
-			-webkit-backdrop-filter: var(--edge-blur-soft);
-			backdrop-filter: var(--edge-blur-soft);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-		}
-		.home-top::after {
-			-webkit-backdrop-filter: var(--edge-blur-mid);
-			backdrop-filter: var(--edge-blur-mid);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
-		}
-		.home-edge-blur {
-			-webkit-backdrop-filter: var(--edge-blur-strong);
-			backdrop-filter: var(--edge-blur-strong);
-			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
-			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			inset: 0;
+			background: var(--edge-tint);
+			-webkit-mask-image: linear-gradient(
+				to bottom,
+				#000 0%,
+				rgb(0 0 0 / 0.7) 45%,
+				transparent 100%
+			);
+			mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.7) 45%, transparent 100%);
 		}
 	}
 
@@ -2386,6 +2400,12 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+/* The time a card entered Sill has no label; a dotted underline tells it from a content date. */
+.card-time.is-added {
+	text-decoration: underline dotted;
+	text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+	text-underline-offset: 3px;
+}
 .card-head-right {
 	margin-left: auto;
 	flex: none;
@@ -2602,30 +2622,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 
 /* data and list blocks */
-.sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-/* Name and time share one baseline: the bold name is larger, so centering left the time high. */
-.sender > span:last-child {
-	display: flex;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-.sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-	font-weight: calc(600 + var(--content-weight-add, 0));
-	line-height: 1.3;
-}
-.sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	line-height: 1.4;
-	color: var(--muted);
-}
 .avatar {
 	display: inline-grid;
 	place-items: center;
@@ -3150,11 +3146,6 @@ a.detail-row:hover {
 	position: static;
 	flex: none;
 }
-.sender small {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
 .pr-card-heading {
 	display: flex;
 	flex-direction: column;
@@ -3363,12 +3354,42 @@ a.detail-row:hover {
 	stroke: none;
 }
 
-.sender :is(b, small),
-.preview-sender :is(b, small) {
+/* Mail head: avatar · sender · date on one row. The name truncates first; the date stays whole. */
+.mail-sender > .avatar {
+	margin: 0;
+	font-size: calc(10px * var(--content-text-scale, 1));
+}
+.preview-meta.mail-sender > .avatar {
+	font-size: calc(11px * var(--content-text-scale, 1));
+}
+.mail-sender > b {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	color: var(--ink);
+	font-weight: calc(600 + var(--content-weight-add, 0));
+}
+.mail-date,
+.pr-date {
+	flex: none;
+	white-space: nowrap;
+}
+/* Repository · number · date; the repository truncates first. */
+.pr-origin {
+	flex: 0 1 auto;
+	display: flex;
+	gap: var(--space-4);
+}
+.pr-repository {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.pr-number {
+	flex: none;
+}
+.pr-detail .card-head {
+	padding-right: var(--space-44);
 }
 
 /* Stacks: one place on the desk, layered edges, opened in place. */
@@ -3657,6 +3678,14 @@ dialog::backdrop {
 	align-items: center;
 	gap: 0;
 }
+@media (min-width: 651px) {
+	dialog.preview[open]:has(.detail-summary):not(:has(.preview-sheet.is-full)) {
+		margin-top: var(--summary-preview-top, auto);
+	}
+	dialog.preview[open]:has(.detail-summary) > .preview-sheet:not(.is-full) {
+		max-height: min(88dvh, 900px, calc(100dvh - var(--summary-preview-top, 0px) - var(--space-24)));
+	}
+}
 .preview-sheet {
 	position: relative;
 	z-index: 1;
@@ -3703,7 +3732,7 @@ dialog::backdrop {
 	visibility: hidden;
 	pointer-events: none;
 }
-/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+/* Scroll edges are real layers. The bottom one tucks with the capsule; the top one stays once scrolled. */
 .preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
@@ -3731,17 +3760,14 @@ dialog::backdrop {
 	height: 44px;
 }
 .preview-sheet :is(#modal-title, .phone-layer-title),
-.preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
+.preview-sheet .preview-body .preview-meta {
 	padding-right: var(--space-48);
 }
 .preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
-.preview-sheet:has(.sheet-head [data-action="reader"])
-	.preview-body
-	:is(.preview-sender, .preview-meta) {
+.preview-sheet:has(.sheet-head [data-action="reader"]) .preview-body .preview-meta {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta))
-	:is(#modal-title, .phone-layer-title) {
+.preview-sheet:has(.preview-body .preview-meta) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
@@ -3806,7 +3832,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.preview-sheet > .sheet-edge.is-top.is-tucked,
 .preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
@@ -3996,27 +4021,6 @@ dialog::backdrop {
 	font: inherit;
 	color: inherit;
 }
-.preview-sender {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-}
-/* Name and time share one baseline, as on the card. */
-.preview-sender > span:last-child {
-	display: flex;
-	align-items: baseline;
-	gap: var(--space-8);
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-.preview-sender b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.preview-sender small {
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
-	color: var(--muted);
-}
 .detail-rows {
 	display: flex;
 	flex-direction: column;
@@ -4108,8 +4112,10 @@ button.detail-row:active {
 .why-line .icon {
 	color: var(--secondary);
 }
+/* Rows keep the card's rhythm; the phone widens the touch area without spacing them out. */
 .detail-task-list .check-item {
-	min-height: 44px;
+	position: relative;
+	min-height: var(--space-36);
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-tags {
@@ -4320,6 +4326,11 @@ button.detail-row:active {
 	background: var(--accent-fill);
 	z-index: 4;
 }
+/* The reading line belongs to the open page; it does not fly home with the surface. */
+:has(> [data-return-face]) .reader-progress,
+.reader-progress:has(~ [data-return-face]) {
+	visibility: hidden;
+}
 .reader-scroll {
 	height: 100dvh;
 	overflow-y: auto;
@@ -4338,7 +4349,7 @@ button.detail-row:active {
 }
 .reader-body h1,
 .reader-body .preview-title-row {
-	font-size: calc(34px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-detail-title) * var(--content-text-scale, 1));
 	line-height: calc(1.3 * var(--reader-line-scale, 1));
 	font-weight: calc(600 + var(--content-weight-add, 0));
 	letter-spacing: -0.035em;
@@ -4346,13 +4357,13 @@ button.detail-row:active {
 	white-space: pre-line;
 }
 .reader-body p {
-	font-size: calc(18px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.9 * var(--reader-line-scale, 1));
 	margin: 0;
 	color: var(--ink);
 }
 .reader-body .preview-full li {
-	font-size: calc(18px * var(--content-text-scale, 1));
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.9 * var(--reader-line-scale, 1));
 }
 .reader-body .reader-cover {
@@ -4412,13 +4423,6 @@ button.detail-row:active {
 	width: 62%;
 }
 
-.lightbox-caption {
-	flex: none;
-	text-align: center;
-	padding: var(--space-12) var(--space-20);
-	font-size: var(--text-control);
-	color: var(--muted);
-}
 .lightbox > .preview-note {
 	flex: none;
 	margin: var(--space-12) var(--space-20);
@@ -4710,7 +4714,7 @@ button.detail-row:active {
 	flex-direction: column;
 	gap: 0;
 }
-.detail-header > :is(.preview-meta, .preview-sender) {
+.detail-header > .preview-meta {
 	min-height: 36px;
 	margin-bottom: var(--rhythm-close);
 }
@@ -4739,21 +4743,22 @@ button.detail-row:active {
 .detail-section > h2:has(+ :is(.detail-rows, .detail-related, .detail-row)) {
 	margin-bottom: var(--rhythm-close);
 }
-.preview-body h1 {
-	font-size: calc(26px * var(--content-text-scale, 1));
+:is(.preview-body, .reader-body) h1,
+:is(.preview-body, .reader-body) .preview-title-row {
+	font-size: calc(var(--text-detail-title) * var(--content-text-scale, 1));
 	font-weight: calc(600 + var(--content-weight-add, 0));
 	line-height: calc(1.3 * var(--reader-line-scale, 1));
 	letter-spacing: -0.02em;
 }
-.preview-body .preview-full {
-	font-size: calc(15px * var(--content-text-scale, 1));
+:is(.preview-body, .reader-body) .preview-full {
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.75 * var(--reader-line-scale, 1));
 }
-.preview-body .preview-full :is(p, li) {
+:is(.preview-body, .reader-body) .preview-full :is(p, li) {
 	font-size: inherit;
 	line-height: inherit;
 }
-.preview-body .preview-lead {
+:is(.preview-body, .reader-body) .preview-lead {
 	margin: 0;
 	font-size: calc(16px * var(--content-text-scale, 1));
 	line-height: calc(1.65 * var(--reader-line-scale, 1));
@@ -4776,23 +4781,8 @@ button.detail-row:active {
 	max-width: none;
 	padding-inline: 30px;
 }
-.reader-body h1 {
-	font-size: calc(30px * var(--content-text-scale, 1));
-	line-height: calc(1.3 * var(--reader-line-scale, 1));
-	letter-spacing: -0.02em;
-}
-.reader-body .preview-full :is(p, li),
-.reader-body .preview-lead {
-	font-size: calc(17px * var(--content-text-scale, 1));
-	line-height: calc(1.75 * var(--reader-line-scale, 1));
-}
 .reader-body > .preview-cover {
 	margin: 0 0 24px;
-}
-.preview-sender small {
-	display: flex;
-	align-items: center;
-	gap: 6px;
 }
 .detail-section h2 {
 	font-size: calc(13px * var(--content-text-scale, 1));
@@ -5131,14 +5121,9 @@ button.detail-row:active {
 	font-weight: 600;
 	color: var(--ink);
 }
-.lightbox-caption {
-	order: 0;
-	text-align: left;
-}
-.lightbox-caption small {
-	display: block;
+/* Place · date above the title, the same source row as the photo card. */
+.lightbox-meta {
 	color: var(--muted);
-	margin-top: 4px;
 }
 .pr-check-details summary {
 	list-style: none;
@@ -5277,9 +5262,6 @@ button.detail-row:active {
 	.lightbox-top {
 		padding-inline: var(--space-16);
 	}
-	.lightbox-caption {
-		padding-inline: var(--space-20);
-	}
 }
 
 .preview-sheet .is-podcast .media-secondary {
@@ -5352,21 +5334,113 @@ button.detail-row:active {
 
 /* Shared summary and schedule, with no card-face clamp in a detail. */
 .detail-summary {
-	display: grid;
-	gap: var(--rhythm-close);
-	padding: var(--space-16);
+	padding: var(--space-12) var(--space-16);
 	border-radius: var(--control-radius);
 	background: var(--surface);
+}
+.summary-content {
+	overflow: hidden;
+	overflow-anchor: none;
+}
+.summary-content-inner {
+	display: flow-root;
+	padding-top: var(--rhythm-tight);
+}
+:is(.sheet-scroll, #reader-scroll):has(.detail-summary) {
+	overflow-anchor: none;
 }
 .detail-summary-label {
 	font-size: var(--text-meta);
 	font-weight: 600;
 	color: var(--muted);
 }
-.detail-summary p {
+:is(.preview-body, .reader-body) .detail-summary p,
+.summary-points {
 	margin: 0;
+	color: var(--muted);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
+	line-height: calc(1.75 * var(--reader-line-scale, 1));
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
+}
+/* Head: the Sill mark switches short and long at the left, the chevron folds at the right. */
+.detail-summary-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-height: var(--space-24);
+	margin: calc(-1 * var(--space-10)) calc(-1 * var(--space-10)) calc(-1 * var(--space-10))
+		calc(-1 * var(--space-12));
+}
+.detail-summary-head > .detail-summary-label:first-child {
+	padding-left: var(--space-12);
+}
+.summary-length,
+.summary-mark,
+.summary-fold {
+	display: grid;
+	place-items: center;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--muted);
+	cursor: pointer;
+}
+.summary-mark {
+	cursor: default;
+}
+.summary-length,
+.summary-mark {
+	margin-right: calc(-1 * var(--space-8));
+}
+.summary-fold {
+	flex: 1;
+	width: auto;
+	min-width: var(--hit-target);
+	justify-items: end;
+	padding-right: var(--space-14);
+	border-radius: var(--control-radius);
+}
+.summary-length[aria-pressed="true"] {
+	color: var(--accent);
+}
+.summary-length:active {
+	transform: scale(0.94);
+}
+@media (hover: hover) and (pointer: fine) {
+	.summary-length:hover {
+		background: color-mix(in srgb, var(--ink) 6%, transparent);
+	}
+}
+.summary-fold > .icon {
+	transform: rotate(-90deg);
+}
+.summary-fold[aria-expanded="false"] > .icon {
+	transform: rotate(90deg);
+}
+.summary-length .sill-ai-bar {
+	transform-box: fill-box;
+	transform-origin: left center;
+}
+.summary-points {
+	display: grid;
+	gap: var(--space-8);
+	padding-left: var(--space-20);
+}
+.summary-skeleton {
+	display: grid;
+}
+.summary-skeleton > span {
+	height: 10px;
+	margin-block: 7px;
+	border-radius: 5px;
+	background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.summary-skeleton > span.is-point {
+	margin-left: var(--space-20);
 }
 .card-schedule {
 	display: flex;
@@ -5376,34 +5450,44 @@ button.detail-row:active {
 	color: var(--muted);
 	overflow-wrap: anywhere;
 }
+.detail-header > .card-schedule:not(:last-child) {
+	margin-bottom: var(--rhythm-item);
+}
 
-/* Podcast introduction (PR #72 prototype): cover and title, one listening line, then read-only
-   sections. No player, tabs or full screen; the close disc sits at the cover's top corner. */
+/* Small artwork identifies the episode; the title, summary and authored sections lead the page. */
 .podcast-detail {
 	display: flex;
 	flex-direction: column;
+	width: 100%;
+	max-width: var(--podcast-column);
+	margin-inline: auto;
 	text-align: left;
 }
 .podcast-head {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-16);
+	gap: var(--rhythm-item);
+}
+.podcast-identity {
+	display: flex;
+	align-items: center;
+	gap: var(--rhythm-item);
+	min-width: 0;
 }
 .podcast-cover {
-	width: 100%;
+	width: var(--podcast-cover-sm);
+	height: var(--podcast-cover-sm);
+	flex: none;
 	aspect-ratio: 1;
 	object-fit: cover;
-	border-radius: var(--card-radius);
-	box-shadow:
-		0 2px 5px rgba(0, 0, 0, 0.04),
-		0 10px 24px rgba(0, 0, 0, 0.07);
+	border-radius: var(--control-radius);
 }
 .podcast-cover.is-placeholder {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	padding: var(--space-20);
-	background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+	padding: var(--space-12);
+	background: var(--surface);
 	color: var(--ink);
 	overflow: hidden;
 }
@@ -5413,95 +5497,88 @@ button.detail-row:active {
 	color: var(--muted);
 }
 .podcast-cover.is-placeholder b {
-	font-size: var(--text-panel-title);
-	line-height: 1.2;
-	font-weight: 800;
+	font-size: var(--text-reader-body);
+	line-height: 1.3;
+	font-weight: 600;
 	display: -webkit-box;
-	-webkit-line-clamp: 4;
+	-webkit-line-clamp: 3;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 }
 .podcast-heading {
 	display: flex;
 	flex-direction: column;
+	gap: var(--rhythm-close);
 	min-width: 0;
+	flex: 1;
+	padding-right: var(--space-48);
 }
-.podcast-date {
-	font-size: var(--text-meta);
-	font-weight: 600;
-	color: var(--muted);
+/* Program · date, the same source row as the card; the program opens its page. */
+.podcast-source {
+	color: inherit;
+	text-decoration: none;
+}
+.podcast-source:hover {
+	text-decoration: underline;
 }
 :is(#modal, .phone-layer).preview .podcast-detail #modal-title {
-	margin: var(--space-8) 0 0;
-	font-size: var(--text-figure-route);
-	line-height: 1.2;
-	font-weight: 800;
-	letter-spacing: -0.01em;
+	margin: 0;
+	font-size: calc(var(--text-detail-title) * var(--content-text-scale, 1));
+	line-height: 1.35;
+	font-weight: calc(600 + var(--content-weight-add, 0));
+	letter-spacing: -0.02em;
 	padding-right: 0;
 }
-.podcast-byline {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
-	margin-top: var(--space-16);
-	font-size: var(--text-control);
-	color: var(--muted);
-	text-decoration: none;
-	min-width: 0;
-}
-.podcast-byline > span:not(.podcast-byline-mark) {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.podcast-byline > .icon {
-	flex: none;
-}
-.podcast-byline-mark {
-	width: 28px;
-	height: 28px;
-	flex: none;
-	display: grid;
-	place-items: center;
-	border-radius: 7px;
-	background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-	color: var(--ink);
-}
-.podcast-heading .preview-tags {
-	margin-top: var(--space-16);
+.podcast-head .preview-tags {
+	margin: 0;
 	gap: var(--space-6);
+}
+.podcast-head .preview-tags .chip {
+	padding-inline: 0;
+	background: none;
+}
+:is(#modal, .phone-layer).preview .podcast-detail .podcast-meta {
+	padding: 0;
+}
+.podcast-heading .podcast-meta > span {
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 .podcast-listening {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: var(--space-6);
-	margin: var(--space-28) 0 0;
-	padding: var(--space-14) 0;
-	border-block: 1px solid var(--line);
-	font-size: var(--text-control);
+	margin: 0;
+	font-size: var(--text-meta);
 	color: var(--muted);
 }
-.podcast-listening b {
-	color: var(--ink);
-	font-weight: 600;
+.podcast-listening .icon {
+	flex: none;
+}
+.podcast-heading .podcast-listening b {
+	font-weight: 400;
+}
+.podcast-detail > .detail-summary {
+	margin-top: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
 }
 .podcast-body {
 	display: flex;
 	flex-direction: column;
-	max-width: 640px;
+	gap: calc(var(--rhythm-section) * var(--reader-space-scale, 1));
+	margin-top: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
 }
-.podcast-intro {
-	margin-top: var(--space-24);
-	font-size: var(--text-reader-body);
-	line-height: 1.75;
-}
-.podcast-body section {
-	margin-top: var(--space-44);
+.detail-summary + .podcast-body {
+	margin-top: calc(var(--rhythm-section) * var(--reader-space-scale, 1));
 }
 .podcast-body h2 {
-	margin: 0 0 var(--space-6);
-	font-size: var(--text-panel-title);
-	font-weight: 800;
+	margin: 0 0 var(--rhythm-label);
+	font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));
+	line-height: 1.5;
+	font-weight: calc(600 + var(--content-weight-add, 0));
+}
+.podcast-body .podcast-section-rows h2 {
+	margin-bottom: var(--rhythm-close);
 }
 .podcast-rows {
 	list-style: none;
@@ -5510,22 +5587,23 @@ button.detail-row:active {
 }
 .podcast-rows > :is(li, div) {
 	display: flex;
-	gap: var(--space-20);
-	padding-block: 13px;
+	gap: var(--rhythm-item);
+	padding-block: var(--space-12);
 	border-bottom: 1px solid var(--line);
 }
 .podcast-rows > :is(li, div):last-child {
 	border-bottom: 0;
 }
 .podcast-chapters li {
-	font-size: var(--text-body);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
+	line-height: 1.6;
 }
 .podcast-chapters time {
 	width: var(--space-48);
 	flex: none;
 	color: var(--muted);
 	font-size: var(--text-control);
-	line-height: 22px;
+	line-height: inherit;
 }
 .podcast-facts > div {
 	justify-content: space-between;
@@ -5540,57 +5618,50 @@ button.detail-row:active {
 	overflow-wrap: anywhere;
 }
 .podcast-excerpt {
-	margin-top: var(--space-4);
 	font-size: var(--text-meta);
+	font-weight: 400;
 	color: var(--muted);
 }
 .podcast-transcript {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-16);
-	margin-top: var(--space-16);
+	gap: calc(var(--rhythm-item) * var(--reader-space-scale, 1));
 	font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", serif;
-	font-size: 18px;
-	line-height: 1.85;
+	font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));
+	line-height: calc(1.85 * var(--reader-line-scale, 1));
 }
 .podcast-transcript p {
 	margin: 0;
 }
-/* Phone: the close disc floats on the cover's top-right corner, no blank band above. */
+/* The close disc sits beside the metadata, leaving the title its full width. */
 :is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-sheet .sheet-head {
-	top: calc(var(--space-18) + var(--space-12));
-	padding-right: calc(var(--space-20) + var(--space-12));
+	top: calc(var(--rhythm-group) - var(--space-4));
+	padding-right: var(--space-16);
+}
+:is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-body {
+	padding-top: var(--rhythm-group);
+	padding-inline: var(--article-gutter-sm);
 }
 @media (min-width: 651px) {
 	/* Podcast and video previews open wider than other cards: an 860 sheet, as in the podcast prototype. */
 	:is(#modal, .phone-layer).preview:has(.podcast-detail, .preview-sheet.detail-media) {
 		width: min(860px, calc(100vw - 48px));
 	}
-	/* The podcast page keeps 80 at the sides and 40 above the cover. */
+	/* One centered reading column, with no second inner column or added top padding. */
 	:is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-body {
-		padding: var(--space-40) calc(2 * var(--space-40)) var(--space-30);
+		padding: var(--space-40) var(--space-40) var(--space-30);
 	}
 	/* Desktop: the close disc lines up with the cover's top edge, at the sheet's right side. */
 	:is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-sheet .sheet-head {
 		top: calc(var(--space-40) - var(--space-4));
 		padding-right: var(--space-24);
 	}
-	.podcast-head {
-		flex-direction: row;
-		align-items: stretch;
-		gap: var(--space-32);
-	}
 	.podcast-cover {
-		width: 232px;
-		height: 232px;
-		flex: none;
-	}
-	.podcast-heading {
-		justify-content: flex-end;
-		padding: 0 var(--space-48) var(--space-4) 0;
+		width: var(--podcast-cover);
+		height: var(--podcast-cover);
 	}
 	:is(#modal, .phone-layer).preview .podcast-detail #modal-title {
-		font-size: var(--text-figure);
+		font-size: calc(var(--podcast-title) * var(--content-text-scale, 1));
 	}
 }
 
@@ -5957,6 +6028,96 @@ button.list-row:active {
 	border: 0;
 	margin: 0;
 	min-width: 0;
+	flex: 1;
+}
+.backup-provider .segmented > button {
+	flex: 1;
+}
+.backup-editor[hidden],
+.backup-overview[hidden] {
+	display: none;
+}
+.backup-back,
+.backup-history-head,
+.backup-target-row > .text-link,
+.backup-add-another {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+}
+.backup-back {
+	margin-bottom: var(--space-12);
+}
+.backup-target-row {
+	flex-wrap: wrap;
+}
+.backup-target-row > .icon {
+	flex: none;
+	color: var(--muted);
+}
+.backup-settings .backup-target-row > select {
+	min-height: var(--hit-target);
+	appearance: none;
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	background: transparent;
+	font-size: var(--text-control);
+	cursor: pointer;
+}
+.backup-target-name {
+	flex: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.backup-target-row > .text-link {
+	flex: none;
+}
+.backup-add-target {
+	width: 100%;
+	justify-content: flex-start;
+	text-align: left;
+	min-height: var(--space-64);
+}
+.backup-add-target > .icon:last-child {
+	margin-left: auto;
+	color: var(--muted);
+}
+.backup-settings :is(.backup-create-actions, .backup-form-actions) > button {
+	min-height: var(--hit-target);
+}
+.backup-form-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	margin-top: var(--space-20);
+}
+.backup-add-another {
+	margin-top: var(--space-8);
+	padding: 0;
+}
+.backup-history-head {
+	justify-content: space-between;
+	margin: var(--space-28) 0 var(--space-12);
+}
+.backup-history-head h3 {
+	margin: 0;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+.backup-history-head > button {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: var(--hit-target);
+	padding: 0;
+}
+.backup-settings .backup-overview .settings-empty {
+	margin-top: 0;
+}
+.backup-settings .backup-record:first-child {
+	margin-top: var(--space-16);
 }
 .settings-actions {
 	justify-content: flex-start;
@@ -6024,6 +6185,17 @@ button.list-row:active {
 	}
 	.settings-actions > button {
 		min-height: var(--space-44);
+	}
+	.backup-settings .backup-target-row {
+		flex-direction: row;
+		align-items: center;
+	}
+	.backup-settings .backup-target-row > select {
+		flex: 1;
+		width: 0;
+	}
+	.backup-create-actions > .solid-button {
+		flex: 1;
 	}
 }
 kbd {
@@ -6679,11 +6851,6 @@ body.has-open-search #feed-grid {
 	background: transparent;
 	font-size: var(--text-meta);
 }
-.tag-hint {
-	margin: var(--space-8) 0 0;
-	font-size: var(--text-caption);
-	color: var(--muted);
-}
 .editor-note {
 	width: 100%;
 	min-height: 120px;
@@ -6704,6 +6871,124 @@ body.has-open-search #feed-grid {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-6);
+	margin-top: var(--space-8);
+}
+
+.tag-editor-sheet {
+	display: flex;
+	flex-direction: column;
+	max-height: min(78dvh, var(--visible-height, 100dvh));
+}
+.tag-panel-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.tag-panel-fields {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.tag-panel-content .panel-footer {
+	flex: none;
+	justify-content: flex-end;
+}
+/* The sheet holds focus on a phone so no control opens with a ring. */
+.tag-editor-sheet:focus {
+	outline: 0;
+}
+/* With no title above it, the tag field keeps clear of the round close button. */
+.tag-panel-fields > .tag-editor {
+	margin-right: var(--space-36);
+}
+/* The note is always a field, never a fold. On a phone it is a row that opens the note page. */
+.note-field {
+	display: block;
+	width: 100%;
+	margin-top: var(--space-16);
+	padding: var(--space-10) var(--space-12);
+	border-radius: 14px;
+	background: var(--surface);
+}
+textarea.note-field {
+	min-height: 96px;
+	line-height: 1.6;
+}
+button.note-field {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	border: 0;
+	color: var(--ink);
+	font-size: var(--text-input);
+	text-align: left;
+	cursor: pointer;
+}
+button.note-field.is-empty {
+	color: var(--muted);
+}
+.note-field-text {
+	flex: 1;
+	min-width: 0;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	white-space: pre-line;
+}
+button.note-field > .icon {
+	flex: none;
+	color: var(--secondary);
+}
+.tag-editor-sheet {
+	position: relative;
+}
+#tag-layer.panel .tag-editor-sheet:is(.note-open, .note-leaving) {
+	overflow: hidden;
+}
+.note-page {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: none;
+	flex-direction: column;
+	padding: var(--space-12) var(--space-20) max(var(--space-12), env(safe-area-inset-bottom));
+	background: var(--card);
+}
+.tag-editor-sheet:is(.note-open, .note-leaving) > .note-page {
+	display: flex;
+}
+.tag-editor-sheet.note-open {
+	height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - var(--space-8));
+}
+.tag-editor-sheet.note-open > .sheet-close {
+	visibility: hidden;
+}
+.note-page-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--hit-target);
+}
+.note-page-bar h2 {
+	margin: 0;
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.note-done {
+	min-height: var(--hit-target);
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border: 0;
+	background: none;
+	color: var(--accent);
+	font-size: var(--text-input);
+	font-weight: 600;
+}
+.note-page .editor-note {
+	flex: 1;
+	min-height: 0;
 	margin-top: var(--space-8);
 }
 
@@ -7036,7 +7321,8 @@ body.is-pulling main {
 	background: transparent;
 }
 
-/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars.
+   The top edge stays while the bars tuck; only the bottom one leaves with the toolbar. */
 .reader-edge {
 	position: fixed;
 	left: 0;
@@ -7064,7 +7350,7 @@ body.is-pulling main {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-.reader-edge.is-tucked {
+.reader-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
 /* Local AI conversation preview: no messages or connected send action. */
@@ -7393,7 +7679,6 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 		bottom: 4px;
 	}
 	.card-head,
-	.sender,
 	.card-head:has(.card-head-right),
 	.has-cover .card-head {
 		padding-right: 0;
@@ -7407,6 +7692,11 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	}
 	.check-item {
 		min-height: 44px;
+	}
+	.detail-task-list .check-item::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
 	}
 	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
 	.feed-item.feed-card {
@@ -7424,33 +7714,8 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	.feed-item .card-summary.reading-summary {
 		-webkit-line-clamp: var(--summary-reading-lines);
 	}
-	.feed-item :is(.card-head, .sender) {
+	.feed-item .card-head {
 		padding-right: 0;
-	}
-	/* Keep mail metadata on one line beside the portrait. */
-	.feed-item .sender {
-		gap: var(--space-8);
-	}
-	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
-	.feed-item .sender .avatar {
-		width: 20px !important;
-		height: 20px !important;
-		font-size: calc(11px * var(--content-text-scale, 1));
-	}
-	.feed-item .sender > span:last-child {
-		flex: 1;
-		flex-direction: row;
-		align-items: baseline;
-		gap: var(--space-8);
-		min-width: 0;
-		white-space: nowrap;
-	}
-	.feed-item .sender b {
-		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
-	}
-	.feed-item .sender small {
-		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
-		display: block;
 	}
 	/* Article covers remain above the card body on phones. */
 	.feed-item.type-article .card-cover {
@@ -7629,17 +7894,17 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 		top: calc(var(--space-8) + var(--space-44) + var(--space-24));
 	}
 	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
-	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
+	:is(#modal, .phone-layer).preview .preview-body .preview-meta {
 		padding-right: var(--space-52);
 	}
 	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		:is(#modal-title, .phone-layer-title),
 	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		.preview-body
-		:is(.preview-sender, .preview-meta) {
+		.preview-meta {
 		padding-right: var(--space-104);
 	}
-	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+	:is(#modal, .phone-layer).preview:has(.preview-body .preview-meta)
 		:is(#modal-title, .phone-layer-title) {
 		padding-right: 0;
 	}
@@ -7744,7 +8009,7 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	}
 	.reader-body h1,
 	.reader-body .preview-title-row {
-		font-size: calc(27px * var(--content-text-scale, 1));
+		font-size: calc(var(--space-24) * var(--content-text-scale, 1));
 	}
 	.reader-body p {
 		font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));
@@ -7858,6 +8123,15 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	}
 	:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	#tag-layer.panel .tag-editor-sheet {
+		max-height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - var(--space-8));
+	}
+	#tag-layer .tag-panel-content {
+		padding-bottom: max(var(--space-12), env(safe-area-inset-bottom));
+	}
+	#tag-layer :is(input, textarea) {
+		font-size: var(--text-input);
 	}
 	/* Hide navigation as soon as AI typing starts, before viewport keyboard detection. */
 	body:has(:is(#modal, .phone-layer)[open] .ai-conversation #ai-local-draft:focus) #dock,
@@ -8195,11 +8469,12 @@ body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	.feed-card {
 		--content-text-scale: calc(var(--card-text-scale, 1) * var(--text-phone-scale, 1));
 	}
-	.preview-body {
+	.preview-body,
+	.reader-body {
 		--content-text-scale: calc(var(--reader-text-scale, 1) * var(--text-phone-scale, 1));
 	}
 	/* Detail text reads at the reader's body size, so expanding does not change it. */
-	.preview-body .preview-full {
+	:is(.preview-body, .reader-body) .preview-full {
 		font-size: calc(var(--text-reader-body) * var(--reader-text-scale, 1));
 	}
 	.search-card-grid {
@@ -8318,16 +8593,8 @@ SOFTWARE.
 		var(--reader-space-scale, 1)
 	);
 }
-.reader-body.is-article .preview-full.typeset {
-	--typeset-flow: calc(
-		var(--text-reader-body) *
-		var(--content-text-scale, 1) *
-		1.25 *
-		var(--reader-space-scale, 1)
-	);
-}
 @media (max-width: 650px) {
-	.preview-body.is-article .preview-full.typeset {
+	:is(.preview-body, .reader-body).is-article .preview-full.typeset {
 		--typeset-flow: calc(
 			var(--text-reader-body) *
 			var(--reader-text-scale, 1) *
@@ -8406,17 +8673,25 @@ SOFTWARE.
 	grid-template-columns: minmax(0, 1fr);
 	min-height: 0;
 }
-.reader-layout.is-workspace.has-outline {
-	grid-template-columns: minmax(0, 1fr) var(--reader-outline-width);
-	gap: var(--space-24);
-	padding-right: var(--space-30);
+.reader-workspace > .gesture-content > .reader-body,
+.reader-workspace > .reader-body {
+	padding: var(--space-16) var(--space-30) var(--space-24);
 }
+/* The article column and its outline center as one group; the margins on both sides match. */
 @media (min-width: 651px) {
 	.reader-layout.is-workspace:has(> .is-article-reader) {
-		width: 100%;
-		max-width: 1200px;
-		margin-inline: auto;
-		padding-inline: clamp(var(--space-24), 5vw, var(--space-88));
+		grid-template-columns: minmax(0, var(--reader-column));
+		justify-content: center;
+		padding-inline: var(--space-32);
+	}
+	.is-article-reader > .gesture-content > .reader-body {
+		padding-inline: 0;
+	}
+}
+@media (min-width: 900px) {
+	.reader-layout.is-workspace.has-outline:has(> .is-article-reader) {
+		grid-template-columns: minmax(0, var(--reader-column)) var(--reader-outline-width);
+		gap: var(--space-64);
 	}
 }
 .reader-layout > .reader-workspace {
@@ -8427,11 +8702,10 @@ SOFTWARE.
 	width: 100%;
 	height: 100%;
 }
-.reader-workspace > :is(.gesture-content > .reader-body, .reader-body) {
-	padding: var(--space-16) var(--space-30) var(--space-24);
-}
-.is-article-reader > .gesture-content > .reader-body {
-	max-width: var(--reader-measure);
+.is-article-reader > .gesture-content > .reader-body > .preview-cover {
+	height: auto;
+	aspect-ratio: var(--reader-cover-ratio);
+	margin: 0 0 calc(var(--rhythm-group) - var(--space-14));
 }
 .reader-outline {
 	position: relative;
@@ -8448,6 +8722,9 @@ SOFTWARE.
 	grid-row: 1;
 }
 .reader-outline h2 {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
 	font-size: var(--text-body);
 	font-weight: 500;
 	color: var(--ink);
@@ -8459,6 +8736,7 @@ SOFTWARE.
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);
+	border-left: 1px solid var(--line-card);
 }
 .reader-outline a {
 	flex-shrink: 0;
@@ -8466,7 +8744,9 @@ SOFTWARE.
 	display: flex;
 	align-items: center;
 	min-height: var(--space-32);
+	margin-left: calc(-1 * 1px);
 	padding: var(--space-4) 0;
+	border-left: 2px solid transparent;
 	font-size: var(--text-body);
 	font-weight: 400;
 	line-height: 1.6;
@@ -8475,7 +8755,8 @@ SOFTWARE.
 	overflow-wrap: anywhere;
 }
 .reader-outline a[aria-current="location"] {
-	color: var(--ink);
+	border-left-color: var(--accent);
+	color: var(--accent);
 	font-weight: 500;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -8561,27 +8842,22 @@ SOFTWARE.
 		position: static;
 	}
 }
+@media (max-width: 899px) {
+	.reader-outline {
+		display: none;
+	}
+}
 @media (max-width: 650px) {
 	.reader-layout.is-workspace {
 		top: calc(var(--space-64) + env(safe-area-inset-top));
 	}
-	.reader-layout.is-workspace.has-outline {
-		grid-template-columns: minmax(0, 1fr);
-		padding-right: 0;
-		gap: 0;
-	}
-	.reader-layout.has-outline > .reader-workspace {
-		grid-column: 1;
-	}
-	.reader-workspace > :is(.gesture-content > .reader-body, .reader-body) {
+	.reader-workspace > .gesture-content > .reader-body,
+	.reader-workspace > .reader-body {
 		padding-inline: var(--space-20);
 	}
 	.is-article-reader.has-outline {
 		left: 0;
 		width: auto;
-	}
-	.reader-outline {
-		display: none;
 	}
 	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 		left: var(--space-4);
@@ -9183,4 +9459,4 @@ SOFTWARE.
 
 body{min-height:100svh;display:grid;place-items:center;padding:var(--space-24)}#modal{position:relative;margin:auto;max-height:calc(100svh - var(--space-48))}#modal::backdrop{display:none}@media(max-width:650px){body{padding:0;display:block}#modal{margin:0;max-height:100svh;height:100svh;width:100%;border-radius:0}}
 </style></head><body><dialog open id="modal" class="panel wide"><div class="sheet settings-sheet"><div class="grabber" aria-hidden="true"></div><header class="settings-head"><h1 id="modal-title">设置</h1><div class="sheet-close"><button type="button" class="icon-button " aria-label="关闭设置" data-action="close"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></header><div class="settings-layout"><nav class="settings-nav" aria-label="设置分组"><button type="button" class="on" data-action="settings-group" data-extra="desk" aria-current="true">桌面</button><button type="button" class="" data-action="settings-group" data-extra="look" aria-current="false">外观</button><button type="button" class="" data-action="settings-group" data-extra="keys" aria-current="false">快捷键</button><button type="button" class="" data-action="settings-group" data-extra="data" aria-current="false">数据与隐私</button><button type="button" class="" data-action="settings-group" data-extra="backup" aria-current="false">备份与恢复</button><button type="button" class="" data-action="settings-group" data-extra="about" aria-current="false">关于</button></nav><div class="settings-main"><h2>桌面</h2><div class="settings-card"><div class="setting-row"><span>合并显示同一来源的卡片</span><span class="setting-side"><span>1 小时内超过 5 张</span><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="合并显示同一来源的卡片" aria-checked="true" data-action="pref-toggle" data-id="stack"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>淡化已读卡片</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="淡化已读卡片" aria-checked="true" data-action="pref-toggle" data-id="fadeRead"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>会议和提醒到时置顶</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="会议和提醒到时置顶" aria-checked="true" data-action="pref-toggle" data-id="floatTimely"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div></div>
-       <div class="settings-card"><div class="setting-row"><span>读完上推收起</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="读完上推收起" aria-checked="true" data-action="pref-toggle" data-id="collapseOnFinish"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>新内容提示</span><span class="setting-side"><span class="segmented" role="radiogroup" aria-label="新内容提示"><button type="button" role="radio" tabindex="0" aria-checked="true" class="on" data-action="pref" data-id="newHint" data-extra="away">离开顶部时</button><button type="button" role="radio" tabindex="-1" aria-checked="false" class="" data-action="pref" data-id="newHint" data-extra="off">不提示</button></span></span></div></div></div></div></div></dialog><script>const pages={"desk":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"true\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>桌面\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>合并显示同一来源的卡片\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>1 小时内超过 5 张\u003c/span>\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"合并显示同一来源的卡片\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"stack\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>淡化已读卡片\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"淡化已读卡片\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"fadeRead\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>会议和提醒到时置顶\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"会议和提醒到时置顶\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"floatTimely\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>读完上推收起\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"读完上推收起\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"collapseOnFinish\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>新内容提示\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"新内容提示\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"away\">离开顶部时\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"off\">不提示\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","look":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"true\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>外观\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>主题\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"主题\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"theme\" data-extra=\"system\">跟随系统\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"light\">浅色\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"dark\">深色\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"density\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>文字加重\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字加重\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"strong\">加重\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">卡片\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片内边距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片内边距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">阅读\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>行段间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"行段间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>正文宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"正文宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"narrow\">窄\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"full\">填满可用宽度\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cbutton type=\"button\" class=\"text-link settings-reset\" data-action=\"layout-reset\">恢复默认排版\u003c/button>\u003c/div>\u003c/div>\u003c/div>","keys":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"true\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>快捷键\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>单键快捷键 N / R / T\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"单键快捷键 N / R / T\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"singleKeyShortcuts\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>搜索\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>⌘\u003c/kbd>\u003ckbd>K\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>打开已聚焦的卡片\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Enter\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>关闭弹窗\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Esc\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>刷新\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>R\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回到顶部\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>T\u003c/kbd>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","data":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"true\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>数据与隐私\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>存放位置\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>这个浏览器\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>占用\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">743 B\u003c/span>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"export-all\">导出全部卡片…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link warn\" data-action=\"clear-all\">清除全部数据…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","about":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"true\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003csection class=\"about-settings\" aria-labelledby=\"about-title\">\u003ch2 id=\"about-title\">关于\u003c/h2>\u003cdiv class=\"settings-product\">\u003csvg class=\"sill-icon\" width=\"56\" height=\"56\" viewBox=\"0 0 160 160\" aria-hidden=\"true\" style=\"border-radius:13px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 6px 16px rgba(0,0,0,.1);flex:none\">\u003cdefs>\u003clinearGradient id=\"sill-g\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\u003cstop offset=\"0\" stop-color=\"#bcd5ef\"/>\u003cstop offset=\".62\" stop-color=\"#eef4fa\"/>\u003cstop offset=\".62\" stop-color=\"#f7f5f0\"/>\u003cstop offset=\"1\" stop-color=\"#ebe7df\"/>\u003c/linearGradient>\u003c/defs>\u003crect width=\"160\" height=\"160\" rx=\"36\" fill=\"url(#sill-g)\"/>\u003crect x=\"0\" y=\"97\" width=\"160\" height=\"5\" fill=\"#fff\" opacity=\".9\"/>\u003crect x=\"44\" y=\"58\" width=\"34\" height=\"42\" rx=\"7\" fill=\"#fff\" stroke=\"rgba(0,0,0,.06)\"/>\u003crect x=\"84\" y=\"68\" width=\"32\" height=\"32\" rx=\"7\" fill=\"#fff\" stroke=\"rgba(0,0,0,.06)\"/>\u003crect x=\"50\" y=\"66\" width=\"16\" height=\"4\" rx=\"2\" fill=\"#0066cc\"/>\u003c/svg>\u003cdiv>\u003ch3 class=\"settings-product-name\" aria-label=\"Sill\">\u003cspan class=\"sill-wordmark\" aria-hidden=\"true\">Sill\u003c/span>\u003c/h3>\u003cp class=\"panel-sub\">由 AI 助手整理的个人卡片工作台\u003c/p>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>当前版本\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">1.2.24\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card settings-links\">\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m18 16 4-4-4-4\"/>\u003cpath d=\"m6 8-4 4 4 4\"/>\u003cpath d=\"m14.5 4-5 16\"/>\u003c/svg>GitHub 仓库\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/releases\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 3.5V14M7.5 9.5 12 14l4.5-4.5M4 14.5V16a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-1.5\"/>\u003c/svg>版本与下载\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/blob/main/README.md\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z\"/>\u003cpath d=\"M12 5v15\"/>\u003c/svg>使用说明\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/issues\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M4 5.5h16v11H9l-4 3v-3H4Z\"/>\u003c/svg>问题反馈\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003c/div>\u003c/section>\u003c/div>\u003c/div>\u003c/div>","backup":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"true\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003csection class=\"backup-settings\" aria-label=\"备份与恢复\" aria-busy=\"false\">\u003ch2>备份与恢复\u003c/h2>\u003cp class=\"panel-sub\">手动备份账号中的卡片、状态、偏好和阅读记录。恢复会替换当前账号的数据。\u003c/p>\u003cdiv class=\"settings-section-head\">\u003cspan class=\"settings-section-icon\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M3 6a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z\"/>\u003c/svg>\u003c/span>\u003cdiv>\u003ch3>配置备份位置\u003c/h3>\u003cp>连接外部存储，用来保存账号备份。\u003c/p>\u003c/div>\u003c/div>\u003cform class=\"settings-card\">\u003cdiv class=\"setting-row backup-provider\">\u003cspan>备份方式\u003c/span>\u003cfieldset class=\"segmented\">\u003clegend class=\"sr-only\">备份方式\u003c/legend>\u003cbutton type=\"button\" class=\"on\" aria-pressed=\"true\">WebDAV / 坚果云\u003c/button>\u003cbutton type=\"button\" class=\"\" aria-pressed=\"false\">Cloudflare R2\u003c/button>\u003c/fieldset>\u003c/div>\u003clabel class=\"setting-row\">\u003cspan>WebDAV 文件夹地址（HTTPS）\u003c/span>\u003cinput type=\"text\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"endpoint\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>账号\u003c/span>\u003cinput type=\"text\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"username\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>应用密码\u003c/span>\u003cinput type=\"password\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"password\"/>\u003c/label>\u003cdiv class=\"setting-row settings-actions\">\u003cbutton type=\"submit\" class=\"text-link\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 5v14M5 12h14\"/>\u003c/svg>验证并添加备份位置\u003c/button>\u003cbutton type=\"submit\" data-update=\"true\" class=\"text-link\" disabled=\"\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003crect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"2\"/>\u003cpath d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>\u003c/svg>更新所选位置的连接信息\u003c/button>\u003c/div>\u003c/form>\u003cdiv class=\"settings-section-head\">\u003cspan class=\"settings-section-icon\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 13v8\"/>\u003cpath d=\"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242\"/>\u003cpath d=\"m8 17 4-4 4 4\"/>\u003c/svg>\u003c/span>\u003cdiv>\u003ch3>手动备份\u003c/h3>\u003cp>选择已配置的位置，保存当前账号的一份快照。\u003c/p>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card\">\u003clabel class=\"setting-row\">\u003cspan>备份位置\u003c/span>\u003cselect>\u003coption value=\"\" selected=\"\">选择已配置的位置\u003c/option>\u003c/select>\u003c/label>\u003cdiv class=\"setting-row settings-actions\">\u003cbutton type=\"button\" class=\"text-link\" disabled=\"\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/>\u003cpath d=\"m9 12 2 2 4-4\"/>\u003c/svg>检查连接\u003c/button>\u003cbutton type=\"button\" class=\"solid-button\" disabled=\"\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 13v8\"/>\u003cpath d=\"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242\"/>\u003cpath d=\"m8 17 4-4 4 4\"/>\u003c/svg>立即备份\u003c/button>\u003cbutton type=\"button\" class=\"text-link\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5\"/>\u003c/svg>刷新列表\u003c/button>\u003c/div>\u003c/div>\u003cdiv class=\"settings-section-head\">\u003cspan class=\"settings-section-icon\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/>\u003cpath d=\"M3 3v5h5\"/>\u003cpath d=\"M12 7v5l4 2\"/>\u003c/svg>\u003c/span>\u003cdiv>\u003ch3>备份记录\u003c/h3>\u003cp>核对或下载历史备份，恢复前先查看变化。\u003c/p>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card settings-empty\">\u003cspan class=\"muted\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/>\u003cpath d=\"M3 3v5h5\"/>\u003cpath d=\"M12 7v5l4 2\"/>\u003c/svg>\u003c/span>\u003cp>还没有备份。选择备份位置后，点击“立即备份”。\u003c/p>\u003c/div>\u003c/section>\u003c/div>\u003c/div>\u003c/div>"};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>
+       <div class="settings-card"><div class="setting-row"><span>读完上推收起</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="读完上推收起" aria-checked="true" data-action="pref-toggle" data-id="collapseOnFinish"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>新内容提示</span><span class="setting-side"><span class="segmented" role="radiogroup" aria-label="新内容提示"><button type="button" role="radio" tabindex="0" aria-checked="true" class="on" data-action="pref" data-id="newHint" data-extra="away">离开顶部时</button><button type="button" role="radio" tabindex="-1" aria-checked="false" class="" data-action="pref" data-id="newHint" data-extra="off">不提示</button></span></span></div></div></div></div></div></dialog><script>const pages={"desk":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"true\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>桌面\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>合并显示同一来源的卡片\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>1 小时内超过 5 张\u003c/span>\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"合并显示同一来源的卡片\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"stack\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>淡化已读卡片\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"淡化已读卡片\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"fadeRead\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>会议和提醒到时置顶\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"会议和提醒到时置顶\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"floatTimely\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>读完上推收起\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"读完上推收起\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"collapseOnFinish\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>新内容提示\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"新内容提示\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"away\">离开顶部时\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"off\">不提示\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","look":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"true\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>外观\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>主题\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"主题\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"theme\" data-extra=\"system\">跟随系统\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"light\">浅色\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"dark\">深色\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"density\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>文字加重\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字加重\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"strong\">加重\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">卡片\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片内边距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片内边距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">阅读\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>行段间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"行段间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>正文宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"正文宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"narrow\">窄\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"full\">填满可用宽度\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cbutton type=\"button\" class=\"text-link settings-reset\" data-action=\"layout-reset\">恢复默认排版\u003c/button>\u003c/div>\u003c/div>\u003c/div>","keys":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"true\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>快捷键\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>单键快捷键 N / R / T\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"单键快捷键 N / R / T\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"singleKeyShortcuts\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>搜索\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>⌘\u003c/kbd>\u003ckbd>K\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>打开已聚焦的卡片\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Enter\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>关闭弹窗\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Esc\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>刷新\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>R\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回到顶部\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>T\u003c/kbd>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","data":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"true\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>数据与隐私\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>存放位置\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>这个浏览器\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>占用\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">743 B\u003c/span>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"export-all\">导出全部卡片…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link warn\" data-action=\"clear-all\">清除全部数据…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","about":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"false\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"true\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003csection class=\"about-settings\" aria-labelledby=\"about-title\">\u003ch2 id=\"about-title\">关于\u003c/h2>\u003cdiv class=\"settings-product\">\u003csvg class=\"sill-icon\" width=\"56\" height=\"56\" viewBox=\"0 0 160 160\" aria-hidden=\"true\" style=\"border-radius:13px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 6px 16px rgba(0,0,0,.1);flex:none\">\u003cdefs>\u003clinearGradient id=\"sill-g\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\u003cstop offset=\"0\" stop-color=\"#bcd5ef\"/>\u003cstop offset=\".62\" stop-color=\"#eef4fa\"/>\u003cstop offset=\".62\" stop-color=\"#f7f5f0\"/>\u003cstop offset=\"1\" stop-color=\"#ebe7df\"/>\u003c/linearGradient>\u003c/defs>\u003crect width=\"160\" height=\"160\" rx=\"36\" fill=\"url(#sill-g)\"/>\u003crect x=\"0\" y=\"97\" width=\"160\" height=\"5\" fill=\"#fff\" opacity=\".9\"/>\u003crect x=\"44\" y=\"58\" width=\"34\" height=\"42\" rx=\"7\" fill=\"#fff\" stroke=\"rgba(0,0,0,.06)\"/>\u003crect x=\"84\" y=\"68\" width=\"32\" height=\"32\" rx=\"7\" fill=\"#fff\" stroke=\"rgba(0,0,0,.06)\"/>\u003crect x=\"50\" y=\"66\" width=\"16\" height=\"4\" rx=\"2\" fill=\"#0066cc\"/>\u003c/svg>\u003cdiv>\u003ch3 class=\"settings-product-name\" aria-label=\"Sill\">\u003cspan class=\"sill-wordmark\" aria-hidden=\"true\">Sill\u003c/span>\u003c/h3>\u003cp class=\"panel-sub\">由 AI 助手整理的个人卡片工作台\u003c/p>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>当前版本\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">1.2.30\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"settings-card settings-links\">\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m18 16 4-4-4-4\"/>\u003cpath d=\"m6 8-4 4 4 4\"/>\u003cpath d=\"m14.5 4-5 16\"/>\u003c/svg>GitHub 仓库\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/releases\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 3.5V14M7.5 9.5 12 14l4.5-4.5M4 14.5V16a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-1.5\"/>\u003c/svg>版本与下载\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/blob/main/README.md\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z\"/>\u003cpath d=\"M12 5v15\"/>\u003c/svg>使用说明\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003ca class=\"setting-row settings-link\" href=\"https://github.com/dabaige53/sill/issues\" target=\"_blank\" rel=\"noopener noreferrer\">\u003cspan class=\"settings-link-label\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M4 5.5h16v11H9l-4 3v-3H4Z\"/>\u003c/svg>问题反馈\u003c/span>\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M11 4H8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3M14.5 4H20v5.5M20 4l-8.5 8.5\"/>\u003c/svg>\u003c/a>\u003c/div>\u003c/section>\u003c/div>\u003c/div>\u003c/div>","backup":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"backup\" aria-current=\"true\">备份与恢复\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"about\" aria-current=\"false\">关于\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003csection class=\"backup-settings\" aria-label=\"备份与恢复\" aria-busy=\"false\">\u003cdiv class=\"backup-editor\" hidden=\"\">\u003cbutton type=\"button\" class=\"text-link backup-back\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M20 12H4m6-6-6 6 6 6\"/>\u003c/svg>备份与恢复\u003c/button>\u003ch2>添加备份位置\u003c/h2>\u003c/div>\u003cform class=\"backup-editor\" hidden=\"\">\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row backup-provider\">\u003cfieldset class=\"segmented\">\u003clegend class=\"sr-only\">备份方式\u003c/legend>\u003cbutton type=\"button\" class=\"on\" aria-pressed=\"true\">WebDAV / 坚果云\u003c/button>\u003cbutton type=\"button\" class=\"\" aria-pressed=\"false\">Cloudflare R2\u003c/button>\u003c/fieldset>\u003c/div>\u003cdiv>\u003clabel class=\"setting-row\">\u003cspan>WebDAV 文件夹地址（HTTPS）\u003c/span>\u003cinput type=\"text\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"endpoint\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>账号\u003c/span>\u003cinput type=\"text\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"username\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>应用密码\u003c/span>\u003cinput type=\"password\" required=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"password\"/>\u003c/label>\u003c/div>\u003cdiv hidden=\"\">\u003clabel class=\"setting-row\">\u003cspan>Cloudflare Account ID\u003c/span>\u003cinput type=\"text\" required=\"\" disabled=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"accountId\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>Bucket\u003c/span>\u003cinput type=\"text\" required=\"\" disabled=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"bucket\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>Access Key ID\u003c/span>\u003cinput type=\"text\" required=\"\" disabled=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"accessKeyId\"/>\u003c/label>\u003clabel class=\"setting-row\">\u003cspan>Secret Access Key\u003c/span>\u003cinput type=\"password\" required=\"\" disabled=\"\" autoComplete=\"off\" spellCheck=\"false\" name=\"secretAccessKey\"/>\u003c/label>\u003c/div>\u003c/div>\u003cdiv class=\"backup-form-actions settings-actions\">\u003cbutton type=\"button\" class=\"text-link\">取消\u003c/button>\u003cbutton type=\"submit\" class=\"solid-button\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/>\u003cpath d=\"m9 12 2 2 4-4\"/>\u003c/svg>验证并添加\u003c/button>\u003c/div>\u003c/form>\u003cdiv class=\"backup-overview\">\u003ch2>备份与恢复\u003c/h2>\u003cdiv class=\"settings-card backup-target-card\">\u003cbutton type=\"button\" class=\"backup-add-target setting-row text-link\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 5v14M5 12h14\"/>\u003c/svg>添加备份位置\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m9 6 6 6-6 6\"/>\u003c/svg>\u003c/button>\u003cdiv class=\"setting-row settings-actions backup-create-actions\">\u003cbutton type=\"button\" class=\"solid-button\" disabled=\"\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 13v8\"/>\u003cpath d=\"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242\"/>\u003cpath d=\"m8 17 4-4 4 4\"/>\u003c/svg>立即备份\u003c/button>\u003c/div>\u003c/div>\u003cdiv class=\"backup-history-head\">\u003ch3>备份记录\u003c/h3>\u003cbutton type=\"button\" class=\"text-link\">\u003csvg class=\"icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5\"/>\u003c/svg>刷新列表\u003c/button>\u003c/div>\u003cdiv class=\"settings-card settings-empty\">\u003cspan class=\"muted\">\u003csvg class=\"icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/>\u003cpath d=\"M3 3v5h5\"/>\u003cpath d=\"M12 7v5l4 2\"/>\u003c/svg>\u003c/span>\u003cp>还没有备份\u003c/p>\u003c/div>\u003c/div>\u003cdiv>\u003c/div>\u003c/section>\u003c/div>\u003c/div>\u003c/div>"};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>

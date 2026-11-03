@@ -180,7 +180,7 @@ button.list-row:active {
 	opacity: 0;
 }
 
-/* Settings: five groups, one screen each. */
+/* Settings groups share one fixed-size sheet. */
 .settings-layout {
 	display: grid;
 	grid-template-columns: 200px minmax(0, 1fr);
@@ -277,6 +277,259 @@ button.list-row:active {
 }
 .setting-row .text-link {
 	padding: 0;
+}
+.settings-product {
+	display: flex;
+	align-items: center;
+	gap: var(--space-16);
+	margin-bottom: var(--space-24);
+}
+.settings-product-name {
+	font-size: var(--text-panel-title);
+	color: var(--ink);
+}
+.settings-product .panel-sub {
+	margin: var(--space-6) 0 0;
+}
+.settings-link {
+	text-decoration: none;
+	color: var(--ink);
+}
+.settings-link-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	min-width: 0;
+}
+.settings-link > .icon,
+.settings-link-label > .icon {
+	flex: none;
+	color: var(--muted);
+}
+.settings-link:active {
+	background: var(--faint);
+}
+@media (hover: hover) and (pointer: fine) {
+	.settings-link:hover {
+		color: var(--accent);
+	}
+}
+.settings-section-head {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-12);
+	margin: var(--space-24) 0 var(--space-12);
+}
+.settings-section-icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--space-36);
+	height: var(--space-36);
+	border-radius: var(--control-radius);
+	background: var(--surface);
+	color: var(--muted);
+}
+.settings-section-head h3 {
+	font-size: var(--text-control);
+	font-weight: 600;
+}
+.settings-section-head p {
+	margin-top: var(--space-4);
+	font-size: var(--text-meta);
+	line-height: 1.5;
+	color: var(--muted);
+}
+.backup-settings .setting-row > :is(input, select) {
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	padding: var(--space-8) var(--space-10);
+	border: 1px solid var(--line);
+	border-radius: var(--control-radius);
+	background: var(--canvas);
+	color: var(--ink);
+	font-size: var(--text-meta);
+}
+.backup-settings .setting-row > span:first-child {
+	overflow-wrap: anywhere;
+}
+.backup-provider {
+	flex-wrap: wrap;
+}
+.backup-provider fieldset {
+	border: 0;
+	margin: 0;
+	min-width: 0;
+	flex: 1;
+}
+.backup-provider .segmented > button {
+	flex: 1;
+}
+.backup-editor[hidden],
+.backup-overview[hidden] {
+	display: none;
+}
+.backup-back,
+.backup-history-head,
+.backup-target-row > .text-link,
+.backup-add-another {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+}
+.backup-back {
+	margin-bottom: var(--space-12);
+}
+.backup-target-row {
+	flex-wrap: wrap;
+}
+.backup-target-row > .icon {
+	flex: none;
+	color: var(--muted);
+}
+.backup-settings .backup-target-row > select {
+	min-height: var(--hit-target);
+	appearance: none;
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	background: transparent;
+	font-size: var(--text-control);
+	cursor: pointer;
+}
+.backup-target-name {
+	flex: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.backup-target-row > .text-link {
+	flex: none;
+}
+.backup-add-target {
+	width: 100%;
+	justify-content: flex-start;
+	text-align: left;
+	min-height: var(--space-64);
+}
+.backup-add-target > .icon:last-child {
+	margin-left: auto;
+	color: var(--muted);
+}
+.backup-settings :is(.backup-create-actions, .backup-form-actions) > button {
+	min-height: var(--hit-target);
+}
+.backup-form-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	margin-top: var(--space-20);
+}
+.backup-add-another {
+	margin-top: var(--space-8);
+	padding: 0;
+}
+.backup-history-head {
+	justify-content: space-between;
+	margin: var(--space-28) 0 var(--space-12);
+}
+.backup-history-head h3 {
+	margin: 0;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+.backup-history-head > button {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: var(--hit-target);
+	padding: 0;
+}
+.backup-settings .backup-overview .settings-empty {
+	margin-top: 0;
+}
+.backup-settings .backup-record:first-child {
+	margin-top: var(--space-16);
+}
+.settings-actions {
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	column-gap: var(--space-16);
+	row-gap: var(--space-8);
+}
+.settings-actions > button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	min-height: var(--space-36);
+}
+.settings-actions > button.solid-button {
+	margin-left: auto;
+	order: 1;
+}
+.settings-feedback {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-8);
+	margin-top: var(--space-12);
+	font-size: var(--text-meta);
+	overflow-wrap: anywhere;
+}
+.settings-feedback .icon {
+	flex: none;
+}
+.settings-empty {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-20) var(--space-16);
+	color: var(--muted);
+	font-size: var(--text-meta);
+	line-height: 1.5;
+}
+.backup-status {
+	flex: none;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.backup-record time {
+	overflow-wrap: anywhere;
+}
+.backup-restore {
+	margin-top: var(--space-24);
+	padding-block: var(--space-16);
+}
+.backup-restore .settings-section-head {
+	margin-top: 0;
+}
+@media (max-width: 650px) {
+	.backup-settings .setting-row:has(> input, > select) {
+		align-items: stretch;
+		flex-direction: column;
+		gap: var(--space-8);
+		padding-block: var(--space-12);
+	}
+	.backup-settings .setting-row > :is(input, select) {
+		width: 100%;
+		min-height: var(--space-44);
+		font-size: var(--text-card-title);
+	}
+	.settings-actions > button {
+		min-height: var(--space-44);
+	}
+	.backup-settings .backup-target-row {
+		flex-direction: row;
+		align-items: center;
+	}
+	.backup-settings .backup-target-row > select {
+		flex: 1;
+		width: 0;
+	}
+	.backup-create-actions > .solid-button {
+		flex: 1;
+	}
 }
 kbd {
 	display: inline-flex;
@@ -691,3 +944,8 @@ body.has-open-search #feed-grid {
 	}
 }
 
+.settings-reset {
+	display: block;
+	margin-inline-start: auto;
+	margin-top: var(--space-4);
+}

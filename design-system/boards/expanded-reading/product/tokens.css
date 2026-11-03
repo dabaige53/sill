@@ -3,8 +3,12 @@
 	--edge-blur-soft: blur(4px);
 	--edge-blur-mid: blur(8px);
 	--edge-blur-strong: blur(16px);
+	--edge-tint: color-mix(in srgb, var(--canvas) 85%, transparent);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
+	--reader-column: 800px;
+	--reader-cover-ratio: 2 / 1;
+	--reader-outline-width: 200px;
 	--search-width: 280px;
 	--search-tagged-width: 360px;
 	--search-focused-width: 315px;
@@ -68,6 +72,8 @@
 	--accent-ink: #0057ad;
 	--success: #248a3d;
 	--alert: #b45309;
+	--error: #b42318;
+	--check-border: #828288;
 	--card-read: #e9e9ee;
 	--line-read: rgba(0, 0, 0, 0.04);
 	--alert-soft: #fdf3e7;
@@ -260,6 +266,8 @@ body[data-density="roomy"] {
 	--accent-ink: #8fc0ff;
 	--success: #3fb25e;
 	--alert: #f0a04b;
+	--error: #ff8a80;
+	--check-border: #85858c;
 	--card-read: #121215;
 	--line-read: rgba(255, 255, 255, 0.04);
 	--alert-soft: #3a2a17;

@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Type sizes for the preview sheet and the fullscreen page (Web `.preview-body`, `.reader-body`).
 struct ReaderType {
+  var full = false
   var title: CGFloat
   var titleLeading: CGFloat
   var titleTracking: CGFloat
@@ -13,10 +14,11 @@ struct ReaderType {
     title: AppleMetrics.previewTitle, titleLeading: AppleMetrics.previewTitleLeading,
     titleTracking: AppleMetrics.previewTitleTracking, body: AppleMetrics.font15,
     bodyLeading: AppleMetrics.previewBodyLeading)
-  static let page = ReaderType(
-    title: AppleMetrics.font30, titleLeading: AppleMetrics.readerTitleLeading,
-    titleTracking: AppleMetrics.readerTitleTracking, body: AppleMetrics.font17,
-    bodyLeading: AppleMetrics.readerBodyLeading)
+  static let page: ReaderType = {
+    var value = preview
+    value.full = true
+    return value
+  }()
 }
 
 /// Vertical rhythm between detail blocks (Web `detail-content.css`): blocks sit one group apart,
@@ -61,11 +63,16 @@ struct ReaderContent: View {
           card: card, state: state, full: page, availableWidth: mediaWidth,
           availableHeight: mediaHeight)
       default:
-        if !page, card.cover != nil,
+        // Articles show their cover above the source and title, in the preview and expanded alike.
+        if card.cover != nil,
           recipe.body.contains(where: { $0.name == "cover" && $0.string("preview") == "hoist" })
         {
-          articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
-            .padding(.top, -AppleMetrics.space16)
+          if page {
+            articleCover
+          } else {
+            articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
+              .padding(.top, -AppleMetrics.space16)
+          }
         }
         head
         // Info rows (facts, time and place, people) lead; the summary follows them, then the body.
@@ -87,7 +94,7 @@ struct ReaderContent: View {
 
   private static let infoRows: Set<String> = ["facts", "info", "participants"]
 
-  private var page: Bool { type.title == ReaderType.page.title }
+  private var page: Bool { type.full }
 
   /// The fullscreen page uses the reading recipe; types that cannot be read use the default.
   private var recipe: DetailRecipe {
@@ -240,16 +247,12 @@ struct ReaderContent: View {
     let lead = previous.map(renders) == true ? rhythm.sectionLead : 0
     switch entry.name {
     case "cover":
-      if page, card.cover != nil {
-        if entry.string("preview") == "hoist" {
-          articleCover
-        } else {
-          CoverImage(name: card.cover)
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .clipShape(
-              RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius, style: .continuous))
-        }
+      if page, card.cover != nil, entry.string("preview") != "hoist" {
+        CoverImage(name: card.cover)
+          .aspectRatio(16 / 9, contentMode: .fit)
+          .frame(maxWidth: .infinity)
+          .clipShape(
+            RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius, style: .continuous))
       }
     case "body":
       if !card.markdown.blocks.isEmpty {
@@ -367,12 +370,21 @@ struct ReaderContent: View {
       outline: entry.flag("outline") == true && card.kind == .article && page)
   }
 
-  private var articleCover: some View {
-    CoverImage(name: card.cover)
-      .frame(height: page ? 340 : AppleMetrics.space220)
-      .frame(maxWidth: .infinity)
-      .clipped()
-      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius))
+  /// The preview keeps a fixed band; expanded, the cover spans the column at `readerCoverRatio`.
+  @ViewBuilder private var articleCover: some View {
+    if page {
+      Color.clear
+        .aspectRatio(AppleMetrics.readerCoverRatio, contentMode: .fit)
+        .frame(maxWidth: .infinity)
+        .overlay { CoverImage(name: card.cover) }
+        .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius))
+    } else {
+      CoverImage(name: card.cover)
+        .frame(height: AppleMetrics.space220)
+        .frame(maxWidth: .infinity)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius))
+    }
   }
 
   private var related: some View {

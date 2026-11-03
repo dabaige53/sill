@@ -126,11 +126,6 @@ a.detail-row:hover {
 	position: static;
 	flex: none;
 }
-.sender small {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
 .pr-card-heading {
 	display: flex;
 	flex-direction: column;
@@ -166,12 +161,16 @@ a.detail-row:hover {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+/* The branch holds the left and pushes the counts to the right edge. Without a branch the counts
+   start at the left: a lone file count once hung at the right edge. */
+.pr-branch-row > .pr-branches {
+	margin-right: auto;
+}
 .pr-stats {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 	white-space: nowrap;
-	margin-left: auto;
 	font-size: calc(12px * var(--content-text-scale, 1));
 }
 .pr-additions {
@@ -257,7 +256,7 @@ a.detail-row:hover {
 }
 :is(.type-file, .type-mail) .file-row {
 	margin-top: 0;
-	padding: var(--space-12) 0;
+	padding: var(--space-8) 0;
 	border-radius: 0;
 	background: transparent;
 	gap: var(--space-12);
@@ -268,14 +267,22 @@ a.detail-row:hover {
 :is(.type-file, .type-mail) .file-row + .file-row {
 	border-top: 1px solid var(--line);
 }
+/* Padding only separates rows; the list itself sits on the card's block gap. */
+:is(.type-file, .type-mail) .file-row:first-child {
+	padding-top: 0;
+}
+:is(.type-file, .type-mail) .file-row:last-child {
+	padding-bottom: 0;
+}
 .file-row .file-copy {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-4);
+	gap: var(--space-2);
 }
 .file-copy b,
 .file-copy em {
+	line-height: 1.35;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-weight: 400;
@@ -325,4 +332,42 @@ a.detail-row:hover {
 .mini-play-mark .icon {
 	fill: currentColor;
 	stroke: none;
+}
+
+/* Mail head: avatar · sender · date on one row. The name truncates first; the date stays whole. */
+.mail-sender > .avatar {
+	margin: 0;
+	font-size: calc(10px * var(--content-text-scale, 1));
+}
+.preview-meta.mail-sender > .avatar {
+	font-size: calc(11px * var(--content-text-scale, 1));
+}
+.mail-sender > b {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--ink);
+	font-weight: calc(600 + var(--content-weight-add, 0));
+}
+.mail-date,
+.pr-date {
+	flex: none;
+	white-space: nowrap;
+}
+/* Repository · number · date; the repository truncates first. */
+.pr-origin {
+	flex: 0 1 auto;
+	display: flex;
+	gap: var(--space-4);
+}
+.pr-repository {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.pr-number {
+	flex: none;
+}
+.pr-detail .card-head {
+	padding-right: var(--space-44);
 }
