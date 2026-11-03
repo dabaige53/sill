@@ -8,7 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
-- [1.2.31 发布](2026-11-03-release-1.2.31/README.md)
+- [1.2.32 发布](2026-11-03-release-1.2.32/README.md)
 - [摘要与播客设计画板诊断](2026-11-03-summary-podcast-design/README.md)
 - [备份设计画板诊断](2026-11-03-backup-design/README.md)
 - [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/README.md)
