@@ -9,8 +9,8 @@
 | `id` | 单卡创建由服务端生成；批量新建才传。1–100 位字母、数字、下划线、连字符，禁用 __proto__/constructor/prototype |
 | `type` | article/pr/mail/note/task/event/reminder/media/digest/suggestion/photo/file；不是 MIME |
 | `title` | 1–1000 字的具体标题 |
-| `summary` | 最多 10000 字，编辑目标 50–60 字；卡面最多显示 120 个文字字符，详情概要完整显示；照片卡面显示为照片说明，照片大图页不显示 |
-| `longSummary` | 可选，2–8 条纯文本要点，每条最多 500 字，编辑目标 3–6 条、每条一句约 60 字；详情概要默认显示 `summary`，点左上角 Sill 图标切换到这些要点；照片不写 |
+| `summary` | 最多 10000 字，编辑目标 50–60 字；卡面最多显示 120 个文字字符，详情概要完整显示；照片卡面显示为照片说明，照片大图页不显示；待办、提醒、日程、金句笔记和正文不超过 120 字的笔记可省略，没写时不显示概要 |
+| `longSummary` | 可选，2–8 条纯文本要点，每条最多 500 字，编辑目标 3–6 条、每条一句约 60 字；详情概要默认显示 `summary`，点左上角 Sill 图标切换到这些要点；照片和可省略 `summary` 的卡片不写 |
 | `body` | 一个 CommonMark Markdown 字符串，最多 500000 字；段落用空行分隔，不传数组。阅读时长由客户端按正文计算 |
 | `url` | 原内容 HTTP(S) 地址，不是上传入口 |
 | `sources` | 最多 11 个 {name,kind}；name 1–300 字，kind 1–100 字。kind 可用 rss/readwise/youtube/twitter/podcast/web/mail/calendar/reminders/photos/folder/linear/github/capture/markdown/local/agent；这里只记录来源 |
@@ -67,6 +67,6 @@ chapters 与 transcript 各自按 start 严格递增，不能超过已知 durati
 
 ## 个人状态与服务端字段
 
-`state` 用于单卡创建/更新；批量用 `item.patch.values`。完整状态和偏好见 sill-operations 的 [操作协议](../../sill-operations/references/operations.md)。`state.note` 为个人备注，`state.taskDone` 为已完成子任务 ID。`progress` 是 0–1 阅读比例，`playbackPosition` 是 0–86400 秒实际播放位置，两者互不替代；写播放位置不自动标记已读。
+`state` 用于单卡创建/更新；批量用 `item.patch.values`。新卡常用 `read`、`bookmarked`、`later`、`archived` 布尔值；其他状态与偏好的修改交给 sill-operations。`state.note` 为个人备注，`state.taskDone` 为已完成子任务 ID。`progress` 是 0–1 阅读比例，`playbackPosition` 是 0–86400 秒实际播放位置，两者互不替代；写播放位置不自动标记已读。
 
 服务端 `revision`、`created_at`、`updated_at`、`deleted` 等只读，不放进新卡或 changes。

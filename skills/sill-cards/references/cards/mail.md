@@ -2,7 +2,7 @@
 
 留存一封值得以后查的邮件。邮件里有要办的事时，另建一张 [task](task.md) 或 [reminder](reminder.md)。
 
-示例是合成资料，只展示 `sill_createContent` 参数里外层的 `body` 对象，不能当作用户资料保存。通用要求见[类型索引](../types.md)，字段格式见[字段字典](../fields.md)。
+通用要求见[类型索引](../types.md)，字段格式见[字段字典](../fields.md)。
 
 ## 显示
 

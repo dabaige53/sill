@@ -3,7 +3,7 @@
   "tools": [
     {
       "name": "sill_listContents",
-      "description": "Read full cards page by page with limit 1–100. To find cards by words, use sill_searchContents instead. Follow next_cursor; use only a returned sync_cursor as since. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
+      "description": "Read full cards page by page with limit 1–100. To find cards by words, use sill_searchContents instead. Follow next_cursor; use only a returned sync_cursor as since. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -259,12 +259,12 @@
                       "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                     },
                     "summary": {
-                      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                      "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
                     "longSummary": {
-                      "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                      "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                       "minItems": 2,
                       "maxItems": 8,
                       "type": "array",
@@ -1020,7 +1020,7 @@
     },
     {
       "name": "sill_getContent",
-      "description": "Read one authorized card by its real ID before editing. Preserve its revision, structured facts and personal state. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
+      "description": "Read one authorized card by its real ID before editing. Preserve its revision, structured facts and personal state. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -1263,12 +1263,12 @@
                 "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
               },
               "summary": {
-                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
               },
               "longSummary": {
-                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                 "minItems": 2,
                 "maxItems": 8,
                 "type": "array",
@@ -1746,7 +1746,7 @@
     },
     {
       "name": "sill_createContent",
-      "description": "Create one card with body:{type,title,...fields}; its nested body is Markdown. An imported article keeps the complete original text, not a summary or excerpt, minus ads and site chrome; fill url, authors, publishedAt and cover images the source provides. Prefer typed fields for tasks, meetings, files (including mail attachments), images, media chapters/transcript and PR snapshots. Unknown or removed fields are rejected. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
+      "description": "Create one card with body:{type,title,...fields}; its nested body is Markdown. An imported article keeps the complete original text, not a summary or excerpt, minus ads and site chrome; fill url, authors, publishedAt and cover images the source provides. Prefer typed fields for tasks, meetings, files (including mail attachments), images, media chapters/transcript and PR snapshots. Unknown or removed fields are rejected. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -1986,12 +1986,12 @@
                 "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
               },
               "summary": {
-                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
               },
               "longSummary": {
-                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                 "minItems": 2,
                 "maxItems": 8,
                 "type": "array",
@@ -2589,12 +2589,12 @@
                 "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
               },
               "summary": {
-                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
               },
               "longSummary": {
-                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                 "minItems": 2,
                 "maxItems": 8,
                 "type": "array",
@@ -3072,7 +3072,7 @@
     },
     {
       "name": "sill_updateContent",
-      "description": "Patch a card using body:{expectedRevision,changes}; use the revision just read. Omitted fields stay unchanged; state merges by key, arrays/objects/Markdown replace as a whole. Merge preserved elements first. Fields do not accept null. Task completion and other personal state go in state, for example state.taskDone. Read the ID again after success. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
+      "description": "Patch a card using body:{expectedRevision,changes}; use the revision just read. Omitted fields stay unchanged; state merges by key, arrays/objects/Markdown replace as a whole. Merge preserved elements first. Fields do not accept null. Task completion and other personal state go in state, for example state.taskDone. Read the ID again after success. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -3324,12 +3324,12 @@
                     "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                   },
                   "summary": {
-                    "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                    "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
                   "longSummary": {
-                    "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                    "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                     "minItems": 2,
                     "maxItems": 8,
                     "type": "array",
@@ -3957,12 +3957,12 @@
                 "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
               },
               "summary": {
-                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
               },
               "longSummary": {
-                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                 "minItems": 2,
                 "maxItems": 8,
                 "type": "array",
@@ -4705,12 +4705,12 @@
                 "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
               },
               "summary": {
-                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                 "type": "string",
                 "maxLength": 10000
               },
               "longSummary": {
-                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                 "minItems": 2,
                 "maxItems": 8,
                 "type": "array",
@@ -5629,7 +5629,7 @@
     },
     {
       "name": "sill_getWorkspace",
-      "description": "Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Large workspaces can exceed what you can receive: pass compact:true to get every card without body, chapters and transcript (with bodyChars), then read full cards by ID. Compact cards are read-only: never use one as card or before in sill_applyOperations. Requires whole-workspace read access. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
+      "description": "Read the complete authorized workspace: cards (including archived, excluding deleted), items keyed by card ID, preferences, seconds, and workspace revision. Filter or export this snapshot locally. Large workspaces can exceed what you can receive: pass compact:true to get every card without body, chapters and transcript (with bodyChars), then read full cards by ID. Compact cards are read-only: never use one as card or before in sill_applyOperations. Requires whole-workspace read access. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -5884,12 +5884,12 @@
                               "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                             },
                             "summary": {
-                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
                             "longSummary": {
-                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                               "minItems": 2,
                               "maxItems": 8,
                               "type": "array",
@@ -6722,12 +6722,12 @@
                               "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                             },
                             "summary": {
-                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
                             "longSummary": {
-                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                               "minItems": 2,
                               "maxItems": 8,
                               "type": "array",
@@ -7468,7 +7468,7 @@
     },
     {
       "name": "sill_applyOperations",
-      "description": "Apply an atomic batch: card.upsert, card.delete, item.patch, preferences.patch, reading.add. Up to 5000 operations and 512 KiB UTF-8 request body. Requires whole-workspace read access plus permission for each write. Use original before or workspace expectedRevision; new card.upsert requires before:null and a new card.id. card is a full replacement: preserve existing facts, remove server metadata and state; put state in item.patch. Inspect the returned snapshot; no event metadata in a batch. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
+      "description": "Apply an atomic batch: card.upsert, card.delete, item.patch, preferences.patch, reading.add. Up to 5000 operations and 512 KiB UTF-8 request body. Requires whole-workspace read access plus permission for each write. Use original before or workspace expectedRevision; new card.upsert requires before:null and a new card.id. card is a full replacement: preserve existing facts, remove server metadata and state; put state in item.patch. Inspect the returned snapshot; no event metadata in a batch. Card contract 5.0.0: type selects the card kind by purpose, not source or item count. task is work to complete, including a single item; reminder is a timed prompt and setting a reminder does not change a task's type. New or changed task lists contain 1–6 items; split larger work into multiple cards, preserving task IDs and completion state when reorganizing existing work. summary is plain text, aiming for 50–60 characters; the face shows at most 120 and the detail shows the full summary before body. Every new card needs summary except task, reminder, event, quote notes and notes whose body fits in 120 characters; these usually omit it. body is one CommonMark Markdown string, never an array or JSON-encoded string. Use native JSON objects/arrays/numbers/booleans for structured fields. Omit unknown facts. No points, card.meta or files[].meta/time. Personal notes belong to state.note. Dates retain their precision. start, end, due and time are 13-digit Unix milliseconds converted from the user's time zone (2026-10-19T10:00:00+08:00 is 1792375200000); seconds are rejected. Missing time is filled from the real server creation time, never invented publication time. Events need start and end; reminders need due; keep source times in these fields instead of only in body. Media offsets and durations use seconds. Use a new idempotency_key for a new write; after an unknown result, verify first and retry only with the same key and identical arguments. A Sill write does not execute an external action.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -7717,12 +7717,12 @@
                               "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                             },
                             "summary": {
-                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
                             "longSummary": {
-                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                               "minItems": 2,
                               "maxItems": 8,
                               "type": "array",
@@ -8225,12 +8225,12 @@
                                   "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                                 },
                                 "summary": {
-                                  "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                                  "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
                                 "longSummary": {
-                                  "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                                  "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                                   "minItems": 2,
                                   "maxItems": 8,
                                   "type": "array",
@@ -8853,12 +8853,12 @@
                               "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                             },
                             "summary": {
-                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                              "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
                             "longSummary": {
-                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                              "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                               "minItems": 2,
                               "maxItems": 8,
                               "type": "array",
@@ -10016,12 +10016,12 @@
                           "description": "Specific plain-text title, aiming for 10–24 Chinese characters. Use the same title on the face and detail. Keep process notes, image counts and reading time out of the title; retain the source title in body only when different and useful."
                         },
                         "summary": {
-                          "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Do not duplicate the summary in body.",
+                          "description": "One or two plain-text sentences, aiming for 50–60 characters. The face shows at most 120 characters; the detail shows the full summary before body, except the photo viewer. For photos, use a factual image description. Task, reminder, event, quote notes and notes whose body fits in 120 characters usually omit it, because title, list, time or body already say it; a written summary still shows. Do not duplicate the summary in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
                         "longSummary": {
-                          "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for short cards and photos. Do not copy body headings or repeat summary.",
+                          "description": "Optional long summary: 3–6 plain-text points, each one sentence of up to about 60 characters, covering what summary leaves out. The detail shows summary first; the reader switches to these points with the AI button. Omit for photos and for cards that may omit summary. Do not copy body headings or repeat summary.",
                           "minItems": 2,
                           "maxItems": 8,
                           "type": "array",

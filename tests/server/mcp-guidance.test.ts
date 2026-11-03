@@ -36,7 +36,11 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	);
 	for (const card of examples) {
 		assert.deepEqual(create.parse(card), card);
-		assert.ok(card.summary, card.type + ": every template example writes a summary");
+		assert.deepEqual(
+			agentCardIssues(card),
+			[],
+			card.type + ": template examples pass agent checks",
+		);
 		const { state: _, ...fields } = card;
 		assert.deepEqual(Card.parse({ id: "recipe", ...fields }), { id: "recipe", ...fields });
 	}
@@ -70,6 +74,21 @@ test("skill recipes cover current card kinds and every writable field", () => {
 		assert.equal(tool.description, toolDescriptions[tool.name]);
 		assert.deepEqual(tool.inputSchema, z.toJSONSchema(toolInputs[tool.name], { io: "input" }));
 	}
+});
+
+test("agents may leave out summary only on short kinds, quotes and short notes", () => {
+	const missing = [{ path: ["summary"], message: "missing_summary" }];
+	for (const type of ["task", "reminder", "event"])
+		assert.deepEqual(agentCardIssues({ type, title: "Short" }), [], type);
+	assert.deepEqual(agentCardIssues({ type: "note", form: "quote", title: "Quote" }), []);
+	assert.deepEqual(agentCardIssues({ type: "note", title: "Short", body: "一".repeat(120) }), []);
+	assert.deepEqual(
+		agentCardIssues({ type: "note", title: "Long", body: "一".repeat(121) }),
+		missing,
+	);
+	for (const type of ["article", "mail", "digest", "suggestion", "media", "pr", "file", "photo"])
+		assert.deepEqual(agentCardIssues({ type, title: "Needs summary" }), missing, type);
+	assert.deepEqual(agentCardIssues({ type: "article", title: "Written", summary: "结论。" }), []);
 });
 
 test("published URL schemas avoid escaped slashes and keep HTTP(S) validation", () => {
