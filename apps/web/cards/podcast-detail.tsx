@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import type { Card } from "../../../contracts/card.ts";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
@@ -10,8 +12,8 @@ import { DetailText } from "./markdown.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
 
 /**
- * Podcast introduction (PR #72 prototype): cover beside the title, one listening line, then
- * introduction, read-only chapters, a transcript excerpt and facts. No player, tabs or full screen.
+ * Content-first introduction: small artwork beside source and listening metadata, then a full-width
+ * title, summary and read-only sections. No player, tabs or full screen.
  * Listening position is an externally authored record, never a local playback action.
  */
 export function PodcastDetail({ card }: { card: Card }) {
@@ -41,52 +43,67 @@ export function PodcastDetail({ card }: { card: Card }) {
 		],
 	].filter(([, value]) => value);
 	return (
-		<div className="podcast-detail">
+		<div
+			className="podcast-detail"
+			style={
+				{
+					"--podcast-cover": `${tokens.apple.podcastCoverSize}px`,
+					"--podcast-cover-sm": `${tokens.apple.podcastCoverSmall}px`,
+					"--podcast-column": `${tokens.apple.podcastColumn}px`,
+					"--podcast-title": `${tokens.apple.podcastTitleSize}px`,
+				} as CSSProperties
+			}
+		>
 			<header className="podcast-head">
-				{card.images?.[0] ? (
-					<img
-						className="podcast-cover"
-						src={assetURL(card.images[0])}
-						alt=""
-						referrerPolicy="no-referrer"
-					/>
-				) : (
-					<div className="podcast-cover is-placeholder" aria-hidden="true">
-						<span>{program}</span>
-						<b>{card.title}</b>
-					</div>
-				)}
-				<div className="podcast-heading">
-					<div className="preview-meta podcast-meta">
-						<SourceMark card={card} />
-						<span>{metaLine([source, cardTime(card)])}</span>
-					</div>
-					<h1 id="modal-title">{card.title}</h1>
-					{!!tags.length && (
-						<div className="preview-tags">
-							{tags.map((tag) => (
-								<span className="chip soft" key={tag}>
-									#{tag}
-								</span>
-							))}
+				<div className="podcast-identity">
+					{card.images?.[0] ? (
+						<img
+							className="podcast-cover"
+							src={assetURL(card.images[0])}
+							alt=""
+							referrerPolicy="no-referrer"
+						/>
+					) : (
+						<div className="podcast-cover is-placeholder" aria-hidden="true">
+							<span>{program}</span>
+							<b>{card.title}</b>
 						</div>
 					)}
+					<div className="podcast-heading">
+						<div className="preview-meta podcast-meta">
+							<SourceMark card={card} />
+							<span>{metaLine([source, cardTime(card)])}</span>
+						</div>
+						<p className="podcast-listening num">
+							<Icon name="headphones" size={16} />
+							{copy("web.media.listening")} <b>{duration(position)}</b> /{" "}
+							{card.duration !== undefined
+								? duration(card.duration)
+								: copy("web.media.unknownDuration")}
+						</p>
+					</div>
 				</div>
+				<h1 id="modal-title">{card.title}</h1>
+				{!!tags.length && (
+					<div className="preview-tags">
+						{tags.map((tag) => (
+							<span className="chip soft" key={tag}>
+								#{tag}
+							</span>
+						))}
+					</div>
+				)}
 			</header>
-			<p className="podcast-listening num">
-				<Icon name="headphones" size={16} />
-				{copy("web.media.listening")} <b>{duration(position)}</b> /{" "}
-				{card.duration !== undefined ? duration(card.duration) : copy("web.media.unknownDuration")}
-			</p>
 			<DetailSummary card={card} />
 			<div className="podcast-body">
 				{card.body?.trim() && (
-					<div className="podcast-intro">
+					<section className="podcast-intro">
+						<h2>{copy("web.media.introduction")}</h2>
 						<DetailText body={card.body} />
-					</div>
+					</section>
 				)}
 				{!!card.chapters?.length && (
-					<section>
+					<section className="podcast-section-rows">
 						<h2>{copy("web.media.chapters")}</h2>
 						<ol className="podcast-rows podcast-chapters">
 							{card.chapters.map((chapter) => (
@@ -100,8 +117,10 @@ export function PodcastDetail({ card }: { card: Card }) {
 				)}
 				{!!card.transcript?.length && (
 					<section>
-						<h2>{copy("web.media.transcript")}</h2>
-						<div className="podcast-excerpt">{copy("web.media.excerpt")}</div>
+						<h2>
+							{copy("web.media.transcript")}{" "}
+							<span className="podcast-excerpt">{copy("web.media.excerpt")}</span>
+						</h2>
 						<div className="podcast-transcript">
 							{card.transcript.slice(0, 5).map((line) => (
 								<p key={line.start}>{line.text}</p>
@@ -110,7 +129,7 @@ export function PodcastDetail({ card }: { card: Card }) {
 					</section>
 				)}
 				{!!facts.length && (
-					<section>
+					<section className="podcast-section-rows">
 						<h2>{copy("web.media.information")}</h2>
 						<dl className="podcast-rows podcast-facts">
 							{facts.map(([label, value]) => (

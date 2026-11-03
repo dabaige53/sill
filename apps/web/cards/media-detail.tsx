@@ -67,7 +67,6 @@ function VideoDetail({ card, app }: { card: Card; app?: PlaybackApp; full?: bool
 						))}
 					</div>
 				)}
-				<DetailSummary card={card} />
 				{video ? (
 					<YouTubePlayer
 						id={video}
@@ -100,6 +99,7 @@ function VideoDetail({ card, app }: { card: Card; app?: PlaybackApp; full?: bool
 						</div>
 					</div>
 				)}
+				<DetailSummary card={card} />
 			</div>
 			{card.body?.trim() ? <DetailText body={card.body} /> : null}
 		</div>

@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-03 | 摘要与播客设计画板 | html-validate、146 条诊断、Inline style、helmet、onClick | [摘要与播客设计画板诊断](2026-11-03-summary-podcast-design/README.md) |
 | 2026-11-03 | 备份设计画板 | html-validate、135 条诊断、Inline style、helmet、onClick、autocomplete | [备份设计画板诊断](2026-11-03-backup-design/README.md) |
 | 2026-11-03 | Mac 登录与签名 | 每次打开询问钥匙串、one.sill.cloud-session、始终允许、adhoc、cdhash | [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/diagnosis.md) |
 | 2026-11-03 | Web 放大阅读 | 封面顶部空白过大、旧 88px 留白、正文嵌套选择器未匹配 | [放大阅读页封面顶部留白](2026-11-03-reader-cover-spacing/README.md) |

@@ -24,3 +24,9 @@ macOS，已安装 `/Applications/Sill.app`，arm64。用户截图显示输入“
 ## 验证与后续
 
 完成源码、打包入口和已安装应用签名的只读检查。未运行应用、读取钥匙串访问控制或复现弹窗。若同一构建选择“始终允许”后仍提示，下一步检查实际运行路径及该条目的访问控制；若只在更新后出现，继续处理稳定签名及旧条目授权迁移。
+
+## 固定签名实施
+
+用户确认后改用固定自签证书 `Sill Self-Signed`：`scripts/create-macos-signing-cert.sh` 一次性生成证书并写入 GitHub secrets，`macos-package.yml` 导入临时钥匙串签名，缺少 secret 时构建失败；签名后检查指定要求绑定证书（`certificate leaf`），不再是 `cdhash`。用户对新身份点一次“始终允许”后，后续版本应不再询问。仍未经 Apple 公证。
+
+证书与 secrets 已在 GitHub 配置。签名流程在 GitHub Actions 执行，安装后的钥匙串表现尚待用户在真机确认。

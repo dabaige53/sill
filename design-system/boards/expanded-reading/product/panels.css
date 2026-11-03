@@ -361,6 +361,96 @@ button.list-row:active {
 	border: 0;
 	margin: 0;
 	min-width: 0;
+	flex: 1;
+}
+.backup-provider .segmented > button {
+	flex: 1;
+}
+.backup-editor[hidden],
+.backup-overview[hidden] {
+	display: none;
+}
+.backup-back,
+.backup-history-head,
+.backup-target-row > .text-link,
+.backup-add-another {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+}
+.backup-back {
+	margin-bottom: var(--space-12);
+}
+.backup-target-row {
+	flex-wrap: wrap;
+}
+.backup-target-row > .icon {
+	flex: none;
+	color: var(--muted);
+}
+.backup-settings .backup-target-row > select {
+	min-height: var(--hit-target);
+	appearance: none;
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	background: transparent;
+	font-size: var(--text-control);
+	cursor: pointer;
+}
+.backup-target-name {
+	flex: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.backup-target-row > .text-link {
+	flex: none;
+}
+.backup-add-target {
+	width: 100%;
+	justify-content: flex-start;
+	text-align: left;
+	min-height: var(--space-64);
+}
+.backup-add-target > .icon:last-child {
+	margin-left: auto;
+	color: var(--muted);
+}
+.backup-settings :is(.backup-create-actions, .backup-form-actions) > button {
+	min-height: var(--hit-target);
+}
+.backup-form-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	margin-top: var(--space-20);
+}
+.backup-add-another {
+	margin-top: var(--space-8);
+	padding: 0;
+}
+.backup-history-head {
+	justify-content: space-between;
+	margin: var(--space-28) 0 var(--space-12);
+}
+.backup-history-head h3 {
+	margin: 0;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+.backup-history-head > button {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: var(--hit-target);
+	padding: 0;
+}
+.backup-settings .backup-overview .settings-empty {
+	margin-top: 0;
+}
+.backup-settings .backup-record:first-child {
+	margin-top: var(--space-16);
 }
 .settings-actions {
 	justify-content: flex-start;
@@ -428,6 +518,17 @@ button.list-row:active {
 	}
 	.settings-actions > button {
 		min-height: var(--space-44);
+	}
+	.backup-settings .backup-target-row {
+		flex-direction: row;
+		align-items: center;
+	}
+	.backup-settings .backup-target-row > select {
+		flex: 1;
+		width: 0;
+	}
+	.backup-create-actions > .solid-button {
+		flex: 1;
 	}
 }
 kbd {

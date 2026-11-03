@@ -168,7 +168,7 @@ struct SummaryOverview: View {
   var body: some View {
     if !card.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
       let target = loading ?? long
-      VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
+      VStack(alignment: .leading, spacing: AppleMetrics.rhythmTight) {
         HStack(spacing: AppleMetrics.space6) {
           if !card.longSummary.isEmpty {
             Button(action: toggle) {
@@ -243,6 +243,7 @@ struct SummaryOverview: View {
                 .textSelection(.enabled)
             }
           }
+          .foregroundStyle(AppleColors.secondary)
           .keyframeAnimator(initialValue: SummaryReveal(), trigger: written) { content, reveal in
             content.opacity(reveal.opacity).offset(y: reveal.y)
           } keyframes: { _ in
@@ -267,7 +268,8 @@ struct SummaryOverview: View {
         value: loading
       )
       .clipped()
-      .padding(AppleMetrics.space16)
+      .padding(.horizontal, AppleMetrics.space16)
+      .padding(.vertical, AppleMetrics.space8)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space12).fill(AppleColors.surface))
       .onDisappear { pending?.cancel() }

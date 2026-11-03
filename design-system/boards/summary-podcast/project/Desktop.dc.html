@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- html-validate-disable no-inline-style -- Design canvas requires inline styles for direct property editing. -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>播客 · Web 内容优先</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/sill/tokens.css">
+</head>
+<body>
+<x-dc>
+<!-- html-validate-disable-next element-name -- Design canvas runtime hoists helmet styles into the document head. -->
+<helmet><style>
+body{margin:0}
+.desktop-reading{--podcast-design-cover:128px;--podcast-design-title:32px;--podcast-design-top:var(--space-40)}
+@media(max-width:650px){.desktop-reading{--podcast-design-cover:96px;--podcast-design-title:26px;--podcast-design-top:var(--rhythm-group)}}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{text-decoration:underline}
+::selection{background:var(--selection)}
+</style></helmet>
+<div class="desktop-reading" style="box-sizing:border-box;min-height:100vh;width:100%;padding:0 clamp(0px,3vw,var(--space-40));background:var(--card);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif">
+  <div style="width:100%;max-width:720px;margin:0 auto">
+    <dc-import name="Main" hint-size="100%,1000px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

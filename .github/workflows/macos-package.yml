@@ -20,7 +20,28 @@ jobs:
         id: swift-cache
         with:
           configuration: release
+      - name: Import stable signing certificate
+        env:
+          CERTIFICATE: ${{ secrets.SILL_MAC_SIGNING_P12 }}
+          PASSWORD: ${{ secrets.SILL_MAC_SIGNING_P12_PASSWORD }}
+        run: |
+          test -n "$CERTIFICATE" -a -n "$PASSWORD" || { echo "::error::SILL_MAC_SIGNING_P12 secrets are missing"; exit 1; }
+          keychain="$RUNNER_TEMP/sill-signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          echo "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/sill-signing.p12"
+          security import "$RUNNER_TEMP/sill-signing.p12" -k "$keychain" -P "$PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/sill-signing.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity="$(security find-certificate -c "Sill Self-Signed" -Z "$keychain" | awk '/SHA-1/ { print $3 }')"
+          test -n "$identity" || { echo "::error::Signing certificate not found"; exit 1; }
+          echo "SILL_MAC_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
       - run: npm run build:macos
+      - name: Check stable designated requirement
+        run: codesign -d -r- dist/macos/Sill.app 2>&1 | grep -q 'certificate leaf'
       - name: Package and verify internal DMG
         run: npm run package:macos
       - uses: ./.github/actions/swift-cache

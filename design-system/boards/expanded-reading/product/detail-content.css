@@ -631,7 +631,7 @@
 
 /* Shared summary and schedule, with no card-face clamp in a detail. */
 .detail-summary {
-	padding: var(--space-16);
+	padding: var(--space-8) var(--space-16);
 	border-radius: var(--control-radius);
 	background: var(--surface);
 }
@@ -641,7 +641,7 @@
 }
 .summary-content-inner {
 	display: flow-root;
-	padding-top: var(--rhythm-close);
+	padding-top: var(--rhythm-tight);
 }
 :is(.sheet-scroll, #reader-scroll):has(.detail-summary) {
 	overflow-anchor: none;
@@ -654,6 +654,7 @@
 :is(.preview-body, .reader-body) .detail-summary p,
 .summary-points {
 	margin: 0;
+	color: var(--muted);
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	line-height: calc(1.75 * var(--reader-line-scale, 1));
 	white-space: pre-wrap;

@@ -98,7 +98,8 @@ struct PreviewSheet: View {
             .padding(
               .top,
               layer.full
-                ? (expandedWorkspace ? AppleMetrics.space16 : 0) : AppleMetrics.previewPaddingTop
+                ? (expandedWorkspace ? AppleMetrics.space16 : 0)
+                : (card.isPodcast ? AppleMetrics.space40 : AppleMetrics.previewPaddingTop)
             )
             .padding(
               .horizontal,
@@ -129,10 +130,7 @@ struct PreviewSheet: View {
           .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
       )
       .frame(width: width, height: height)
-      .background {
-        AppleColors.card.overlay(
-          card.isPodcast ? Cover.tone(card.cover).opacity(0.15) : Color.clear)
-      }
+      .background(AppleColors.card)
       .overlay(alignment: .top) { if !layer.full { TopFade(motion: scroll.motion) } }
       .overlay(alignment: .bottom) {
         if !layer.full, !tools.isEmpty { BottomFade(motion: scroll.motion) }
@@ -143,6 +141,7 @@ struct PreviewSheet: View {
             motion: scroll.motion,
             // A hoisted cover keeps the discs at the same height as every other detail.
             firstRow: firstRow,
+            topPadding: card.isPodcast ? AppleMetrics.space40 : AppleMetrics.previewPaddingTop,
             expand: expandable ? { reader.open(card.id, full: true) } : nil,
             close: { reader.close() }
           )
@@ -221,10 +220,11 @@ struct PreviewSheet: View {
 struct HeadDiscs: View {
   let motion: ReaderMotion
   let firstRow: CGFloat
+  let topPadding: CGFloat
   var expand: (() -> Void)?
   let close: () -> Void
   var body: some View {
-    let center = AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
+    let center = topPadding + max(firstRow, AppleMetrics.cardHeadHeight) / 2
     HStack(spacing: AppleMetrics.space8) {
       Spacer(minLength: 0)
       DesktopGlassGroup {

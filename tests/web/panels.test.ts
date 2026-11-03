@@ -210,6 +210,20 @@ test("podcast introductions preserve the external listening record without playe
 	try {
 		const doc = dom.window.document;
 		assert.match(doc.querySelector(".podcast-listening")?.textContent || "", /0:45/);
+		assert.ok(doc.querySelector(".podcast-identity .podcast-listening"));
+		assert.equal(doc.querySelector(".podcast-head > h1")?.textContent, card.title);
+		assert.equal(doc.querySelector(".podcast-identity h1"), null);
+		assert.equal(
+			doc.querySelector(".podcast-head")?.nextElementSibling,
+			doc.querySelector(".detail-summary"),
+		);
+		assert.equal(doc.querySelector(".detail-summary p")?.textContent, card.summary);
+		assert.equal(doc.querySelector(".podcast-intro h2")?.textContent, "简介");
+		assert.equal(doc.querySelector(".podcast-transcript")?.previousElementSibling?.tagName, "H2");
+		assert.match(
+			doc.querySelector(".podcast-transcript")?.previousElementSibling?.textContent || "",
+			/文字稿.*节选/,
+		);
 		assert.equal(
 			doc.querySelector(
 				"audio, .compact-player, [role=tablist], .podcast-chapters button, [data-action=reader]",

@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [摘要与播客设计画板诊断](2026-11-03-summary-podcast-design/README.md)
 - [备份设计画板诊断](2026-11-03-backup-design/README.md)
 - [Mac 启动反复询问钥匙串权限](2026-11-03-macos-keychain/README.md)
 - [放大阅读页封面顶部留白](2026-11-03-reader-cover-spacing/README.md)
