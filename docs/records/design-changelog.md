@@ -1,5 +1,10 @@
 # 设计版本记录
 
+## 2026-11-03 · Mac 保持兼容外观
+
+- Mac App 声明 `UIDesignRequiresCompatibility`，线上包与本地构建统一为兼容外观，不启用 Liquid Glass 新外观，与 Web 观感一致并避免实时玻璃的渲染开销。
+- 原因与证据见[诊断记录](2026-11-03-macos-build-parity/diagnosis.md)。
+
 ## 2026-11-03 · 顶栏边缘改为浅色罩层
 
 - Web 桌面顶栏下的三层模糊改为单层 `edge-tint` 浅色罩层，遮罩顶部完整、45% 处 70%、向下渐隐，与 Mac 材质观感一致；卡片在顶栏下保持清晰。

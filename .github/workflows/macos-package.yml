@@ -6,10 +6,13 @@ permissions:
   contents: read
 jobs:
   package:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # Match local builds: Xcode 27.2 on macOS 27, so CI and local apps link and render the same way.
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
       - uses: ./.github/actions/setup
         with:
           node-version: '26'
@@ -42,6 +45,8 @@ jobs:
       - run: npm run build:macos
       - name: Check stable designated requirement
         run: codesign -d -r- dist/macos/Sill.app 2>&1 | grep -q 'certificate leaf'
+      - name: Check the app keeps the Web-matched appearance
+        run: test "$(plutil -extract UIDesignRequiresCompatibility raw dist/macos/Sill.app/Contents/Info.plist)" = true
       - name: Package and verify internal DMG
         run: npm run package:macos
       - uses: ./.github/actions/swift-cache

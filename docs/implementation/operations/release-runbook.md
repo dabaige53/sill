@@ -18,6 +18,8 @@
 
 在 GitHub Actions 运行 `Build Sill DMG`（`macos-package.yml`），选择已提交的分支或提交。该流程只构建 Mac App 与 DMG，不创建 Release、不部署云端。Tag 发布复用同一个打包工作流，仍由已有全部检查把关。
 
+Mac 测试与打包使用 GitHub `xcode-27` 镜像（macOS 27），选用 Xcode 27.2，与本地构建工具链一致；App 声明 `UIDesignRequiresCompatibility`，打包检查该项存在。
+
 产物 `release-macos` 包含 `Sill-<版本>-macOS-<架构>-internal.dmg`、同名 JSON 检查回执和安装背景 PNG。GitHub 下载 artifact 时外层仍是 ZIP；解压后使用其中的 DMG。版本读取根 package.json，架构按实际 runner 标注。
 
 DMG 使用原 App icon、小栖静态背景和指向 /Applications 的“应用程序”快捷方式。用户双击 DMG，拖入应用程序，复制完成后从应用程序打开 Sill，再推出映像。Finder 布局由 runner 的 Finder 写入；若 Finder 无法完成布局，构建失败，不输出无背景的替代包。临时文件放 /private/tmp，最终产物放 dist/macos。

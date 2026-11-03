@@ -14,10 +14,13 @@ permissions:
   contents: read
 jobs:
   macos:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # Match local builds: Xcode 27.2 on macOS 27, so CI and local apps link and render the same way.
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
       - uses: ./.github/actions/setup
         with:
           node-version: '24'
