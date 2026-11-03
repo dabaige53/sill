@@ -174,7 +174,9 @@ export function DetailSummary({ card }: { card: Card }) {
 	};
 	useEffect(() => {
 		const dialog = root.current?.closest("dialog");
-		return () => dialog?.style.removeProperty("--summary-preview-top");
+		return () => {
+			dialog?.style.removeProperty("--summary-preview-top");
+		};
 	}, []);
 	// While the other length is written, the bar in the mark writes and the placeholders breathe.
 	useEffect(() => {
