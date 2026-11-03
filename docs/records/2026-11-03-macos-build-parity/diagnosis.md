@@ -27,6 +27,8 @@
 
 用户确认以本地旧外观为准。Mac 测试与打包工作流改用 `xcode-27` 镜像并选用 `/Applications/Xcode_27.2.app`（镜像中为 27.2 RC 27B48，本机为 27B52）；`build-macos.ts` 生成的 Info.plist 增加 `UIDesignRequiresCompatibility`，打包工作流检查该项。设计手册与发布手册同步。
 
+切换后首次独立打包（`41596901572`）失败：Xcode 27 的 SwiftPM 构建系统把 `resource_bundle_accessor.swift` 放在 `.build/out/Intermediates.noindex/Sill.build/Release/Sill-p.build/DerivedSources/`，`build-macos.ts` 的资源检查仍按旧路径读取。已改为新路径；本机 `npm run build:macos` 通过，产物为 1.2.33、`UIDesignRequiresCompatibility` 为 true、记录 SDK 14.0。
+
 ## 验证与后续
 
 已核对两个包的 `LC_BUILD_VERSION`、签名、版本和 CI 日志中的 Xcode 版本；查看录屏截帧，未做 Instruments 性能追踪或窗口自动化。待新包发布后核对其 `LC_BUILD_VERSION` 与 Info.plist，并由用户在同一台 Mac 对比顶栏外观与滚动流畅度。

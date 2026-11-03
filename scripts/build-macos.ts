@@ -129,7 +129,11 @@ try {
 		[
 			"-parse-as-library",
 			"-O",
-			resolve(binaryDirectory, "Sill.build/DerivedSources/resource_bundle_accessor.swift"),
+			// Xcode 27's SwiftPM build system keeps derived sources beside its intermediates.
+			resolve(
+				binaryDirectory,
+				"../../Intermediates.noindex/Sill.build/Release/Sill-p.build/DerivedSources/resource_bundle_accessor.swift",
+			),
 			resolve(apple, "macOS/App/AppResources.swift"),
 			resolve(root, "scripts/CheckMacResources.swift"),
 			"-o",
