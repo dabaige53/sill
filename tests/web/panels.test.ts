@@ -119,7 +119,7 @@ test("task checks and completed reminder controls reflect stored state without c
 	}
 });
 
-test("article preview puts the cover before its ruled header; reading puts it after", () => {
+test("article preview and reader both put the cover before the ruled header", () => {
 	Store.state = Store.fresh();
 	const card = {
 		...SeedCards.find((c) => c.type === "article" && c.images?.length),
@@ -137,10 +137,11 @@ test("article preview puts the cover before its ruled header; reading puts it af
 	assert.ok(doc.querySelector(".preview-full.typeset"));
 	dom.window.close();
 	const reader = new JSDOM(Panels.reader({}, card));
-	const summary = reader.window.document.querySelector(".detail-header")?.nextElementSibling;
+	const header = reader.window.document.querySelector(".detail-header");
+	assert.ok(header?.previousElementSibling?.matches(".preview-cover"));
+	const summary = header?.nextElementSibling;
 	assert.ok(summary?.matches(".detail-summary"));
 	assert.equal(summary.querySelector("p")?.textContent, card.summary);
-	assert.ok(summary.nextElementSibling?.matches(".preview-cover"));
 	assert.ok(reader.window.document.querySelector(".preview-full.typeset"));
 	reader.window.close();
 });

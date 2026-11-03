@@ -300,13 +300,29 @@ test("expanded resize uses card geometry and reveals content during travel witho
 			'<div class="reader-scroll"><article class="reader-body">Target<iframe src="https://example.test"></iframe></article></div><div class="reader-head">Close</div>';
 		f.w.document.body.append(dialog);
 		dialog.dataset.readerResize = "true";
-		dialog.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
-		f.motion.openPanel(dialog, { left: 300, top: 100, width: 600, height: 600 });
+		dialog.getBoundingClientRect = () => ({
+			left: 0,
+			top: 0,
+			right: 1200,
+			bottom: 800,
+			width: 1200,
+			height: 800,
+		});
+		f.motion.openPanel(dialog, {
+			left: 300,
+			top: 100,
+			right: 900,
+			bottom: 700,
+			width: 600,
+			height: 600,
+		});
 		const surface = f.animations.find((a) => a.target === dialog);
 		assert.ok(surface);
-		assert.equal(surface.frames[0].transform, "translate(0px,0px) scale(0.5,0.75)");
+		// Expanding clips the full page to the preview frame and opens it, so text never scales.
+		assert.equal(surface.frames[0].clipPath, "inset(100px 300px 100px 300px round 0px)");
+		assert.equal(surface.frames.at(-1).clipPath, "inset(0px 0px 0px 0px round 0px)");
 		assert.equal(surface.options.stiffness, 274);
-		assert.equal(surface.options.damping, 30);
+		assert.equal(surface.options.damping, 27);
 		assert.ok(f.animations.some((a) => a.target === dialog.querySelector(".reader-body")));
 		assert.equal(dialog.querySelectorAll("iframe").length, 1);
 		assert.equal(dialog.querySelector("[data-resize-visual]"), null);

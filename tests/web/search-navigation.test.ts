@@ -12,7 +12,9 @@ test("the home heading stays hidden while a search detail is open", () => {
 		f.w.document.body.prepend(heading);
 		const selectors = ["form-controls.css", "phone.css"].map((file) => {
 			const css = readFileSync(`apps/web/styles/${file}`, "utf8");
-			return css.match(/body\.has-open-page \.home-top(?= \{)/)?.[0];
+			return css.match(
+				/body\.has-open-page (?:\.home-top|:is\(\.home-top, \.home-top-edge\))(?= \{)/,
+			)?.[0];
 		});
 		// The app's dialog observer marks the page; the test marks after each step instead.
 		const hidden = () => {

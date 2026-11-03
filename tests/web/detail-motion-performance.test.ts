@@ -11,6 +11,8 @@ import { fixture } from "./visibility-motion-fixture.ts";
 const root = path.resolve(import.meta.dirname, "../..");
 const motionAlias = {
 	"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	// The bare "motion" alias would otherwise capture the React entry as a subpath.
+	"motion/react": path.resolve(import.meta.dirname, "../../node_modules/motion/dist/es/react.mjs"),
 	motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
 };
 

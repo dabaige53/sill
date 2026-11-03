@@ -19,10 +19,12 @@ tag `v1.2.31` 指向合并提交 `f3b884e5`。失败项：集成测试、Swift �
 
 修复 PR 的 CI（`41588645533`）随后暴露第五项：`card-blocks.tsx(175,12)` TS2345，`useEffect` 清理函数返回了 `removeProperty` 的字符串。首次流程的集成测试在构建检查处先失败，未执行到类型检查。
 
+类型修正后的 CI（`41589303576`）跑完 Web 单元测试，又暴露：测试打包把 `motion` 别名按前缀套到 `motion/react`（15 个文件构建失败）；新增备份测试缺少 `MessageChannel`；阅读页封面顺序、手机字号作用到 `reader-body`、顶栏隐藏选择器改为 `:is(...)`、放大改为裁切展开（`clipPath`、`expanded` 弹簧）这四处单元测试仍按旧行为断言。
+
 ## 处理情况
 
-检查脚本改为断言 `edge-tint` 与标准 `mask-image`；手册与设计记录改为浅色罩层；Swift 按格式工具重排；两项浏览器测试改为现行顺序与玻璃层透明度；清理函数改为不返回值。
+检查脚本改为断言 `edge-tint` 与标准 `mask-image`；手册与设计记录改为浅色罩层；Swift 按格式工具重排；两项浏览器测试改为现行顺序与玻璃层透明度；清理函数改为不返回值；测试打包为 `motion/react` 单独指向真实入口；备份测试安装共用的 React 浏览器接口；其余单元测试改按现行行为断言，放大测试的模拟位置补齐右、下坐标。
 
 ## 验证与后续
 
-本地：正则对 CI 实际 CSS 片段匹配通过，Swift 严格格式检查通过，Biome 无错误，`tsc --noEmit` 通过。修复 PR 的 CI 中 Swift、navigation、layout 已通过。浏览器测试与完整流程由新的正式流程验证。
+本地：正则对 CI 实际 CSS 片段匹配通过，Swift 严格格式检查通过，Biome 无错误，`tsc --noEmit` 通过；经本地针对性排查，`tests/web/*.test.ts` 494 项全部通过。修复 PR 的 CI 中 Swift、navigation、layout 已通过。浏览器测试与完整流程由新的正式流程验证。
