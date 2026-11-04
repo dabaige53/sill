@@ -8,7 +8,7 @@ test("shared application: password login resumes consent without per-account set
 	const f = await oauthFixture({ shared: true });
 	try {
 		f.cookies.clear();
-		assert.equal((await f.call(`/oauth/consent?authorization_id=${AUTH}`)).status, 401);
+		assert.equal((await f.call(`/oauth/consent?authorization_id=${AUTH}`)).status, 303);
 		assert.equal((await f.sql("select * from sill_private.oauth_clients")).rows.length, 0);
 		const login = await f.call("/auth/password", {
 			method: "POST",

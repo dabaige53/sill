@@ -52,6 +52,9 @@ private struct ReminderLifecycle: ViewModifier {
     content.onAppear {
       Keyboard.install()
       delegate.workspace = app.workspace
+      delegate.reopen = { openWindow(id: "desktop") }
+      // Writes may have arrived while the window was closed.
+      if app.windowClosedOnce, app.workspace.phase == .ready { app.workspace.refresh(quiet: true) }
       SystemReminders.shared.start(
         workspace: app.workspace,
         account: {
@@ -63,6 +66,8 @@ private struct ReminderLifecycle: ViewModifier {
           app.reader.open(id, full: true)
         })
     }
+    // ⌘W closes the window; the app keeps running for reminders and reopens from the Dock.
+    .onDisappear { app.windowClosed() }
   }
 }
 
@@ -81,6 +86,7 @@ private struct ReminderLifecycle: ViewModifier {
   var panels = Panels()
   var newContent = NewContent()
   var drag = CardDrag()
+  @ObservationIgnored private(set) var windowClosedOnce = false
 
   init(workspace supplied: Workspace? = nil, accountService: (any CloudAccountService)? = nil) {
     if let root = ProcessInfo.processInfo.environment["SILL_PERF_OUTPUT"] {
@@ -107,6 +113,20 @@ private struct ReminderLifecycle: ViewModifier {
     interaction = DesktopInteraction(
       panels: panels, reader: reader, shell: shell, menu: menu, drag: drag)
     workspace.sessionCleared = { [weak self] in self?.clearSurfaces() }
+  }
+
+  /// The window is gone. Keep the workspace data; drop the reading layer and open panels so the
+  /// background app holds no reading content and reopens on the workspace.
+  func windowClosed() {
+    windowClosedOnce = true
+    reader.invalidateSession()
+    drag.cancel()
+    menu.close()
+    panels.close()
+    reader = Reader(workspace: workspace)
+    interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: menu, drag: drag)
+    workspace.recorder.flush()
   }
 
   private func clearSurfaces() {
@@ -202,6 +222,7 @@ private struct DesktopCommands: Commands {
 /// Background records are written when the app leaves the front and before it quits.
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
   weak var workspace: Workspace?
+  var reopen: (() -> Void)?
 
   func applicationWillFinishLaunching(_ notification: Notification) {
     SystemReminders.shared.install()
@@ -230,7 +251,11 @@ private struct DesktopCommands: Commands {
     return .terminateLater
   }
 
-  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    !SystemReminders.shared.enabled
+  /// Closing the window never quits; ⌘Q does.
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+    if !hasVisibleWindows { reopen?() }
+    return false
   }
 }

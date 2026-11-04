@@ -8,7 +8,8 @@ import { SupabaseRepository, serviceError } from "./supabase-repository.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const browserCookie = "__Host-sill-consent-browser",
-	returnCookie = "__Host-sill-oauth-return";
+	returnCookie = "__Host-sill-oauth-return",
+	returnPages: Record<string, string> = { grants: "/oauth/grants", password: "/auth/password/new" };
 const headers = {
 	"Cache-Control": "no-store",
 	"Referrer-Policy": "same-origin",
@@ -91,19 +92,22 @@ export function createOAuthController(
 		config.oauthClientIds.every((id?: any) => UUID.test(id));
 	const allowed = (id?: any) => enabled && config.oauthClientIds.includes(id);
 	function resumeLocation(request?: any) {
-		if (!enabled) return null;
 		const value = readCookie(request, returnCookie) || "",
 			parts = value.split("."),
-			expiry = Number(parts[1]);
-		return parts.length === 2 &&
-			isAuthorizationId(parts[0]) &&
-			expiry > clock() &&
-			expiry <= clock() + 600000
+			expiry = Number(parts[1]),
+			fresh = parts.length === 2 && expiry > clock() && expiry <= clock() + 600000;
+		// Account pages are fixed names, shorter than any authorization ID.
+		if (fresh && Object.hasOwn(returnPages, parts[0]))
+			return config.appOrigin + returnPages[parts[0]];
+		if (!enabled) return null;
+		return fresh && isAuthorizationId(parts[0])
 			? config.appOrigin + "/oauth/consent?authorization_id=" + parts[0]
 			: value
 				? config.appOrigin + "/oauth/expired"
 				: null;
 	}
+	const returnTo = (target: string) =>
+		cookie(returnCookie, target + "." + (clock() + 600000), 3600);
 	const clearReturn = () => cookie(returnCookie, "", 0);
 	async function handle(request?: any) {
 		const url = new URL(request.url),
@@ -130,27 +134,22 @@ export function createOAuthController(
 			try {
 				actor = await authenticate(request);
 			} catch (error) {
-				if (
-					error.status === 401 &&
-					request.method === "GET" &&
-					path === "/oauth/consent" &&
-					isAuthorizationId(url.searchParams.get("authorization_id")) &&
-					[...url.searchParams.keys()].length === 1
-				) {
-					const r = page(
-						`<h1>${copy("server.oauthcontroller.9b353d7d5e98")}</h1><p>${copy("server.oauthcontroller.57b675855947")}</p><a href="/auth/login">${copy("server.oauthcontroller.99232cddba71")}</a>`,
-						401,
-					);
-					r.headers.append(
-						"Set-Cookie",
-						cookie(
-							returnCookie,
-							url.searchParams.get("authorization_id") + "." + (clock() + 600000),
-							3600,
-						),
-					);
-					return r;
-				}
+				const target =
+					error.status === 401 && request.method === "GET"
+						? path === "/oauth/consent" &&
+							isAuthorizationId(url.searchParams.get("authorization_id")) &&
+							[...url.searchParams.keys()].length === 1
+							? url.searchParams.get("authorization_id")
+							: path === "/oauth/grants"
+								? "grants"
+								: null
+						: null;
+				// Go straight to login; the return cookie brings the user back here.
+				if (target)
+					return new Response(null, {
+						status: 303,
+						headers: { ...headers, Location: "/auth/login", "Set-Cookie": returnTo(target) },
+					});
 				throw error;
 			}
 			if (actor.principal.clientId !== null) throw serviceError("forbidden");
@@ -265,9 +264,16 @@ export function createOAuthController(
 						`<form class="consent-actions" method="post" action="/oauth/decision">${await newFlow("consent", review.clientId, review)}<button name="decision" value="deny">${copy("auth.cancel")}</button><button name="decision" value="approve">${copy("auth.allowAccess")}</button></form><p class="consent-revoke">${copy("auth.revokeHint")}</p>`;
 				} else if (path === "/oauth/grants" && !url.search) {
 					html = `<h1>${copy("server.oauthcontroller.8782b690d2e7")}</h1><p>${copy("server.oauthcontroller.2b3045f9e2af")}</p>`;
+					// Names come from the provider; an unreadable list still leaves revocation usable.
+					const names = new Map<string, string>();
+					try {
+						for (const grant of (await provider.grants()) || [])
+							if (typeof grant?.client_id === "string")
+								names.set(grant.client_id, String(grant.client_name || grant.client?.name || ""));
+					} catch {}
 					for (const row of await rpc("list"))
 						if (allowed(row.clientId))
-							html += `<section><h2>${esc(row.clientId)}</h2><p>${row.grant ? copy("server.oauthcontroller.b13cb614f05b") + esc(row.grant.scopes.join("、")) + copy("server.oauthcontroller.389ae3297b0f") + esc(row.grant.resources.join("、")) : copy("server.oauthcontroller.9a3166f75c45")}</p><form method="post" action="/oauth/revoke">${await newFlow("revoke", row.clientId, null)}<button name="decision" value="revoke">${copy("server.oauthcontroller.b379985b08ae")}</button></form></section>`;
+							html += `<section><h2>${esc(names.get(row.clientId) || row.clientId)}</h2><p>${row.grant ? copy("server.oauthcontroller.b13cb614f05b") + esc(row.grant.scopes.join("、")) + copy("server.oauthcontroller.389ae3297b0f") + esc(row.grant.resources.join("、")) : copy("server.oauthcontroller.9a3166f75c45")}</p><form method="post" action="/oauth/revoke">${await newFlow("revoke", row.clientId, null)}<button name="decision" value="revoke">${copy("server.oauthcontroller.b379985b08ae")}</button></form></section>`;
 				} else throw serviceError("not_found");
 				const r = page(html, 200, path === "/oauth/consent");
 				// Chromium applies form-action to the provider's 303 callback as well. Permit
@@ -380,12 +386,14 @@ export function createOAuthController(
 			if (
 				new URL(request.url).pathname === "/oauth/consent" &&
 				request.method === "GET" &&
-				[200, 303].includes(response.status)
+				[200, 303].includes(response.status) &&
+				response.headers.get("location") !== "/auth/login"
 			)
 				response.headers.append("Set-Cookie", clearReturn());
 			return response;
 		},
 		resumeLocation,
+		returnTo,
 		clearReturn,
 	};
 }

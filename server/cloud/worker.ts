@@ -53,6 +53,7 @@ export function createWorker({ runtimeFactory = createSillRuntime }: any = {}) {
 				agentAudience: env.AGENT_AUDIENCE,
 				mcpEnabled: env.MCP_ENABLE === "true",
 				oauthConsentEnabled: env.OAUTH_CONSENT_ENABLE === "true",
+				emailLoginEnabled: env.EMAIL_LOGIN_ENABLE === "true",
 				oauthClientIds,
 				backupEncryptionKey: env.BACKUP_ENCRYPTION_KEY,
 				backupWebdavHosts: (env.BACKUP_WEBDAV_HOSTS || "dav.jianguoyun.com")

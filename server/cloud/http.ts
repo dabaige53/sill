@@ -175,18 +175,38 @@ export function createSillRuntime(
 				const identity = await sessions.authenticate(request, states.get(request));
 				if (!(await repositoryFactory(identity.client).session()).workspaceRead)
 					throw serviceError("forbidden");
-				return new Response(loginCompletePage({ authorizing: !!oauth.resumeLocation(request) }), {
-					headers: {
-						...headers,
-						"Content-Type": "text/html; charset=utf-8",
-						"Content-Security-Policy":
-							"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",
+				return new Response(
+					loginCompletePage({
+						authorizing: !!oauth.resumeLocation(request)?.includes("/oauth/consent?"),
+					}),
+					{
+						headers: {
+							...headers,
+							"Content-Type": "text/html; charset=utf-8",
+							"Content-Security-Policy":
+								"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",
+						},
 					},
-				});
+				);
 			}
+			if (request.method === "GET" && path === "/auth/options")
+				return json(200, { emailLogin: config.emailLoginEnabled === true });
 			if (request.method === "GET" && (path === "/auth/login" || path === "/auth/password/new")) {
-				if (path === "/auth/password/new") await authenticate(request);
-				else {
+				if (path === "/auth/password/new") {
+					try {
+						await authenticate(request);
+					} catch (error) {
+						if (error.code !== "unauthenticated") throw error;
+						return new Response(null, {
+							status: 303,
+							headers: {
+								...headers,
+								Location: "/auth/login",
+								"Set-Cookie": oauth.returnTo("password"),
+							},
+						});
+					}
+				} else {
 					try {
 						await authenticate(request);
 						return new Response(null, {
@@ -203,7 +223,8 @@ export function createSillRuntime(
 				return new Response(
 					loginPage({
 						emailEnabled: config.emailLoginEnabled === true,
-						setup: path === "/auth/password/new",
+						setup: path === "/auth/password/new" && readCookie(request, setupName) === "1",
+						change: path === "/auth/password/new" && readCookie(request, setupName) !== "1",
 						failed: url.searchParams.has("login_error"),
 						authorizing: !!oauth.resumeLocation(request)?.includes("/oauth/consent?"),
 						returnLocation: oauth.resumeLocation(request) || "/",
@@ -252,13 +273,36 @@ export function createSillRuntime(
 			}
 			if (path === "/auth/password/update" && request.method === "POST") {
 				sameOrigin(request, config.appOrigin);
-				const { password } = z
-					.object({ password: z.string().min(12).max(256) })
+				const { password, currentPassword } = z
+					.object({
+						password: z.string().min(12).max(256),
+						currentPassword: z.string().min(1).max(256).optional(),
+					})
 					.strict()
 					.parse(await body(request));
 				const identity = await authenticate(request);
 				if (!(await repositoryFactory(identity.client).session()).workspaceRead)
 					throw serviceError("forbidden");
+				// Only a fresh email verification may skip the current password; a session alone cannot.
+				if (readCookie(request, setupName) !== "1") {
+					if (!currentPassword) throw serviceError("current_password", 400);
+					const user = await identity.client.auth.getUser(identity.token);
+					const email = user.data?.user?.email;
+					if (!email) throw serviceError("unavailable", 503);
+					const verified = await authClient().auth.signInWithPassword({
+						email,
+						password: currentPassword,
+					});
+					if (verified.error)
+						throw serviceError(
+							verified.error.status === 429 ? "rate_limited" : "current_password",
+							verified.error.status === 429 ? 429 : 400,
+						);
+					// The check signs in once; end that extra session immediately.
+					await authClient()
+						.auth.admin.signOut(verified.data.session.access_token, "local")
+						.catch(() => {});
+				}
 				const refreshed = states
 					.get(request)
 					.cookies.find((c?: any) => c.startsWith("__Host-sill-refresh="));
@@ -341,7 +385,7 @@ export function createSillRuntime(
 				const verifier = storage.get("sill-web-code-verifier");
 				if (!verifier || verifier.length > 512) throw serviceError("unavailable");
 				const response = json(202, {
-					message: copy("server.http.f868232da331"),
+					message: copy(setupPassword ? "auth.forgotSent" : "server.http.f868232da331"),
 					retryAfter: resendSeconds,
 				});
 				response.headers.append(
@@ -420,6 +464,12 @@ export function createSillRuntime(
 			}
 			if (path === "/auth/logout" && request.method === "POST") {
 				sameOrigin(request, config.appOrigin);
+				const { scope = "local" } = request.body
+					? z
+							.object({ scope: z.enum(["local", "global"]).optional() })
+							.strict()
+							.parse(await body(request))
+					: {};
 				let token = readCookie(request, cookieName),
 					revoked = true;
 				// An expired access token cannot revoke the session; refresh it first when possible.
@@ -430,7 +480,7 @@ export function createSillRuntime(
 				}
 				if (token) {
 					try {
-						const result = await authClient().auth.admin.signOut(token, "local");
+						const result = await authClient().auth.admin.signOut(token, scope);
 						revoked = !result.error;
 					} catch {
 						revoked = false;

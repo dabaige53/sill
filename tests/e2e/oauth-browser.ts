@@ -57,7 +57,7 @@ try {
 			page.setDefaultTimeout(15000);
 			page.on("pageerror", (e?: any) => errors.push(e.message));
 			await page.goto(f.config.appOrigin + "/oauth/consent?authorization_id=" + AUTH);
-			await page.getByRole("link", { name: "前往登录", exact: true }).click();
+			await page.waitForURL(f.config.appOrigin + "/auth/login");
 			await page.getByLabel("邮箱", { exact: true }).first().fill("synthetic@example.com");
 			await page.getByLabel("密码", { exact: true }).fill("synthetic-password");
 			assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

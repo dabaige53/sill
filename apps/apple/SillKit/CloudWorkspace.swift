@@ -30,7 +30,8 @@ public actor CloudWorkspace {
     "__Host-sill-access", "__Host-sill-refresh",
     "__Host-sill-pkce", "__Host-sill-login-until", "__Host-sill-password-setup",
   ]
-  private let origin = URL(string: "https://sill-web-preview.scs1213-temp-email.workers.dev")!
+  public static let origin = URL(string: "https://sill-web-preview.scs1213-temp-email.workers.dev")!
+  private let origin = CloudWorkspace.origin
   private let session: URLSession
   private let vault: any CloudSessionVault
   private var cookies: [String: String] = [:]
@@ -128,6 +129,23 @@ public actor CloudWorkspace {
     return try await fetchWorkspace()
   }
 
+  /// Signed-in password change. The server checks the current password before saving.
+  public func changePassword(current: String, password: String) async throws {
+    guard !busy else { throw CloudWorkspaceError.service("busy", 409) }
+    guard pending == nil else { throw CloudWorkspaceError.unknownWrite }
+    guard owner != nil else { throw CloudWorkspaceError.unauthenticated }
+    busy = true
+    defer { busy = false }
+    _ = try await request(
+      "/auth/password/update", method: "POST",
+      body: .object(["currentPassword": .string(current), "password": .string(password)]))
+  }
+
+  /// Whether this server sends reset and login emails. Unknown counts as unavailable.
+  public func emailLoginAvailable() async -> Bool {
+    (try? await request("/auth/options"))?["emailLogin"]?.bool == true
+  }
+
   public func restoreSession() async throws -> CloudWorkspaceState? {
     guard pending == nil else { throw CloudWorkspaceError.unknownWrite }
     guard !busy else { throw CloudWorkspaceError.service("busy", 409) }
@@ -173,13 +191,15 @@ public actor CloudWorkspace {
     return value
   }
 
-  public func logout() async throws {
+  public func logout(everywhere: Bool = false) async throws {
     guard pending == nil else { throw CloudWorkspaceError.unknownWrite }
     guard !busy else { throw CloudWorkspaceError.service("busy", 409) }
     busy = true
     defer { busy = false }
     do {
-      let result = try await request("/auth/logout", method: "POST")
+      let result = try await request(
+        "/auth/logout", method: "POST",
+        body: everywhere ? .object(["scope": .string("global")]) : nil)
       try clearSession()
       if result["revoked"]?.bool != true {
         throw CloudWorkspaceError.service("logout_unconfirmed", 503)

@@ -8,6 +8,8 @@ import SillKit
   private(set) var owner: String?
   private(set) var displayName = ""
   private(set) var needsPasswordSetup = false
+  /// The server sends reset emails only when its mail service is enabled.
+  private(set) var emailLogin = false
   private(set) var message: String?
   private(set) var error: String?
   @ObservationIgnored private let workspace: Workspace
@@ -31,6 +33,7 @@ import SillKit
       workspace.start()
       return
     }
+    Task { emailLogin = await service.emailLoginAvailable() }
     busy = true
     workspace.beginConnection()
     let token = generation
@@ -97,7 +100,26 @@ import SillKit
     } catch { if token == generation { self.error = Self.message(error) } }
   }
 
-  func logout() async {
+  /// Returns true once the server saved the new password; the session stays signed in.
+  func changePassword(current: String, password: String) async -> Bool {
+    guard !busy, owner != nil, !workspace.isLocal else { return false }
+    busy = true
+    error = nil
+    message = nil
+    let token = generation
+    defer { finish(token) }
+    do {
+      try await service.changePassword(current: current, password: password)
+      guard token == generation else { return false }
+      message = Copy.text("auth.passwordChanged")
+      return true
+    } catch {
+      if token == generation { self.error = Self.message(error) }
+      return false
+    }
+  }
+
+  func logout(everywhere: Bool = false) async {
     guard !busy, !workspace.isLocal else { return }
     guard workspace.queue.idle else {
       error = Copy.text("login.processing")
@@ -111,7 +133,7 @@ import SillKit
       return
     }
     guard token == generation else { return }
-    do { try await service.logout() } catch CloudWorkspaceError.unknownWrite {
+    do { try await service.logout(everywhere: everywhere) } catch CloudWorkspaceError.unknownWrite {
       error = Copy.appleUnknownWrite
       return
     } catch CloudWorkspaceError.service("busy", 409) {
@@ -205,7 +227,10 @@ import SillKit
         ? Copy.text("login.forbidden")
         : status == 429
           ? Copy.text("login.rateLimited")
-          : Copy.text(code == "logout_unconfirmed" ? "auth.logoutUnconfirmed" : "login.unavailable")
+          : code == "current_password"
+            ? Copy.text("error.current_password")
+            : Copy.text(
+              code == "logout_unconfirmed" ? "auth.logoutUnconfirmed" : "login.unavailable")
     default: Copy.text("login.network")
     }
   }

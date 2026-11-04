@@ -108,7 +108,7 @@ test("email tab establishes only the session; the initiating tab resumes the exi
 		};
 		f.cookies.clear();
 		const consent = `/oauth/consent?authorization_id=${AUTH}`;
-		assert.equal((await f.call(consent)).status, 401);
+		assert.equal((await f.call(consent)).status, 303);
 		const originalPage = await (await f.call("/auth/login")).text();
 		assert.ok(originalPage.includes(f.config.appOrigin + consent));
 		const callsBefore = f.providerCalls.length;

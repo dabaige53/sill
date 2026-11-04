@@ -41,6 +41,7 @@
 - [设置实现对照](implementation/design/ui-settings-alignment.md)
 - [桌面交互架构与验证](implementation/engineering/desktop-interaction.md)
 - [功能矩阵](implementation/feature-matrix.md)
+- [账号开通与找回](implementation/operations/accounts.md)
 - [外部备份与设备提醒](implementation/operations/backup-and-reminders.md)
 - [本地操作](implementation/operations/local-operations.md)
 - [Web 与 Mac 本地测试](implementation/operations/local-testing.md)

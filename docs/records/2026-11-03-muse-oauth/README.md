@@ -133,3 +133,23 @@ Worker 本次仅更新配置，沿用线上程序，未发布本地未提交源�
 
 若需回退，先检查当前策略与授权状态，再仅将个人账号 Muse 策略的
 `contentScopes` 恢复为 `["content:read"]`；已有授权须单独核对处理。
+
+## Muse 重连后仍只有只读工具
+
+Muse 重新连接后只列出读取工具，缺少写入、删除和事件工具。
+`server/cloud/mcp.ts` 按当前 grant 的权限过滤工具；未出现 `sill_applyOperations`
+说明该连接的 grant 只有 `content:read`。
+
+实际查询 Muse Client ID 的授权数据：
+
+| 账号 | 策略权限 | grant | Supabase 授权同意 |
+| --- | --- | --- | --- |
+| 个人账号（gmail.com） | 五项业务权限 | 无 | 无 |
+| 旧测试账号（example.invalid） | `content:read` | `content:read` | 2026-11-03 08:51 UTC，最近登录 09:31 UTC |
+
+结论：Muse 的授权使用的是旧测试账号，不是个人账号。个人账号的五项权限配置正确，
+但从未经 Muse 批准授权，因此没有生效。等待服务端缓存不会改变结果。
+
+下一步：用户在 Sill 退出旧测试账号（或使用无痕窗口），在 Muse 断开 Sill 后重新连接，
+授权页确认显示个人账号后批准；之后重新查询个人账号是否生成五项权限的 grant。
+本次只查询，未修改任何策略、grant 或授权记录。
