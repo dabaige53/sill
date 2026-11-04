@@ -132,6 +132,7 @@
 	font-size: var(--text-meta);
 	font-weight: 500;
 	color: var(--accent);
+	text-decoration: none;
 	border-radius: 6px;
 }
 .text-link.warn {

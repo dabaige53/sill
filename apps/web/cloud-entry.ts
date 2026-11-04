@@ -385,7 +385,27 @@ document.addEventListener("click", async (e?: any) => {
 		}
 		await logoutCloud();
 	}
+	if (target.id === "cloud-logout-all") {
+		confirmCloud(
+			copy("auth.logoutAllConfirm"),
+			copy(
+				Cloud.drafts.size || sync.pending.length ? "auth.logoutAllDrafts" : "auth.logoutAllDetail",
+			),
+			copy("auth.logoutAll"),
+			() => logoutCloud("global"),
+			() => app.openPanel("settings"),
+		);
+	}
 });
+// A sign-out in another tab cleared this browser's cookies. Unsaved drafts stay until the next read fails.
+if (!window.__SILL_HOST__)
+	try {
+		new BroadcastChannel("sill-auth").onmessage = (event) => {
+			if (event.data !== "signed-out" || !Cloud.user) return;
+			if (Cloud.drafts.size || sync.pending.length) void loadCloud({ quiet: true });
+			else location.assign("/auth/login");
+		};
+	} catch {}
 document.addEventListener("submit", async (e?: any) => {
 	if (e.target.id === "cloud-editor") {
 		e.preventDefault();

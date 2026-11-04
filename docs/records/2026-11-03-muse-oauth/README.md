@@ -105,3 +105,51 @@ Worker 本次仅更新配置，沿用线上程序，未发布本地未提交源�
 真实 Postgres 检查另覆盖并发首次接入去重、RLS 和执行角色权限。
 程序验证由 GitHub Actions 执行；本地只检查文件和差异，尚未执行新迁移或完整 Muse 验收。
 决定见 [ADR 0092](../../adr/0092-shared-oauth-application-defaults.md)。
+
+## 个人账号开放完整业务权限
+
+2026-11-03，用户明确要求为其 Muse 连接开放全部业务权限。
+通过已登录的 Supabase CLI 对指定项目执行配置查询和更新，不发布程序或执行数据库迁移。
+
+修改前，个人账号的 Muse 策略只有 `content:read`，尚无对应卡片访问 grant。
+同一 Client ID 下存在旧 `example.invalid` 测试账号的只读 grant。
+因此，聊天转述的 Muse 读取成功不能作为个人工作区已接通的验收依据。
+
+本次仅将个人账号的 Muse 策略 `contentScopes` 更新为：
+
+- `content:read`
+- `content:write`
+- `content:delete`
+- `event:submit`
+- `event:read`
+
+更新在事务内检查原策略、generation 和 grant 状态与读取基准一致。
+资源范围保持个人工作区 `["*"]`，Client ID、回调、身份范围和无密钥设置不变；
+不修改共享应用默认策略、旧测试账号、其他客户端或用户卡片。
+实际更新返回五项权限，generation 仍为 0，grant 数量仍为 0。
+独立重新查询确认个人账号已保存五项权限，旧测试账号的策略与 grant 仍为只读。
+用户仍须在 Muse 使用个人 Sill 账号重新发起连接并批准授权；
+本次未代替用户生成 grant，未验收 Muse 的工具发现、写入、删除或令牌刷新。
+
+若需回退，先检查当前策略与授权状态，再仅将个人账号 Muse 策略的
+`contentScopes` 恢复为 `["content:read"]`；已有授权须单独核对处理。
+
+## Muse 重连后仍只有只读工具
+
+Muse 重新连接后只列出读取工具，缺少写入、删除和事件工具。
+`server/cloud/mcp.ts` 按当前 grant 的权限过滤工具；未出现 `sill_applyOperations`
+说明该连接的 grant 只有 `content:read`。
+
+实际查询 Muse Client ID 的授权数据：
+
+| 账号 | 策略权限 | grant | Supabase 授权同意 |
+| --- | --- | --- | --- |
+| 个人账号（gmail.com） | 五项业务权限 | 无 | 无 |
+| 旧测试账号（example.invalid） | `content:read` | `content:read` | 2026-11-03 08:51 UTC，最近登录 09:31 UTC |
+
+结论：Muse 的授权使用的是旧测试账号，不是个人账号。个人账号的五项权限配置正确，
+但从未经 Muse 批准授权，因此没有生效。等待服务端缓存不会改变结果。
+
+下一步：用户在 Sill 退出旧测试账号（或使用无痕窗口），在 Muse 断开 Sill 后重新连接，
+授权页确认显示个人账号后批准；之后重新查询个人账号是否生成五项权限的 grant。
+本次只查询，未修改任何策略、grant 或授权记录。

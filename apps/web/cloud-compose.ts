@@ -268,11 +268,20 @@ export function confirmCloud(title?: any, detail?: any, label?: any, action?: an
 		"panel narrow",
 	);
 }
-export async function logoutCloud() {
+export async function logoutCloud(scope: "local" | "global" = "local") {
 	try {
-		const result = await cloudApi("/auth/logout", { method: "POST" });
+		const result = await cloudApi("/auth/logout", {
+			method: "POST",
+			...(scope === "global" && { body: JSON.stringify({ scope }) }),
+		});
 		clearCloud();
 		if (!window.__SILL_HOST__) {
+			// Other tabs of this browser share the cleared cookies; let them leave too.
+			try {
+				const channel = new BroadcastChannel("sill-auth");
+				channel.postMessage("signed-out");
+				channel.close();
+			} catch {}
 			location.assign("/auth/login");
 			return;
 		}

@@ -108,10 +108,14 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 		}
 		if (url.pathname === "/auth/v1/user") {
 			if (init.method === "PUT") sessionState.passwordUpdated = true;
-			return Response.json({ id: A, aud: "authenticated" });
+			return Response.json({ id: A, aud: "authenticated", email: "synthetic@example.com" });
 		}
 		if (url.pathname === "/auth/v1/logout") {
 			sessionState.revoked = true;
+			sessionState.logoutScopes = [
+				...(sessionState.logoutScopes || []),
+				url.searchParams.get("scope"),
+			];
 			return new Response(null, { status: 204 });
 		}
 		if (url.pathname.startsWith("/rest/v1/rpc/")) {

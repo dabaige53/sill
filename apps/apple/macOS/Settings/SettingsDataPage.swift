@@ -8,6 +8,8 @@ struct DataPage: View {
   @Environment(Workspace.self) private var workspace
   @Environment(Account.self) private var account
   @State private var signingOut = false
+  @State private var signingOutEverywhere = false
+  @State private var changingPassword = false
   @State private var usage: Int?
   @State private var confirming = false
   @State private var clearing = false
@@ -44,15 +46,34 @@ struct DataPage: View {
       if !workspace.isLocal {
         SettingsCard {
           SettingLine(first: true) {
-            Text(Copy.text("web.cloudentry.4cc5be794516"))
-            Spacer(minLength: 0)
+            Button(Copy.text("auth.changePassword")) {
+              account.clearFeedback()
+              changingPassword = true
+            }
+            .buttonStyle(TextLinkStyle(padded: false))
+            .disabled(account.busy)
+          }
+          SettingLine {
+            Button(Copy.text("web.cloudentry.55cce35fb13e")) {
+              NSWorkspace.shared.open(CloudWorkspace.origin.appendingPathComponent("oauth/grants"))
+            }
+            .buttonStyle(TextLinkStyle(padded: false))
+          }
+          SettingLine {
             Button(Copy.text("web.cloudentry.3ab8cc15939f")) { signingOut = true }
               .buttonStyle(TextLinkStyle(padded: false))
               .disabled(account.busy)
           }
+          SettingLine {
+            Button(Copy.text("auth.logoutAll")) { signingOutEverywhere = true }
+              .buttonStyle(TextLinkStyle(warn: true, padded: false))
+              .disabled(account.busy)
+          }
         }
-        if let error = account.error {
+        if !changingPassword, let error = account.error {
           Text(error).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.error)
+        } else if !changingPassword, let message = account.message {
+          Text(message).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
         }
       }
     }
@@ -62,6 +83,18 @@ struct DataPage: View {
       }
       Button(Copy.text("web.cancel"), role: .cancel) {}
     }
+    .confirmationDialog(
+      Copy.text("auth.logoutAllConfirm"), isPresented: $signingOutEverywhere,
+      titleVisibility: .visible
+    ) {
+      Button(Copy.text("auth.logoutAll"), role: .destructive) {
+        Task { await account.logout(everywhere: true) }
+      }
+      Button(Copy.text("web.cancel"), role: .cancel) {}
+    } message: {
+      Text(Copy.text("auth.logoutAllDetail"))
+    }
+    .sheet(isPresented: $changingPassword) { ChangePasswordSheet() }
     .task(id: workspace.catalogVersion) { if workspace.isLocal { await measure() } }
     .alert(Copy.text("web.app.7f1a78cdb3f2"), isPresented: $confirming) {
       Button(Copy.text("web.cancel"), role: .cancel) {}
@@ -110,4 +143,51 @@ struct DataPage: View {
     formatter.dateFormat = "yyyy-MM-dd"
     return formatter
   }()
+}
+
+/// Signed-in password change; the same rules as the Web change-password page.
+private struct ChangePasswordSheet: View {
+  @Environment(Account.self) private var account
+  @Environment(\.dismiss) private var dismiss
+  @State private var current = ""
+  @State private var password = ""
+
+  private var valid: Bool {
+    !current.isEmpty && current.count <= 256 && password.count >= 12 && password.count <= 256
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+      Text(Copy.text("auth.changeTitle"))
+        .font(.sans(AppleMetrics.font16, .semibold))
+        .accessibilityAddTraits(.isHeader)
+      SecureField(Copy.text("auth.currentPassword"), text: $current)
+        .textContentType(.password)
+      SecureField(Copy.text("server.loginpage.566f6ab7157d"), text: $password)
+        .textContentType(.newPassword)
+      if let error = account.error {
+        Text(error).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.error)
+      }
+      HStack {
+        Spacer(minLength: 0)
+        Button(Copy.text("web.cancel"), role: .cancel) { dismiss() }
+          .keyboardShortcut(.cancelAction)
+        Button(Copy.text(account.busy ? "login.processing" : "auth.changeSubmit")) { save() }
+          .keyboardShortcut(.defaultAction)
+          .disabled(account.busy || !valid)
+      }
+    }
+    .textFieldStyle(.roundedBorder)
+    .padding(AppleMetrics.space24)
+    .frame(width: AppleMetrics.authLoginWidth)
+    .onSubmit { save() }
+  }
+
+  private func save() {
+    guard valid, !account.busy else { return }
+    let (old, new) = (current, password)
+    Task {
+      if await account.changePassword(current: old, password: new) { dismiss() }
+    }
+  }
 }

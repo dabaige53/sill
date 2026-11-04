@@ -8,6 +8,8 @@ struct CloudLogin: View {
   @State private var email = ""
   @State private var password = ""
   @State private var showPassword = false
+  /// nil signs in with a password; true sends a reset link, false a login link.
+  @State private var link: Bool?
   @FocusState private var focused: Field?
   private enum Field { case email, password }
 
@@ -22,7 +24,8 @@ struct CloudLogin: View {
             Copy.text(
               setup
                 ? "server.loginpage.53ae50023ff4"
-                : "auth.loginTitle")
+                : link == true
+                  ? "auth.resetTitle" : link == false ? "auth.emailLogin" : "auth.loginTitle")
           )
           .font(.sans(AppleMetrics.font30, .semibold))
           .foregroundStyle(AppleColors.primary)
@@ -42,60 +45,95 @@ struct CloudLogin: View {
                 )
 
             }
-            Group {
-              if showPassword {
-                TextField("", text: $password)
-              } else {
-                SecureField("", text: $password)
-              }
-            }
-            .textContentType(setup ? .newPassword : .password)
-            .accessibilityLabel(Copy.text("server.loginpage.a621ab606db2"))
-            .accessibilityIdentifier("login-password")
-            .focused($focused, equals: .password)
-            .padding(.trailing, AppleMetrics.space48)
-            .modifier(
-              LoginField(
-                label: Copy.text(
-                  setup ? "server.loginpage.566f6ab7157d" : "server.loginpage.a621ab606db2"),
-                floating: focused == .password || !password.isEmpty, active: focused == .password)
-            )
-            .overlay(alignment: .trailing) {
-              Button {
-                withAnimation(
-                  Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.loginLabelDuration)
-                ) {
-                  showPassword.toggle()
+            if link == nil {
+              Group {
+                if showPassword {
+                  TextField("", text: $password)
+                } else {
+                  SecureField("", text: $password)
                 }
-                focused = .password
-              } label: {
-                ZStack {
-                  Icon("eye", size: AppleMetrics.space20).opacity(showPassword ? 0 : 1)
-                    .scaleEffect(showPassword ? 0.9 : 1)
-                  Icon("eye-off", size: AppleMetrics.space20).opacity(showPassword ? 1 : 0)
-                    .scaleEffect(showPassword ? 1 : 0.9)
-                }.frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-              }.buttonStyle(IconPress())
-                .accessibilityLabel(
-                  Copy.text(showPassword ? "auth.hidePassword" : "auth.showPassword")
-                )
-                .padding(.trailing, AppleMetrics.space4)
-            }
-            .padding(.bottom, AppleMetrics.space8)
-            Button(action: submit) {
-              HStack(spacing: AppleMetrics.space8) {
-                if account.busy { LoginSpinner() }
-                Text(
-                  Copy.text(
-                    account.busy
-                      ? "login.processing"
-                      : setup ? "server.loginpage.68084c3895c1" : "server.loginpage.a4e09c4c209d"))
               }
+              .textContentType(setup ? .newPassword : .password)
+              .accessibilityLabel(Copy.text("server.loginpage.a621ab606db2"))
+              .accessibilityIdentifier("login-password")
+              .focused($focused, equals: .password)
+              .padding(.trailing, AppleMetrics.space48)
+              .modifier(
+                LoginField(
+                  label: Copy.text(
+                    setup ? "server.loginpage.566f6ab7157d" : "server.loginpage.a621ab606db2"),
+                  floating: focused == .password || !password.isEmpty, active: focused == .password)
+              )
+              .overlay(alignment: .trailing) {
+                Button {
+                  withAnimation(
+                    Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.loginLabelDuration)
+                  ) {
+                    showPassword.toggle()
+                  }
+                  focused = .password
+                } label: {
+                  ZStack {
+                    Icon("eye", size: AppleMetrics.space20).opacity(showPassword ? 0 : 1)
+                      .scaleEffect(showPassword ? 0.9 : 1)
+                    Icon("eye-off", size: AppleMetrics.space20).opacity(showPassword ? 1 : 0)
+                      .scaleEffect(showPassword ? 1 : 0.9)
+                  }.frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+                }.buttonStyle(IconPress())
+                  .accessibilityLabel(
+                    Copy.text(showPassword ? "auth.hidePassword" : "auth.showPassword")
+                  )
+                  .padding(.trailing, AppleMetrics.space4)
+              }
+              .padding(.bottom, AppleMetrics.space8)
+              Button(action: submit) {
+                HStack(spacing: AppleMetrics.space8) {
+                  if account.busy { LoginSpinner() }
+                  Text(
+                    Copy.text(
+                      account.busy
+                        ? "login.processing"
+                        : setup ? "server.loginpage.68084c3895c1" : "server.loginpage.a4e09c4c209d")
+                  )
+                }
+              }
+              .buttonStyle(LoginButton())
+              .keyboardShortcut(.defaultAction)
+              .accessibilityIdentifier("login-submit")
+              .disabled(account.busy || !valid)
             }
-            .buttonStyle(LoginButton())
-            .keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier("login-submit")
-            .disabled(account.busy || !valid)
+            if let link, !setup {
+              Button {
+                Task { await account.requestLink(email: email, setupPassword: link) }
+              } label: {
+                HStack(spacing: AppleMetrics.space8) {
+                  if account.busy { LoginSpinner() }
+                  Text(
+                    Copy.text(
+                      account.busy
+                        ? "login.processing" : link ? "auth.sendReset" : "auth.sendLogin"))
+                }
+              }
+              .buttonStyle(LoginButton())
+              .keyboardShortcut(.defaultAction)
+              .disabled(account.busy || !Self.validEmail(email))
+              Button(Copy.text("auth.backPassword")) { show(nil) }
+                .buttonStyle(TextLinkStyle(padded: false))
+            } else if !setup {
+              VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+                if account.emailLogin {
+                  Button(Copy.text("auth.forgotPassword")) { show(true) }
+                    .buttonStyle(TextLinkStyle(padded: false))
+                  Button(Copy.text("auth.emailLogin")) { show(false) }
+                    .buttonStyle(TextLinkStyle(padded: false))
+                } else {
+                  Text(Copy.text("auth.forgotContact"))
+                }
+                Text(Copy.text("auth.inviteOnly"))
+              }
+              .font(.sans(AppleMetrics.font13))
+              .foregroundStyle(AppleColors.secondary)
+            }
             if setup {
               Button(Copy.text("web.cloudentry.3ab8cc15939f")) { Task { await account.logout() } }
                 .buttonStyle(TextLinkStyle(padded: false))
@@ -152,7 +190,19 @@ struct CloudLogin: View {
         options: .regularExpression) != nil
   }
 
+  private func show(_ next: Bool?) {
+    guard !account.busy else { return }
+    account.clearFeedback()
+    link = next
+    focused = .email
+  }
+
   private func submit() {
+    if let link {
+      guard !account.busy, Self.validEmail(email) else { return }
+      Task { await account.requestLink(email: email, setupPassword: link) }
+      return
+    }
     guard !account.busy, valid else { return }
     let secret = password
     Task {

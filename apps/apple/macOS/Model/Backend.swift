@@ -110,7 +110,18 @@ protocol CloudAccountService: WorkspaceBackend {
   func requestLoginLink(email: String, setupPassword: Bool) async throws -> JSONValue
   func completeLogin(url: URL) async throws -> CloudWorkspaceState
   func setPassword(password: String) async throws -> CloudWorkspaceState
+  func changePassword(current: String, password: String) async throws
+  func emailLoginAvailable() async -> Bool
   func logout() async throws
+  func logout(everywhere: Bool) async throws
+}
+
+extension CloudAccountService {
+  func changePassword(current: String, password: String) async throws {
+    throw CloudWorkspaceError.unauthenticated
+  }
+  func emailLoginAvailable() async -> Bool { false }
+  func logout(everywhere: Bool) async throws { try await logout() }
 }
 
 extension CloudBackend: CloudAccountService {
@@ -128,5 +139,10 @@ extension CloudBackend: CloudAccountService {
   func setPassword(password: String) async throws -> CloudWorkspaceState {
     try await cloud.setPassword(password: password)
   }
+  func changePassword(current: String, password: String) async throws {
+    try await cloud.changePassword(current: current, password: password)
+  }
+  func emailLoginAvailable() async -> Bool { await cloud.emailLoginAvailable() }
   func logout() async throws { try await cloud.logout() }
+  func logout(everywhere: Bool) async throws { try await cloud.logout(everywhere: everywhere) }
 }

@@ -79,6 +79,11 @@ test("Worker fetch calls share only active refresh work, without sharing user cl
 		const changed: Record<string, any> = { ...env, MCP_ENABLE: "true" };
 		assert.equal((await worker.fetch(request(), changed)).status, 200);
 		assert.equal(runtimes, 2, "configuration changes replace the sole runtime");
+		const options = async (values: Record<string, any>) =>
+			(await (await worker.fetch(new Request(f.config.appOrigin + "/auth/options"), values)).json())
+				.emailLogin;
+		assert.equal(await options(env), false, "email recovery stays off by default");
+		assert.equal(await options({ ...env, EMAIL_LOGIN_ENABLE: "true" }), true);
 	} finally {
 		await f.close();
 	}

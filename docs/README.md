@@ -41,6 +41,7 @@
 - [设置实现对照](implementation/design/ui-settings-alignment.md)
 - [桌面交互架构与验证](implementation/engineering/desktop-interaction.md)
 - [功能矩阵](implementation/feature-matrix.md)
+- [账号开通与找回](implementation/operations/accounts.md)
 - [外部备份与设备提醒](implementation/operations/backup-and-reminders.md)
 - [本地操作](implementation/operations/local-operations.md)
 - [Web 与 Mac 本地测试](implementation/operations/local-testing.md)
@@ -61,6 +62,7 @@
 - [错误索引](records/errors.md)：按报错、症状和模块查找定位与解决记录。
 - [事件记录索引](records/README.md)：验收、发布、研究与交接材料，只说明当时的事实。
 - [产品变更日志](records/CHANGELOG.md)：按版本汇总产品与维护变化。
+- [Resend 发信与 Supabase SMTP 配置](records/2026-11-04-email-setup/README.md)：域名验证、SMTP、回调地址及 Worker 配置结果。
 - [1.2.19 手机抽屉绘制修复与发布](records/2026-10-30-phone-drawer-release/README.md)：录屏中的卡片缺失、背景交接修复，以及发布检查与回退基准。
 - [1.2.18 手机交互修复与发布](records/2026-10-30-phone-page-lifecycle/README.md)：AI 输入框、搜索与抽屉、主页双击刷新，以及部署与回退标识。
 - [1.2.16 按钮审查与发布](records/2026-10-29-interface-hardening/README.md)：按钮调用链、回归结果、部署与回退标识。

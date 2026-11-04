@@ -90,6 +90,7 @@ export function oauthProvider(
 			if (!["approve", "deny"].includes(action)) throw serviceError("invalid_request");
 			return call("oauth/authorizations/" + authorization(id) + "/consent", "POST", { action });
 		},
+		grants: () => call("user/oauth/grants"),
 		revoke: (clientId?: any) => call("user/oauth/grants?client_id=" + checked(clientId), "DELETE"),
 	};
 }

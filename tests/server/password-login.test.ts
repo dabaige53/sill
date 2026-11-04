@@ -12,7 +12,8 @@ test("password login resumes consent without approval, rejects wrong credentials
 		assert.equal(page.status, 200);
 		assert.match(await page.text(), /current-password/);
 		const start = await f.call("/oauth/consent?authorization_id=" + AUTH, { cookieJar: jar });
-		assert.match(await start.text(), /href="\/auth\/login"/);
+		assert.equal(start.status, 303);
+		assert.equal(start.headers.get("location"), f.config.appOrigin + "/auth/login");
 		const post = (password?: any, headers: any = {}) =>
 			f.call("/auth/password", {
 				cookieJar: jar,
@@ -191,5 +192,101 @@ test("login copy distinguishes workspace entry from consent and recovery never e
 		assert.doesNotMatch(html, /secret|<script>/);
 	} finally {
 		await f.db.close();
+	}
+});
+test("signed-in password change requires the current password", async () => {
+	const f = await oauthFixture();
+	try {
+		const jar = new Map<any, any>();
+		const post = (path?: any, value?: any) =>
+			f.call(path, {
+				cookieJar: jar,
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(value),
+			});
+		const login = await post("/auth/password", {
+			email: "synthetic@example.com",
+			password: "synthetic-password",
+		});
+		assert.equal(login.status, 200);
+		const page = await f.call("/auth/password/new", { cookieJar: jar });
+		assert.match(await page.text(), /name="currentPassword"/);
+		const missing = await post("/auth/password/update", { password: "synthetic-new-password" });
+		assert.equal(missing.status, 400);
+		assert.equal((await missing.json()).error.code, "current_password");
+		const wrong = await post("/auth/password/update", {
+			password: "synthetic-new-password",
+			currentPassword: "wrong",
+		});
+		assert.equal((await wrong.json()).error.code, "current_password");
+		assert.notEqual(f.sessionState.passwordUpdated, true);
+		const saved = await post("/auth/password/update", {
+			password: "synthetic-new-password",
+			currentPassword: "synthetic-password",
+		});
+		assert.equal(saved.status, 200);
+		assert.equal(f.sessionState.passwordUpdated, true);
+		assert.deepEqual(f.sessionState.logoutScopes, ["local"], "the check session is ended");
+	} finally {
+		await f.close();
+	}
+});
+test("logout ends this browser by default and every device on request", async () => {
+	const f = await oauthFixture();
+	try {
+		for (const scope of ["local", "global"]) {
+			const jar = new Map<any, any>();
+			await f.call("/auth/password", {
+				cookieJar: jar,
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email: "synthetic@example.com", password: "synthetic-password" }),
+			});
+			const out = await f.call("/auth/logout", {
+				cookieJar: jar,
+				method: "POST",
+				...(scope === "global" && {
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ scope }),
+				}),
+			});
+			assert.equal(out.status, 200);
+			assert.equal(f.sessionState.logoutScopes.at(-1), scope);
+			assert.ok(!jar.get("__Host-sill-access"));
+		}
+	} finally {
+		await f.close();
+	}
+});
+test("login page explains invitation and offers recovery only when email is enabled", async () => {
+	const { loginPage } = await import("../../server/cloud/login-page.ts");
+	const closed = loginPage();
+	assert.doesNotMatch(closed, /id="forgot"/);
+	assert.match(closed, /联系管理员重置/);
+	assert.match(closed, /仅限受邀使用/);
+	assert.match(loginPage({ emailEnabled: true }), /id="forgot"/);
+});
+
+test("signed-out account pages go to login and come back after signing in", async () => {
+	const f = await oauthFixture();
+	try {
+		for (const path of ["/oauth/grants", "/auth/password/new"]) {
+			const jar = new Map<any, any>();
+			const start = await f.call(path, { cookieJar: jar });
+			assert.equal(start.status, 303);
+			assert.equal(start.headers.get("location"), f.config.appOrigin + "/auth/login");
+			const login = await f.call("/auth/password", {
+				cookieJar: jar,
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email: "synthetic@example.com", password: "synthetic-password" }),
+			});
+			assert.equal(login.status, 200);
+			assert.equal((await login.json()).location, f.config.appOrigin + path);
+			assert.equal((await f.call(path, { cookieJar: jar })).status, 200);
+		}
+	} finally {
+		await f.close();
 	}
 });

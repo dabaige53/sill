@@ -127,7 +127,7 @@ export async function registerSessionPolicyTests() {
 			const jar = new Map<any, any>();
 			assert.equal(
 				(await f.call(`/oauth/consent?authorization_id=${opaque}`, { cookieJar: jar })).status,
-				401,
+				303,
 			);
 			assert.ok(decodeURIComponent(jar.get("__Host-sill-oauth-return")).startsWith(`${opaque}.`));
 			for (const id of ["../outside", "short", "a".repeat(129)])

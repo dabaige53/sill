@@ -35,16 +35,44 @@ try {
 
 			await context.route(f.config.appOrigin + "/**", async (route?: any) => {
 				const req = route.request();
-				const response = await f.runtime(
+				const requestHeaders = await req.allHeaders();
+				let response = await f.runtime(
 					new Request(req.url(), {
 						method: req.method(),
-						headers: await req.allHeaders(),
+						headers: requestHeaders,
 						...(req.postData() ? { body: req.postData() } : {}),
 					}),
 				);
+				// Playwright does not route the request a fulfilled redirect starts, so same-origin
+				// redirects are followed here with the cookies each hop set.
+				const setCookies = [...response.headers.getSetCookie()];
+				const jar = new Map(
+					(requestHeaders.cookie || "")
+						.split(/;\s*/)
+						.filter(Boolean)
+						.map((c: string) => [c.slice(0, c.indexOf("=")), c.slice(c.indexOf("=") + 1)]),
+				);
+				while ([301, 302, 303, 307, 308].includes(response.status)) {
+					const location = new URL(response.headers.get("location") || "", req.url());
+					if (location.origin !== f.config.appOrigin) break;
+					for (const c of response.headers.getSetCookie()) {
+						const [kv] = c.split(";"),
+							i = kv.indexOf("=");
+						if (/max-age=0/i.test(c)) jar.delete(kv.slice(0, i));
+						else jar.set(kv.slice(0, i), kv.slice(i + 1));
+					}
+					response = await f.runtime(
+						new Request(location, {
+							headers: {
+								...requestHeaders,
+								cookie: [...jar].map(([k, v]) => k + "=" + v).join("; "),
+							},
+						}),
+					);
+					setCookies.push(...response.headers.getSetCookie());
+				}
 				const headers = Object.fromEntries(response.headers);
-				if (response.headers.getSetCookie().length)
-					headers["set-cookie"] = response.headers.getSetCookie().join("\n");
+				if (setCookies.length) headers["set-cookie"] = setCookies.join("\n");
 				await route.fulfill({
 					status: response.status,
 					headers,
@@ -57,7 +85,6 @@ try {
 			page.setDefaultTimeout(15000);
 			page.on("pageerror", (e?: any) => errors.push(e.message));
 			await page.goto(f.config.appOrigin + "/oauth/consent?authorization_id=" + AUTH);
-			await page.getByRole("link", { name: "前往登录", exact: true }).click();
 			await page.getByLabel("邮箱", { exact: true }).first().fill("synthetic@example.com");
 			await page.getByLabel("密码", { exact: true }).fill("synthetic-password");
 			assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

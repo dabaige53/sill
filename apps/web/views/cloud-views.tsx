@@ -136,12 +136,36 @@ export function CloudSettings({
 				</div>
 			</div>
 
-			{user && (
+			{user && host && (
 				<div className="settings-card">
 					<div className="setting-row">
 						<span>{copy("web.cloudentry.4cc5be794516")}</span>
 						<button type="button" className="text-link" id="cloud-logout">
-							{host ? copy("web.cloudentry.55cce35fb13e") : copy("web.cloudentry.3ab8cc15939f")}
+							{copy("web.cloudentry.55cce35fb13e")}
+						</button>
+					</div>
+				</div>
+			)}
+			{user && !host && (
+				<div className="settings-card">
+					<div className="setting-row">
+						<a className="text-link" href="/auth/password/new">
+							{copy("auth.changePassword")}
+						</a>
+					</div>
+					<div className="setting-row">
+						<a className="text-link" href="/oauth/grants">
+							{copy("web.cloudentry.55cce35fb13e")}
+						</a>
+					</div>
+					<div className="setting-row">
+						<button type="button" className="text-link" id="cloud-logout">
+							{copy("web.cloudentry.3ab8cc15939f")}
+						</button>
+					</div>
+					<div className="setting-row">
+						<button type="button" className="text-link warn" id="cloud-logout-all">
+							{copy("auth.logoutAll")}
 						</button>
 					</div>
 				</div>

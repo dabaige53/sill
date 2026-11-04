@@ -14,6 +14,7 @@ const codes = new Set([
 	"idempotency_conflict",
 	"cursor_expired",
 	"rate_limited",
+	"current_password",
 	"backup_auth_failed",
 	"backup_unknown",
 	"unavailable",
