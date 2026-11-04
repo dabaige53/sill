@@ -201,7 +201,7 @@ export function createSillRuntime(
 							status: 303,
 							headers: {
 								...headers,
-								Location: "/auth/login",
+								Location: config.appOrigin + "/auth/login",
 								"Set-Cookie": oauth.returnTo("password"),
 							},
 						});

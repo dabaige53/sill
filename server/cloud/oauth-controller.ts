@@ -148,7 +148,11 @@ export function createOAuthController(
 				if (target)
 					return new Response(null, {
 						status: 303,
-						headers: { ...headers, Location: "/auth/login", "Set-Cookie": returnTo(target) },
+						headers: {
+							...headers,
+							Location: config.appOrigin + "/auth/login",
+							"Set-Cookie": returnTo(target),
+						},
 					});
 				throw error;
 			}
@@ -387,7 +391,7 @@ export function createOAuthController(
 				new URL(request.url).pathname === "/oauth/consent" &&
 				request.method === "GET" &&
 				[200, 303].includes(response.status) &&
-				response.headers.get("location") !== "/auth/login"
+				response.headers.get("location") !== config.appOrigin + "/auth/login"
 			)
 				response.headers.append("Set-Cookie", clearReturn());
 			return response;

@@ -218,7 +218,7 @@ export async function registerReviewSecurityTests() {
 			const jar = new Map<any, any>();
 			const first = await f.call(`/oauth/consent?authorization_id=${AUTH}`, { cookieJar: jar });
 			assert.equal(first.status, 303);
-			assert.equal(first.headers.get("location"), "/auth/login");
+			assert.equal(first.headers.get("location"), f.config.appOrigin + "/auth/login");
 			assert.equal(f.providerCalls.length, 0);
 			const login = await f.call("/auth/login", {
 				method: "POST",

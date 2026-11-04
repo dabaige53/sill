@@ -13,7 +13,7 @@ test("password login resumes consent without approval, rejects wrong credentials
 		assert.match(await page.text(), /current-password/);
 		const start = await f.call("/oauth/consent?authorization_id=" + AUTH, { cookieJar: jar });
 		assert.equal(start.status, 303);
-		assert.equal(start.headers.get("location"), "/auth/login");
+		assert.equal(start.headers.get("location"), f.config.appOrigin + "/auth/login");
 		const post = (password?: any, headers: any = {}) =>
 			f.call("/auth/password", {
 				cookieJar: jar,
@@ -275,7 +275,7 @@ test("signed-out account pages go to login and come back after signing in", asyn
 			const jar = new Map<any, any>();
 			const start = await f.call(path, { cookieJar: jar });
 			assert.equal(start.status, 303);
-			assert.equal(start.headers.get("location"), "/auth/login");
+			assert.equal(start.headers.get("location"), f.config.appOrigin + "/auth/login");
 			const login = await f.call("/auth/password", {
 				cookieJar: jar,
 				method: "POST",
