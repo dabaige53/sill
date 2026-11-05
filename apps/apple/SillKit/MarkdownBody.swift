@@ -30,8 +30,9 @@ public struct MarkdownBody: Equatable, Sendable {
   public var plainText: String { blocks.map(\.text).joined(separator: "\n") }
 
   public init(_ source: String) {
-    blocks = Self.blocks(in: Document(parsing: source, options: .disableSmartOpts))
-    headings = blocks.indices.filter { blocks[$0].heading > 0 }
+    let parsed = Self.blocks(in: Document(parsing: source, options: .disableSmartOpts))
+    blocks = parsed
+    headings = parsed.indices.filter { parsed[$0].heading > 0 }
   }
 
   public static func safeURL(_ destination: String?) -> URL? {

@@ -115,7 +115,7 @@ struct ReaderPage<Content: View>: View {
   }
 
   private func outline(proxy: ScrollViewProxy) -> some View {
-    let headings = headings
+    let headings = self.headings
     let topLevel = headings.map { $0.block.heading }.min() ?? 1
     return ScrollView {
       VStack(alignment: .leading, spacing: 0) {
