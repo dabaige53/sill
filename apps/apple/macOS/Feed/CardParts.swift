@@ -151,6 +151,13 @@ struct SummaryBlock: View {
   }
 }
 
+private struct SummaryLabel: View {
+  var body: some View {
+    Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
+      .foregroundStyle(AppleColors.secondary)
+  }
+}
+
 /// Web `DetailSummary`: short by default; when the card has a long summary, the Sill mark at
 /// the top left switches between the two after a brief writing pause, and the chevron folds it.
 /// While the other length is written, the bar in the mark writes and the placeholders breathe;
@@ -172,18 +179,23 @@ struct SummaryOverview: View {
         HStack(spacing: AppleMetrics.space6) {
           if !card.longSummary.isEmpty {
             Button(action: toggle) {
-              Group {
-                if loading != nil {
-                  PhaseAnimator([1, AppleMetrics.summaryWritingScale]) { scale in
-                    Icon("sill-ai", size: AppleMetrics.space20, parts: ["sill-ai-bar": scale])
-                  } animation: { _ in
-                    .easeInOut(duration: AppleMetrics.summaryWriting / 2)
+              // The mark and the label switch together.
+              HStack(spacing: AppleMetrics.space6) {
+                Group {
+                  if loading != nil {
+                    PhaseAnimator([1, AppleMetrics.summaryWritingScale]) { scale in
+                      Icon("sill-ai", size: AppleMetrics.space20, parts: ["sill-ai-bar": scale])
+                    } animation: { _ in
+                      .easeInOut(duration: AppleMetrics.summaryWriting / 2)
+                    }
+                  } else {
+                    Icon("sill-ai", size: AppleMetrics.space20)
                   }
-                } else {
-                  Icon("sill-ai", size: AppleMetrics.space20)
                 }
+                .foregroundStyle(target ? AppleColors.accent : AppleColors.secondary)
+                SummaryLabel()
               }
-              .foregroundStyle(target ? AppleColors.accent : AppleColors.secondary)
+              .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(Copy.text(target ? "web.card.summaryShowShort" : "web.card.summaryShowLong"))
@@ -195,9 +207,8 @@ struct SummaryOverview: View {
             Icon("sill-ai", size: AppleMetrics.space20)
               .foregroundStyle(AppleColors.secondary)
               .accessibilityHidden(true)
+            SummaryLabel()
           }
-          Text(Copy.text("web.card.summary")).textStyle(AppleMetrics.font13, .semibold)
-            .foregroundStyle(AppleColors.secondary)
           Button {
             open.toggle()
           } label: {
