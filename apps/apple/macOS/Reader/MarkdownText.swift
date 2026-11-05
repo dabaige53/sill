@@ -1,7 +1,8 @@
 import SillKit
 import SwiftUI
 
-/// Draw the shared parsed body with the reader's existing type scale.
+/// Draw the shared parsed body with the reader's existing type scale. Blocks lay out lazily so a
+/// long article opens without measuring every paragraph on the main thread.
 struct MarkdownText: View {
   let document: MarkdownBody
   let size: CGFloat
@@ -12,7 +13,7 @@ struct MarkdownText: View {
   @Environment(Workspace.self) private var workspace
 
   var body: some View {
-    VStack(
+    LazyVStack(
       alignment: .leading,
       spacing: AppleMetrics.rhythmItem * workspace.preferences.readerSpacing.scale
     ) {
@@ -50,7 +51,9 @@ struct MarkdownText: View {
           }
           .id(outline && block.heading > 0 ? "reader-section-\(index)" : "reader-block-\(index)")
           .background {
-            if outline && block.heading > 0 {
+            // Every laid-out block reports, so the outline still knows its section after the
+            // heading above has left the lazy stack.
+            if outline {
               GeometryReader { geometry in
                 Color.clear.preference(
                   key: ReaderHeadingPositions.self,

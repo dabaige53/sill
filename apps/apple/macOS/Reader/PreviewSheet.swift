@@ -91,7 +91,6 @@ struct PreviewSheet: View {
                   size.height - AppleMetrics.space64 - AppleMetrics.space40)
                 : maxHeight,
               mediaBottomRoom: barRoom,
-              mediaOffset: scroll.motion.scrollOffset,
               returnToPlayer: { scroll.scrollView?.documentView?.scroll(.zero) }
             )
             .modifier(DetailReveal())
