@@ -45,7 +45,6 @@ struct ReaderContent: View {
   var mediaWidth: CGFloat?
   var mediaHeight: CGFloat?
   var mediaBottomRoom: CGFloat = 0
-  var mediaOffset: CGFloat = 0
   var returnToPlayer: () -> Void = {}
   @Environment(\.cardIntents) private var intents
   @Environment(\.relatedCards) private var lookup

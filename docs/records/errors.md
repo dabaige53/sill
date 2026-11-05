@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-05 | Mac 卡片详情 | 打开长文卡片卡顿、主线程延迟、458ms、长正文排版、MarkdownText、LazyVStack、目录高亮 | [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md) |
 | 2026-11-03 | Mac 打包 | 线上 DMG 与本地不一致、顶部玻璃不同、性能差、Liquid Glass、LC_BUILD_VERSION、sdk 14.0、Xcode 26.6、Xcode 27.2 | [Mac 线上包与本地包不一致](2026-11-03-macos-build-parity/diagnosis.md) |
 | 2026-11-03 | Mac 卡片封面 | SVG 封面不显示、只有底色、AsyncImage、LoadingError、CGImageSource、image/svg+xml | [Mac 卡片 SVG 封面不显示](2026-11-03-macos-svg-cover/diagnosis.md) |
 | 2026-11-03 | 发布检查 | missing_standard_top_bar_backdrop_filter、edge-material、AddLines、capsule fades、detail-summary | [1.2.32 发布检查失败](2026-11-03-release-1.2.32/diagnosis.md) |

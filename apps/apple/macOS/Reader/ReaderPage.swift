@@ -27,9 +27,7 @@ struct ReaderPage<Content: View>: View {
   private var showsOutline: Bool { full && roomy && !headings.isEmpty }
   private var headings: [(index: Int, block: MarkdownBody.Block)] {
     card.kind == .article
-      ? card.markdown.blocks.enumerated().compactMap {
-        $0.element.heading > 0 ? (index: $0.offset, block: $0.element) : nil
-      } : []
+      ? card.markdown.headings.map { (index: $0, block: card.markdown.blocks[$0]) } : []
   }
 
   var body: some View {
@@ -42,9 +40,10 @@ struct ReaderPage<Content: View>: View {
           content
             .frame(maxWidth: column)
             .onPreferenceChange(ReaderHeadingPositions.self) { positions in
-              let passed = headings.last {
-                (positions[$0.index] ?? .infinity) <= AppleMetrics.space40
-              }
+              // The lazy body drops blocks far above the viewport, so pick the section that holds
+              // the lowest block already past the top instead of the lowest heading still on hand.
+              let top = positions.filter { $0.value <= AppleMetrics.space40 }.keys.max()
+              let passed = top.flatMap { top in headings.last { $0.index <= top } }
               let view = scroll.scrollView
               let documentHeight = view?.documentView?.bounds.height ?? 0
               let viewport = view?.contentView.bounds ?? .zero
@@ -116,7 +115,9 @@ struct ReaderPage<Content: View>: View {
   }
 
   private func outline(proxy: ScrollViewProxy) -> some View {
-    ScrollView {
+    let headings = headings
+    let topLevel = headings.map { $0.block.heading }.min() ?? 1
+    return ScrollView {
       VStack(alignment: .leading, spacing: 0) {
         HStack(spacing: AppleMetrics.space8) {
           Icon("list", size: AppleMetrics.space16)
@@ -138,12 +139,8 @@ struct ReaderPage<Content: View>: View {
                 .padding(
                   .leading,
                   AppleMetrics.space12
-                    + CGFloat(
-                      min(
-                        2,
-                        max(
-                          0, heading.block.heading - (headings.map { $0.block.heading }.min() ?? 1))
-                      )) * AppleMetrics.space12
+                    + CGFloat(min(2, max(0, heading.block.heading - topLevel)))
+                    * AppleMetrics.space12
                 )
                 .padding(.vertical, AppleMetrics.space4)
                 .frame(maxWidth: .infinity, minHeight: AppleMetrics.space32, alignment: .leading)

@@ -25,10 +25,13 @@ public struct MarkdownBody: Equatable, Sendable {
   }
 
   public let blocks: [Block]
+  /// Block indices of the headings, found once so an outline never rescans the body.
+  public let headings: [Int]
   public var plainText: String { blocks.map(\.text).joined(separator: "\n") }
 
   public init(_ source: String) {
     blocks = Self.blocks(in: Document(parsing: source, options: .disableSmartOpts))
+    headings = blocks.indices.filter { blocks[$0].heading > 0 }
   }
 
   public static func safeURL(_ destination: String?) -> URL? {

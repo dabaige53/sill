@@ -43,4 +43,11 @@ struct MarkdownBodyTests {
     #expect(body.blocks[1].depth == 2)
     #expect(body.blocks[1].runs.last?.code == true)
   }
+
+  @Test func headingIndicesPointAtHeadingBlocks() {
+    let body = MarkdownBody("# One\n\nText\n\n- Item\n\n### Two\n\nMore")
+    #expect(body.headings == [0, 3])
+    #expect(body.headings.map { body.blocks[$0].text } == ["One", "Two"])
+    #expect(MarkdownBody("Plain").headings.isEmpty)
+  }
 }
