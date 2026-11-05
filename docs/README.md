@@ -62,6 +62,7 @@
 - [错误索引](records/errors.md)：按报错、症状和模块查找定位与解决记录。
 - [事件记录索引](records/README.md)：验收、发布、研究与交接材料，只说明当时的事实。
 - [产品变更日志](records/CHANGELOG.md)：按版本汇总产品与维护变化。
+- [1.2.36 发布](records/2026-11-05-release-1.2.36/README.md)：Mac 长文懒排版与滚动不再整页重算，1.2.35 编译失败未发布，以及部署与回退标识。
 - [1.2.34 发布](records/2026-11-04-release-1.2.34/README.md)：邀请制账号流程、未登录跳转登录、Mac 关窗不退出，以及部署与回退标识。
 - [Resend 发信与 Supabase SMTP 配置](records/2026-11-04-email-setup/README.md)：域名验证、SMTP、回调地址及 Worker 配置结果。
 - [1.2.19 手机抽屉绘制修复与发布](records/2026-10-30-phone-drawer-release/README.md)：录屏中的卡片缺失、背景交接修复，以及发布检查与回退基准。
