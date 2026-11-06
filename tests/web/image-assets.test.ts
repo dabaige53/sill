@@ -3,6 +3,7 @@ import test from "node:test";
 import { assetURL } from "../../apps/web/data/assets.ts";
 import { Card } from "../../contracts/card.ts";
 
+// @wu-test type=boundary | scope=Image assets | protects=Accept supported bundled and HTTPS images
 test("images accept HTTPS and retain bundled artwork", () => {
 	for (const image of [
 		"architecture",
@@ -17,6 +18,7 @@ test("images accept HTTPS and retain bundled artwork", () => {
 		);
 	}
 });
+// @wu-test type=boundary | scope=Image assets | protects=Reject insecure image URLs and embedded credentials
 test("images reject non HTTPS and credentials", () => {
 	for (const image of [
 		"http://example.org/a.jpg",

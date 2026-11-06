@@ -12,6 +12,7 @@ const card = {
 	state: {},
 };
 
+// @wu-test type=behavior | scope=cloudViewCard save acknowledgments | protects=Avoid a visible state change caused only by save metadata
 test("save acknowledgments preserve the visible state for task, bookmark, later and read", () => {
 	for (const item of [
 		{ taskDone: ["a"] },
@@ -28,6 +29,7 @@ test("save acknowledgments preserve the visible state for task, bookmark, later 
 		);
 	}
 });
+// @wu-test type=behavior | scope=cloudViewCard completion state | protects=Treat equivalent completion states as the same visible card
 test("reminder completion mirrors and task ordering do not redraw a saved detail", () => {
 	const reminder = { ...card, type: "reminder" };
 	assert.deepEqual(
@@ -39,6 +41,7 @@ test("reminder completion mirrors and task ordering do not redraw a saved detail
 		cloudViewCard(card, { taskDone: ["a", "b"], done: true }),
 	);
 });
+// @wu-test type=behavior | scope=cloudViewCard changes | protects=Detect visible remote content, deletion and personal state changes
 test("remote content, deletion and personal state changes still update the view", () => {
 	const before = cloudViewCard(card, {});
 	for (const changed of [

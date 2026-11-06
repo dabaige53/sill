@@ -40,6 +40,7 @@ export function mount(host) {
 	globalName: "OutlineTest",
 }).outputFiles[0].text;
 
+// @wu-test type=behavior | scope=reader outline navigation | protects=Navigate to the selected heading without opening an external link
 test("mouse and keyboard outline navigation finish before the handler returns", () => {
 	const dom = new JSDOM('<div id="root"></div>', {
 		url: "https://sill.test/#read/example",

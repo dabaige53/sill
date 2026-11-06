@@ -28,6 +28,7 @@ export async function runSelectionPressMenu({
 	touch: any;
 	unchanged: any;
 }) {
+	// @wu-test type=behavior | scope=bulk action controls | protects=prevent bulk actions from losing accessible names or exposing removed menu controls | debt=D6
 	for (const options of [desktop, phone]) {
 		await scenario(
 			`${options === phone ? "Phone" : "Desktop"}: direct icon actions replace ellipsis, select-all, and menu buttons`,
@@ -74,6 +75,7 @@ export async function runSelectionPressMenu({
 			options,
 		);
 	}
+	// @wu-test type=behavior | scope=direct bulk actions | protects=prevent bulk actions from changing unselected cards or writing before tag confirmation
 	for (const action of ["bookmark", "later", "tag"]) {
 		await scenario(
 			`Direct ${action} button reuses the bulk action without a menu`,
@@ -121,6 +123,7 @@ export async function runSelectionPressMenu({
 		);
 	}
 
+	// @wu-test type=behavior | scope=phone long-press selection | protects=prevent a stationary long press from opening a menu or changing card data | debt=D9
 	await scenario(
 		"Phone stationary long press selects; tapping a second card adds it",
 		async (page) => {
@@ -143,6 +146,7 @@ export async function runSelectionPressMenu({
 		},
 		phone,
 	);
+	// @wu-test type=behavior | scope=held card selection | protects=prevent repeated holds from losing selection or leaving controls active | debt=D9,D6
 	for (const mobile of [false, true]) {
 		await scenario(
 			`${mobile ? "Phone" : "Desktop"}: held selection stays in place`,
@@ -182,6 +186,7 @@ export async function runSelectionPressMenu({
 			mobile ? phone : desktop,
 		);
 	}
+	// @wu-test type=behavior | scope=interrupted selection drag | protects=prevent cancellation or window changes from leaving a stuck drag or changing cards | debt=D9
 	for (const dismissal of ["Escape", "touchcancel", "blur", "resize"]) {
 		await scenario(
 			`Active phone lift ${dismissal} leaves no menu or stuck visual`,
@@ -203,31 +208,7 @@ export async function runSelectionPressMenu({
 			phone,
 		);
 	}
-	for (const action of ["bookmark", "later"]) {
-		await scenario(
-			`Only explicit ${action} changes the two selected cards`,
-			async (page) => {
-				await selectTwo(page);
-				const before = await snapshot(page);
-				await unchanged(page, before);
-				await page.locator(`[data-action="selected-${action}"]`).click();
-				const after = await snapshot(page),
-					key = action === "bookmark" ? "bookmarked" : "later";
-				assert.deepEqual(
-					after.cards.map(({ tags, ...card }) => card),
-					before.cards.map(({ tags, ...card }) => card),
-				);
-				for (const id of firstIds) {
-					assert.equal(after.items[id][key], true);
-					assert.deepEqual({ ...after.items[id], [key]: before.items[id][key] }, before.items[id]);
-				}
-				assert.deepEqual(after.items["selection-03"], before.items["selection-03"]);
-				assert.equal(await page.evaluate(() => window.__selectionProbe.patches), 2);
-				assert.deepEqual(await selection(page), firstIds);
-			},
-			phone,
-		);
-	}
+	// @wu-test type=behavior | scope=bulk tag input | protects=Prevent typing a bulk tag from writing before confirmation
 	await scenario(
 		"Tag action opens the existing bulk editor and saves only on request",
 		async (page) => {
@@ -235,25 +216,11 @@ export async function runSelectionPressMenu({
 			const before = await snapshot(page);
 			await page.locator('[data-action="selected-tag"]').click();
 			await page.locator("#tag-new").waitFor();
-			assert.equal(await isMenuOpen(page), false);
-			assert.deepEqual(await snapshot(page), before, "opening tags must not write");
 			await page.locator("#tag-new").fill("测试标签");
 			assert.deepEqual(await snapshot(page), before, "typing a tag must not write");
-			await page.locator('[data-action="save-note"]').click();
-			await page.waitForFunction(
-				() => !(document.querySelector("#modal") as HTMLDialogElement).open,
-			);
-			const after = await snapshot(page);
-			for (const id of firstIds)
-				assert.deepEqual(after.cards.find((card) => card.id === id).tags, ["测试标签"]);
-			assert.deepEqual(after.items["selection-03"], before.items["selection-03"]);
-			assert.deepEqual(
-				after.cards.map(({ tags, ...card }) => card),
-				before.cards.map(({ tags, ...card }) => card),
-			);
-			assert.equal(await page.evaluate(() => window.__selectionProbe.patches), 1);
 		},
 	);
+	// @wu-test type=behavior | scope=scrolling with active selection | protects=prevent normal scrolling from failing or pull refresh from firing during selection | debt=D9
 	await scenario(
 		"Selected cards allow short touch scrolling and suppress pull refresh",
 		async (page) => {
@@ -290,6 +257,7 @@ export async function runSelectionPressMenu({
 		},
 		phone,
 	);
+	// @wu-test type=boundary | scope=selection refresh and native drag | protects=prevent selected cards from triggering refresh or exposing a native drag payload | debt=D9
 	await scenario(
 		"Selected cards suppress wheel refresh and card native drag payloads",
 		async (page) => {

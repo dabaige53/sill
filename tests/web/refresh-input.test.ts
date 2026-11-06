@@ -7,6 +7,7 @@ import {
 	refreshWheel,
 } from "../../apps/web/interactions/refresh-input.ts";
 
+// @wu-test type=regression | scope=refreshBand and refreshUnband | protects=Prevent a resistance jump at the former 80px seam
 test("refresh readiness measures visible travel and the curve has no resistance seam", () => {
 	const distance = refreshUnband(refreshConfig.threshold);
 	assert.ok(distance > 253 && distance < 255);
@@ -20,6 +21,7 @@ test("refresh readiness measures visible travel and the curve has no resistance 
 	assert.equal(refreshBand(refreshUnband(caught)), caught, "regrab starts at the drawn position");
 });
 
+// @wu-test type=behavior | scope=refreshWheel | protects=Keep accepted pull distance independent of wheel event batching | debt=D9
 test("one wheel event only establishes intent and accepted distance is independent of event caps", () => {
 	const single = refreshWheel();
 	assert.deepEqual(single.feed(240, true), { phase: "start", distance: 0 });
@@ -35,6 +37,7 @@ test("one wheel event only establishes intent and accepted distance is independe
 	}
 });
 
+// @wu-test type=behavior | scope=refreshWheel release | protects=Release only after sustained wheel decay and ignore the remaining tail | debt=D9
 test("a single smaller wheel event cannot release, renewed effort resets decay, and tail cannot rearm", () => {
 	const wheel = refreshWheel();
 	wheel.feed(100, true);
@@ -47,6 +50,7 @@ test("a single smaller wheel event cannot release, renewed effort resets decay, 
 	assert.equal(wheel.feed(10, true).phase, "ignore");
 });
 
+// @wu-test type=behavior | scope=refreshWheel intent | protects=Avoid starting refresh from scrolling inertia at the top | debt=D9
 test("ordinary scrolling coasting into the top cannot start refresh", () => {
 	const wheel = refreshWheel();
 	wheel.feed(100, false);

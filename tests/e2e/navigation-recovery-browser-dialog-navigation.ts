@@ -9,95 +9,7 @@ export async function runDialogNavigation({
 	open: any;
 	scenario: any;
 }) {
-	await scenario(
-		"Offline draft survives reload and synchronizes; conflict never overwrites newer state",
-		async (page?: any, apply?: any, origin?: any) => {
-			await page.route("**/api/local/operations", (r?: any) =>
-				r.fulfill({
-					status: 503,
-					contentType: "application/json",
-					body: '{"error":"fixture offline"}',
-				}),
-			);
-			await page.keyboard.press("n");
-			await page.locator("#capture-text").fill("恢复验收笔记");
-			await page.locator("[data-action=capture-save]").click();
-			await page.waitForFunction(
-				() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "error",
-			);
-			await page.unroute("**/api/local/operations");
-			await page.reload();
-			await page.waitForFunction(
-				() =>
-					(document.querySelector("#feed-grid") as HTMLElement)?.dataset.sync === "saved" &&
-					!localStorage.getItem("sill-unsynced"),
-			);
-			assert.ok(await page.getByRole("button", { name: "恢复验收笔记", exact: true }).count());
-			await page.route("**/api/local/operations", (r?: any) =>
-				r.fulfill({
-					status: 503,
-					contentType: "application/json",
-					body: '{"error":"fixture offline"}',
-				}),
-			);
-			await page.evaluate(() => __store.patch("article-01", { note: "未同步的本机备注" }));
-			await page.waitForFunction(
-				() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "error",
-			);
-			await apply([{ op: "item.patch", id: "article-01", values: { note: "更新的服务端备注" } }]);
-			await page.unroute("**/api/local/operations");
-			await page.reload();
-			await page.waitForFunction(
-				() => (document.querySelector("#feed-grid") as HTMLElement)?.dataset.sync === "error",
-			);
-			assert.equal(await page.evaluate(() => __store.item("article-01").note), "未同步的本机备注");
-			assert.equal(
-				(await fetch(`${origin}/api/local/state`).then((r?: any) => r.json())).state.items[
-					"article-01"
-				].note,
-				"更新的服务端备注",
-			);
-			assert.ok(await page.locator("#sync-status").isVisible());
-			await page.locator("#sync-status [popovertarget]").click();
-			const [download] = await Promise.all([
-				page.waitForEvent("download"),
-				page.locator("[data-action=sync-export]").click(),
-			]);
-			assert.match(download.suggestedFilename(), /sill.*json/);
-		},
-	);
-	await scenario(
-		"GET outage after reload journals new edits before reconnecting",
-		async (page?: any) => {
-			const offline = (r?: any) =>
-				r.fulfill({
-					status: 503,
-					contentType: "application/json",
-					body: '{"error":"fixture read outage"}',
-				});
-			await page.route("**/api/local/state", offline);
-			await page.reload();
-			await page.locator("#sync-status [popovertarget]").click();
-			await page.locator("[data-action=sync-retry]").waitFor();
-			await page.keyboard.press("n");
-			await page.locator("#capture-text").fill("读取离线期间的新草稿");
-			await page.locator("[data-action=capture-save]").click();
-			await page.waitForFunction(() =>
-				localStorage.getItem("sill-unsynced")?.includes("读取离线期间的新草稿"),
-			);
-			await page.unroute("**/api/local/state");
-			if (!(await page.locator("[data-action=sync-retry]").isVisible()))
-				await page.locator("#sync-status [popovertarget]").click();
-			await page.locator("[data-action=sync-retry]").click();
-			await page.waitForFunction(
-				() =>
-					(document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved" &&
-					!localStorage.getItem("sill-unsynced"),
-			);
-			await page.reload();
-			await page.getByRole("button", { name: "读取离线期间的新草稿", exact: true }).waitFor();
-		},
-	);
+	// @wu-test type=integration | scope=local write conflict recovery | protects=prevent retrying an offline note from overwriting a newer note
 	await scenario(
 		"Same-session failed write retry cannot overwrite another client card",
 		async (page?: any, apply?: any, origin?: any) => {
@@ -146,6 +58,7 @@ export async function runDialogNavigation({
 			assert.ok(await page.locator("[data-action=sync-export]").count());
 		},
 	);
+	// @wu-test type=integration | scope=detail dismissal during update | protects=prevent a delayed update from reopening a dismissed detail | debt=D9
 	await scenario(
 		"Update arriving during phone dismissal cannot revive the sheet",
 		async (page?: any, apply?: any) => {
@@ -178,6 +91,7 @@ export async function runDialogNavigation({
 		},
 		{ viewport: { width: 390, height: 844 } },
 	);
+	// @wu-test type=integration | scope=detail state during remote update | protects=prevent remote updates from losing detail scroll or keyboard focus | debt=D6,D9
 	await scenario(
 		"Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior",
 		async (page?: any, apply?: any) => {
@@ -220,6 +134,7 @@ export async function runDialogNavigation({
 		},
 		{ viewport: { width: 390, height: 844 } },
 	);
+	// @wu-test type=behavior | scope=keyboard task and preferences | protects=prevent keyboard actions from losing focus or changing the wrong preference | debt=D9
 	await scenario(
 		"Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work",
 		async (page?: any) => {

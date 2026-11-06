@@ -18,6 +18,7 @@ import Testing
     await until { workspace.cards.contains { $0.id == id } }
   }
 
+  // @wu-test type=integration | scope=Feed new cards | protects=Hold externally written cards while the reader is away from the top
   @Test func cardsWrittenElsewhereWaitWhileAwayFromTheTop() async {
     let (workspace, backend) = await ready(["a", "b"])
     let feed = Feed(workspace: workspace)
@@ -32,6 +33,7 @@ import Testing
     #expect(feed.entries.first == .card("n"))
   }
 
+  // @wu-test type=integration | scope=Feed new cards | protects=Show externally written cards immediately at the top
   @Test func cardsWrittenElsewhereGoStraightToTheTopWhenAtTheTop() async {
     let (workspace, backend) = await ready(["a", "b"])
     let feed = Feed(workspace: workspace)

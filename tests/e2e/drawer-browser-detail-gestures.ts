@@ -9,6 +9,7 @@ export async function runDetailGestures({
 	scenario: any;
 	touch: any;
 }) {
+	// @wu-test type=behavior | scope=phone drawer drag | protects=prevent the drawer from resizing or failing to follow the finger | debt=D9
 	for (const handle of [false, true]) {
 		await scenario(
 			`Mail closes by dragging ${handle ? "the handle" : "the text"}`,
@@ -32,6 +33,7 @@ export async function runDetailGestures({
 			phone,
 		);
 	}
+	// @wu-test type=behavior | scope=phone drawer scrolling | protects=prevent reading scroll from dismissing the drawer | debt=D9
 	await scenario(
 		"Wheel reading stays in the drawer until explicit close",
 		async (page) => {
@@ -46,6 +48,7 @@ export async function runDetailGestures({
 		},
 		phone,
 	);
+	// @wu-test type=behavior | scope=PWA drawer interruption | protects=prevent opening interruption from leaving the drawer open | debt=D6
 	await scenario(
 		"PWA has no maximize button and opens and closes its preview",
 		async (page) => {

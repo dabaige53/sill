@@ -19,6 +19,7 @@ const claims: Record<string, any> = {
 const factory = (c?: any) => () => ({
 	auth: { getClaims: async () => ({ data: { claims: c }, error: null }) },
 });
+// @wu-test type=boundary | scope=server/cloud Supabase authentication | protects=Forward the caller token without persisting a server session
 test("auth verifies with SDK, forwards user JWT, never persists a server session", async () => {
 	let args: any;
 	const result = await authenticateSupabase("Bearer a.b.c", config, (...a: any[]) => {
@@ -30,6 +31,7 @@ test("auth verifies with SDK, forwards user JWT, never persists a server session
 	assert.equal(args[2].auth.persistSession, false);
 	assert.equal(args[2].auth.autoRefreshToken, false);
 });
+// @wu-test type=boundary | scope=server/cloud Supabase authentication | protects=Reject invalid issuer, audience, role and identity claims
 test("auth rejects wrong issuer/audience/expiry/role/anonymous and malformed identities", async () => {
 	for (const patch of [
 		{ iss: "https://evil.invalid" },
@@ -51,6 +53,7 @@ test("auth rejects wrong issuer/audience/expiry/role/anonymous and malformed ide
 		authenticateSupabase("Bearer a.b.c", { ...config, publishableKey: "sb_secret_test" }),
 	);
 });
+// @wu-test type=boundary | scope=server/cloud Supabase authentication | protects=Keep OAuth client identity distinct from user-controlled metadata
 test("OAuth identity is distinct; user metadata grants are not trusted", async () => {
 	const r = await authenticateSupabase(
 		"Bearer a.b.c",
@@ -59,6 +62,7 @@ test("OAuth identity is distinct; user metadata grants are not trusted", async (
 	);
 	assert.deepEqual(r.principal, { userId: owner, clientId: "agent" });
 });
+// @wu-test type=boundary | scope=server/cloud Supabase authentication errors | protects=Prevent upstream error details from reaching authentication responses
 test("auth error output excludes upstream details and credentials", async () => {
 	await assert.rejects(
 		authenticateSupabase("Bearer a.b.c", config, () => ({
@@ -71,6 +75,7 @@ test("auth error output excludes upstream details and credentials", async () => 
 		{ status: 503, message: "unavailable" },
 	);
 });
+// @wu-test type=integration | scope=database storage foundation | protects=Enforce database row isolation, tenant references and tombstone constraints
 test("SQL foundation executes, isolates roles, enforces tenant references and tombstone scrubbing", async () => {
 	const db = new PGlite();
 	try {

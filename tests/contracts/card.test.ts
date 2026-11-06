@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+
 import test from "node:test";
 import { Card } from "../../contracts/card.ts";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
-import { LocalRepository } from "../../server/local/repository.ts";
 
 for (const sample of fixtures.valid)
+	// @wu-test type=behavior | scope=contracts/Card | protects=Preserve all supported card fields when parsing valid shared fixtures
 	test(`accept and preserve ${sample.name}`, () =>
 		assert.deepEqual(Card.parse(sample.card), sample.card));
 for (const sample of fixtures.invalid)
+	// @wu-test type=boundary | scope=contracts/Card | protects=Reject invalid card fields and unsafe values from shared fixtures
 	test(`reject ${sample.name}`, () => assert.equal(Card.safeParse(sample.card).success, false));
 
+// @wu-test type=boundary | scope=contracts/cloud write schemas | protects=Reject second-based schedule writes and reminders without due while preserving unchanged legacy values
 test("writes reject second-based schedule times and new reminders without due", async () => {
 	const { create, update, workspaceBatch } = await import("../../contracts/cloud.ts");
 	const at = Date.parse("2026-10-19T10:00:00+08:00");

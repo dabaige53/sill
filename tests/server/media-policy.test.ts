@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { mediaResourceDomains, restrictMediaScripts } from "../../server/cloud/media-policy.ts";
 
+// @wu-test type=boundary | scope=server/cloud media-policy | protects=Allow authorized media origins without granting script execution or exposing unsafe origins
 test("MCP media policy uses authorized card origins without allowing those origins to run scripts", () => {
 	const origins = mediaResourceDomains([
 		{

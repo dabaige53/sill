@@ -14,6 +14,7 @@ export async function runReadingSelection({
 	scenario: any;
 	state: any;
 }) {
+	// @wu-test type=behavior | scope=phone search | protects=prevent the keyboard from obscuring search results or blocking return navigation
 	await scenario(
 		"Phone search starts at the top, closes back to its home and leaves by Escape",
 		async (page?: any) => {
@@ -77,6 +78,7 @@ export async function runReadingSelection({
 		},
 		{ viewport: { width: 390, height: 800 } },
 	);
+	// @wu-test type=behavior | scope=desktop search | protects=prevent search from changing page hierarchy or clearing the wrong search state
 	await scenario(
 		"Desktop search lives in the top bar and filters the feed in place",
 		async (page?: any) => {
@@ -123,6 +125,7 @@ export async function runReadingSelection({
 		},
 		{ viewport: { width: 1440, height: 800 } },
 	);
+	// @wu-test type=behavior | scope=search and home filters | protects=prevent archived cards from disappearing from search or search filters from changing the home feed
 	await scenario(
 		"Search keeps home unchanged and reaches archived cards with shared card components",
 		async (page?: any) => {
@@ -158,6 +161,7 @@ export async function runReadingSelection({
 			assert.equal(await page.locator("#feed-grid .feed-card").count(), homeCount);
 		},
 	);
+	// @wu-test type=behavior | scope=refresh and reading position | protects=prevent new content from moving the reading position or bookmarks from being lost after reload
 	await scenario(
 		"Refresh keeps the reading position, new content waits off the top and state survives reload",
 		async (page?: any) => {
@@ -200,6 +204,7 @@ export async function runReadingSelection({
 			assert.equal(await page.locator('[data-card="fresh-reminder"]').count(), 1);
 		},
 	);
+	// @wu-test type=behavior | scope=read state and archive | protects=prevent read cards from being archived unexpectedly or stacked cards from failing to expand
 	await scenario(
 		"Read state is color only, stacks open in place and only explicit archive moves cards",
 		async (page?: any) => {

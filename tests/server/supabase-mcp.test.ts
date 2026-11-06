@@ -7,6 +7,7 @@ import { A, B, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=integration | scope=authenticated MCP HTTP and database | protects=Enforce MCP authorization, preserve card operations and reject cross-owner or conflicting writes
 test("official MCP client discovers/calls ten contracts over authenticated stateless HTTP", async () => {
 	const f = await cloudFixture();
 	let client: any;

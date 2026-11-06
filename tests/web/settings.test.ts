@@ -8,6 +8,7 @@ import { BackupSettings } from "../../apps/web/interactions/backup-settings.tsx"
 import links from "../../design-system/product-links.json" with { type: "json" };
 import product from "../../package.json" with { type: "json" };
 
+// @wu-test type=behavior | scope=about settings | protects=Show the current product version and usable project links
 test("about settings displays the package version and shared project links", () => {
 	const dom = new JSDOM(renderToStaticMarkup(createElement(AboutSettings)));
 	try {
@@ -28,6 +29,7 @@ test("about settings displays the package version and shared project links", () 
 	}
 });
 
+// @wu-test type=boundary | scope=backup settings host mode | protects=Keep credential setup unavailable in the embedded host
 test("backup settings keeps setup separate from the overview without exposing host credentials", () => {
 	for (const host of [false, true]) {
 		const dom = new JSDOM(

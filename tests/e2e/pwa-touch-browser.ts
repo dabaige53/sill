@@ -111,6 +111,7 @@ try {
 					);
 				});
 				await screenshot("home");
+				// @wu-test type=behavior | scope=PWA input and viewport | protects=prevent keyboard resizing or touch interaction from obscuring controls | debt=D6
 				const platform = await page.evaluate(() => ({
 					viewport: document.querySelector<HTMLMetaElement>('meta[name="viewport"]').content,
 					textAdjust: getComputedStyle(document.documentElement).webkitTextSizeAdjust,
@@ -119,6 +120,7 @@ try {
 				assert.ok(platform.viewport.includes("interactive-widget=resizes-content"));
 				assert.equal(platform.textAdjust, "100%");
 				assert.equal(platform.touch, "manipulation");
+				// @wu-test type=behavior | scope=PWA browser theme color | protects=prevent browser chrome from retaining the wrong theme color | debt=D7
 				for (const theme of ["dark", "light", "system"]) {
 					const matches = await page.evaluate((theme) => {
 						window.__app.setPref("theme", theme);
@@ -131,6 +133,7 @@ try {
 					}, theme);
 					assert.ok(matches, "browser chrome follows the selected app theme");
 				}
+				// @wu-test type=behavior | scope=PWA toolbar hints | protects=prevent long press from triggering an action or showing a hint outside the screen | debt=D9,D11
 				await page.evaluate(() => window.__app.openCard("review-event"));
 				await page.waitForTimeout(500);
 				await screenshot("detail");
@@ -186,6 +189,7 @@ try {
 					assert.equal(tip.selection, "none", "long presses cannot select toolbar text");
 				}
 				assert.equal(await actionState(), before, "long press and release perform no card action");
+				// @wu-test type=boundary | scope=PWA preview controls | protects=prevent standalone preview from exposing an unsupported maximize control
 				assert.equal(
 					await page.locator('.sheet-head [data-action="reader"]').count(),
 					0,

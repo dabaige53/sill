@@ -4,6 +4,7 @@ import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=integration | scope=conditional workspace HTTP reads | protects=Prevent conditional reads from bypassing authorization or returning stale state
 test("conditional workspace reads retain authorization and return full state when revisions differ", async () => {
 	const f = await cloudFixture();
 	try {
@@ -33,6 +34,7 @@ test("conditional workspace reads retain authorization and return full state whe
 	}
 });
 
+// @wu-test type=integration | scope=cloud PWA shell caching | protects=Return an empty 304 for unchanged shell content and refresh changed releases
 test("static PWA shell revalidates without downloading unchanged code and changes its tag on release", async () => {
 	const f = await cloudFixture();
 	try {

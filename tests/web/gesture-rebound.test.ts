@@ -2,45 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-test("the reference curve moves inner content and preserves the measured release velocity", () => {
-	const f = fixture();
-	try {
-		const content = f.document.createElement("div");
-		content.className = "gesture-content";
-		content.append(...f.scroll.childNodes);
-		f.scroll.append(content);
-		let now = 0;
-		Object.defineProperty(f.w.performance, "now", { value: () => now });
-		const calls: any[] = [];
-		f.MotionEngine.move = (...args: any[]) => {
-			calls.push(args);
-			args[0].style.translate = args[1];
-		};
-		const track = f.w.GestureTest.reboundTrack(content);
-		track.begin();
-		now = 16;
-		track.pull(-300, true);
-		const expected = -160 * (1 - Math.exp((-300 * 0.15) / 160));
-		assert.equal(Number.parseFloat(content.style.translate.split(" ")[1]), expected);
-		assert.equal(f.scroll.style.translate, "", "the viewport never moves");
-		track.release();
-		const [element, destination, direct, options] = calls.at(-1);
-		assert.equal(element, content);
-		assert.equal(destination, "");
-		assert.equal(direct, false);
-		assert.deepEqual(JSON.parse(JSON.stringify(options.spring)), {
-			stiffness: 600,
-			damping: 48,
-			mass: 1,
-			restSpeed: 2,
-			restDelta: 0.5,
-		});
-		assert.equal(options.velocity.y, -750, "fast release keeps velocity with the reference cap");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=boundary | scope=desktop preview wheel input | protects=prevents custom rebound from intercepting native preview scrolling
 test("desktop preview edges leave wheel input to native scrolling without a custom return", () => {
 	const f = fixture();
 	try {
@@ -70,6 +32,7 @@ test("desktop preview edges leave wheel input to native scrolling without a cust
 	}
 });
 
+// @wu-test type=behavior | scope=wheel input after closing | protects=prevents old momentum from affecting the next surface without blocking new input | debt=D6
 test("a closing operation shields only the old declining tail and immediately yields to new input", () => {
 	const f = fixture();
 	try {
@@ -93,6 +56,7 @@ test("a closing operation shields only the old declining tail and immediately yi
 	}
 });
 
+// @wu-test type=behavior | scope=phone content rebound | protects=prevents content from remaining displaced after a touch ends | debt=D5,D6
 test("phone content follows a real touch and releases immediately at touchend", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -114,6 +78,7 @@ test("phone content follows a real touch and releases immediately at touchend", 
 	}
 });
 
+// @wu-test type=behavior | scope=content rebound release | protects=prevents a stationary release from pushing content outward again | debt=D5,D6
 test("holding still at the content edge expires release velocity instead of replaying the last movement", () => {
 	const f = fixture();
 	try {

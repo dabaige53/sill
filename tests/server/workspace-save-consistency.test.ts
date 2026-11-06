@@ -5,6 +5,7 @@ import { defaultAppearance } from "../../contracts/appearance.ts";
 import { A, B, claims, identity, rpc } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 
+// @wu-test type=integration | scope=CloudSync and database workspace writes | protects=Preserve first-save baselines and retry an unknown result without duplicate writes
 test("first media and layout saves use database field baselines and do not block later writes", async () => {
 	const f = await cloudFixture();
 	try {
@@ -93,6 +94,7 @@ test("first media and layout saves use database field baselines and do not block
 	}
 });
 
+// @wu-test type=integration | scope=database workspace card replacement | protects=Clear omitted fields while preserving personal state and idempotent replay
 test("full replacement clears omitted fields, rejects unknown fields and keeps state and replay", async () => {
 	const f = await cloudFixture();
 	try {
@@ -149,6 +151,7 @@ test("full replacement clears omitted fields, rejects unknown fields and keeps s
 	}
 });
 
+// @wu-test type=integration | scope=database receipt compaction | protects=Prevent expired idempotency keys from being reused and preserve live receipts
 test("expired receipt responses are compacted per owner without releasing keys or changing live replays", async () => {
 	const f = await cloudFixture();
 	try {

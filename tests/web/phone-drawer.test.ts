@@ -95,6 +95,7 @@ function fixture(scroll = 180) {
 	};
 }
 
+// @wu-test type=behavior | scope=Phone card drawer | protects=Preserve card focus and scroll when the drawer rerenders | debt=D6
 test("Vaul opens without snap points and retains card DOM, scroll and focus", async () => {
 	const f = fixture();
 	try {
@@ -117,6 +118,7 @@ test("Vaul opens without snap points and retains card DOM, scroll and focus", as
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer interruption | protects=Prevent a pending close from closing the next card
 test("unmount cancels a pending close so it cannot close the next card", () => {
 	const f = fixture();
 	try {
@@ -138,6 +140,7 @@ test("unmount cancels a pending close so it cannot close the next card", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer closing | protects=Close once after the drawer finishes closing | debt=D6
 test("native close waits for Vaul and old pull gestures do not bind", () => {
 	const f = fixture();
 	try {
@@ -165,6 +168,7 @@ test("native close waits for Vaul and old pull gestures do not bind", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer background | protects=Restore feed position and content after closing the drawer | debt=D6
 test("the scale target includes the page chrome and restores page geometry on unmount", async () => {
 	const f = fixture();
 	try {
@@ -192,6 +196,7 @@ test("the scale target includes the page chrome and restores page geometry on un
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer background | protects=Keep a deep feed position through drawer close
 test("a deep feed retains its native reading offset for the whole drawer close", () => {
 	const f = fixture(2500);
 	try {
@@ -218,6 +223,7 @@ test("a deep feed retains its native reading offset for the whole drawer close",
 	}
 });
 
+// @wu-test type=integration | scope=Nested phone previews | protects=Restore the parent card and its scroll position after closing a child
 test("linked phone previews retain the mounted parent and restore its scroll on close", () => {
 	const f = fixture();
 	try {
@@ -252,6 +258,7 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer gesture | protects=Close a drawer with a downward drag over a scrolled feed | debt=D9,D6
 test("a drawer above a scrolled feed accepts a downward drag and closes", async () => {
 	const f = fixture();
 	try {
@@ -299,6 +306,7 @@ test("a drawer above a scrolled feed accepts a downward drag and closes", async 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer scrolling | protects=Keep the drawer open when scrolling upward at its top
 test("wheel at the top does not move or close the Vaul drawer", () => {
 	const f = fixture();
 	try {
@@ -320,6 +328,7 @@ test("wheel at the top does not move or close the Vaul drawer", () => {
 	}
 });
 
+// @wu-test type=integration | scope=Phone tag editor | protects=Keep the card drawer open while interacting with the tag editor
 test("presses, focus and Escape in the tags layer leave the card drawer open", () => {
 	const f = fixture();
 	try {

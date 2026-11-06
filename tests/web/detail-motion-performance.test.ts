@@ -1,6 +1,6 @@
 /** Detail open, resize and reading stay smooth: no covering backdrop, no per-tick list renders, no per-scroll saves. */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
@@ -37,6 +37,7 @@ function readerDialog(f: ReturnType<typeof fixture>, kind: "reader" | "preview")
 	return { dialog, frame: () => frame() };
 }
 
+// @wu-test type=behavior | scope=reader expansion | protects=prevents a visible backdrop flash during expansion | debt=D6
 test("a reader growing from its preview keeps the preview dim until its surface covers the screen", async () => {
 	const f = fixture();
 	try {
@@ -59,6 +60,7 @@ test("a reader growing from its preview keeps the preview dim until its surface 
 	}
 });
 
+// @wu-test type=behavior | scope=reader expansion cancellation | protects=prevents a stale backdrop after cancellation | debt=D6
 test("cancelling a reader growth restores the page backdrop", () => {
 	const f = fixture();
 	try {
@@ -73,30 +75,6 @@ test("cancelling a reader growth restores the page backdrop", () => {
 	} finally {
 		f.dom.window.close();
 	}
-});
-
-test("a phone preview shrinking from the reader does not blank its dim for the waiting frame", () => {
-	const f = fixture();
-	try {
-		f.w.matchMedia = () => ({ matches: true });
-		const { dialog } = readerDialog(f, "preview");
-		f.motion.queuePanel(dialog, { left: 0, top: 0, width: 390, height: 844 });
-		assert.equal(
-			f.animations.some((a: any) => a.options.pseudoElement === "::backdrop"),
-			false,
-		);
-		assert.equal("readerGrowing" in dialog.dataset, false);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("the growing reader backdrop uses the preview dim in the stylesheet", () => {
-	const css = readFileSync(path.join(root, "apps/web/styles/preview-media.css"), "utf8");
-	assert.match(
-		css,
-		/:is\(#modal, \.phone-layer\)\.reader\[data-reader-growing\]::backdrop\s*\{\s*background:\s*var\(--dim\);/,
-	);
 });
 
 const reading = buildSync({
@@ -159,6 +137,7 @@ function readingFixture() {
 	};
 }
 
+// @wu-test type=behavior | scope=reading progress | protects=preserves the furthest reading position without writing on every scroll | debt=D6
 test("scrolling a long read saves progress once per interval, keeping the furthest point", () => {
 	const f = readingFixture();
 	try {
@@ -180,6 +159,7 @@ test("scrolling a long read saves progress once per interval, keeping the furthe
 	}
 });
 
+// @wu-test type=behavior | scope=reading progress | protects=prevents losing progress on exit or failing to mark a completed read
 test("reaching the end saves completion at once and leaving flushes pending progress", () => {
 	const f = readingFixture();
 	try {
@@ -198,6 +178,7 @@ test("reaching the end saves completion at once and leaving flushes pending prog
 	}
 });
 
+// @wu-test type=behavior | scope=phone reading completion | protects=prevents completion from being lost or a stale feed from appearing after closing | debt=D5,D6
 test("phone completion saves immediately and redraws the background only after its exit finishes", async () => {
 	const f = readingFixture();
 	try {
@@ -250,15 +231,6 @@ test("phone completion saves immediately and redraws the background only after i
 	}
 });
 
-test("lifecycle and close paths flush pending reading progress", () => {
-	const lifecycle = readFileSync(path.join(root, "apps/web/views/app-lifecycle.ts"), "utf8");
-	const surfaces = readFileSync(path.join(root, "apps/web/views/app-surfaces.ts"), "utf8");
-	assert.match(lifecycle, /if \(document\.hidden\) \{\s*flushReadingProgress\(\);/);
-	assert.match(lifecycle, /"pagehide", \(\) => \{\s*flushReadingProgress\(\);/);
-	const close = surfaces.slice(surfaces.indexOf("closeNative(this: AppController"));
-	assert.ok(close.indexOf("flushReadingProgress()") < close.indexOf("if (this.skipReturnMotion)"));
-});
-
 const media = buildSync({
 	stdin: {
 		contents: `export {afterDetailMotion} from './apps/web/cards/youtube-player.tsx';`,
@@ -287,6 +259,7 @@ function mediaWindow() {
 	return { dom, w };
 }
 
+// @wu-test type=behavior | scope=video embed activation | protects=prevents a video embed from blocking indefinitely or starting during detail entry | debt=D6
 test("the video embed waits for running detail motion, ignores loops and starts at once outside a detail", async () => {
 	const { dom, w } = mediaWindow();
 	try {

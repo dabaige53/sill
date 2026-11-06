@@ -10,6 +10,7 @@ import { A, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=behavior | scope=apps/web/cloud-bridge readWhenReady | protects=Recover initial reads without retrying denied requests or writes
 test("initial host reads recover automatically, while denied reads and writes are not retried", async () => {
 	let calls = 0;
 	const delays = [];
@@ -46,6 +47,7 @@ test("initial host reads recover automatically, while denied reads and writes ar
 	}
 });
 
+// @wu-test type=integration | scope=apps/web/cloud-bridge createCloudTransport | protects=Forward edit revision and idempotency key to host tools
 test("cloud view preserves edit revision and idempotency when using host tools", async () => {
 	const calls = [],
 		request = createCloudTransport(async (args?: any) => {
@@ -68,6 +70,7 @@ test("cloud view preserves edit revision and idempotency when using host tools",
 	await assert.rejects(request("/auth/login", { method: "POST" }));
 });
 
+// @wu-test type=integration | scope=server/cloud MCP workspace resources | protects=Prevent revoked clients from opening workspace resources and preserve supported entry points | debt=D11
 test("sidebar and thread entries use scoped cloud resources and disappear on revocation", async () => {
 	const f = await cloudFixture();
 	let client: any;

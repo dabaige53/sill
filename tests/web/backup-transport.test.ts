@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createCloudTransport } from "../../apps/web/cloud-bridge.ts";
 
+// @wu-test type=boundary | scope=createCloudTransport backup routes | protects=Pass the expected account and restore confirmation to host tools while rejecting embedded credential setup
 test("embedded backup actions retain account and confirmation while excluding credential setup", async () => {
 	const calls: any[] = [];
 	const request = createCloudTransport(async (call) => {

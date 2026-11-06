@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [测试代码清剿](2026-11-06-test-purge/README.md)
 - [Mac 详情放大缩小卡顿与关闭后白框](2026-11-05-macos-reader-resize/README.md)
 - [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md)
 - [1.2.34 发布](2026-11-04-release-1.2.34/README.md)

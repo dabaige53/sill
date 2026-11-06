@@ -64,6 +64,7 @@ try {
 			);
 			await page.goto(origin);
 			await page.waitForFunction(() => window.__app?.layout.frame === 0);
+			// @wu-test type=behavior | scope=home layout | protects=prevent header elements from becoming misaligned with card columns
 			const homeLines = await page.locator("#home-top").evaluate((head) => {
 				const first = document.querySelector("#feed-grid .feed-item").getBoundingClientRect();
 				const mark = head.querySelector(".home-mark").getBoundingClientRect();
@@ -82,6 +83,7 @@ try {
 			assert.ok(Math.abs(homeLines.left - homeLines.cardLeft) < 1);
 			if (width > 650)
 				assert.ok(Math.abs(homeLines.right - homeLines.gridRight) < 1, JSON.stringify(homeLines));
+			// @wu-test type=behavior | scope=legacy action settings | protects=prevent legacy settings from hiding current card actions or changing card content
 			await page.locator("#account").click();
 			await page.locator('.settings-main [data-action="pref-toggle"]').first().waitFor();
 			assert.equal(await page.locator('[data-action="action-toggle"]').count(), 0);
@@ -107,6 +109,7 @@ try {
 				["bookmark", "edit", "later", "external"],
 			);
 			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);
+			// @wu-test type=behavior | scope=preview and reader | protects=prevent incorrect note content, body order, or platform action controls | debt=D6
 			const blocks = async (selector: string) =>
 				page.locator(selector).evaluate((body) =>
 					Array.from(body.children)
@@ -156,6 +159,7 @@ try {
 					animations: "disabled",
 				});
 			} else assert.equal(await page.locator('[data-action="reader"]').count(), 0);
+			// @wu-test type=integration | scope=settings browser scenarios | protects=prevent page errors or unexpected external requests from being ignored
 			assert.deepEqual(errors, []);
 			assert.deepEqual(external, []);
 			results.push({

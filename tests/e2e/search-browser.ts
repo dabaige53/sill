@@ -69,16 +69,9 @@ cards.push(
 		time: Date.now() - 10800000,
 	},
 );
-const phone = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true };
+
 const results: { name: string; status: string; error?: string }[] = [];
 let browser: any;
-
-async function touch(session: any, type: string, x = 200, y = 300) {
-	await session.send("Input.dispatchTouchEvent", {
-		type,
-		touchPoints: type === "touchCancel" || type === "touchEnd" ? [] : [{ x, y, id: 1 }],
-	});
-}
 
 try {
 	fs.mkdirSync(artifacts, { recursive: true });
@@ -92,6 +85,7 @@ try {
 				? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 				: [],
 	});
+	// @wu-test type=integration | scope=search scenario runner | protects=prevent page errors or unexpected external requests from passing silently
 	async function scenario(
 		name: string,
 		run: (page: any, context: any) => Promise<void>,
@@ -146,6 +140,7 @@ try {
 		}
 	}
 
+	// @wu-test type=behavior | scope=search navigation and scroll | protects=prevent search, detail navigation or browser history from losing query and scroll position | debt=D9
 	for (const width of [390, 1280]) {
 		await scenario(
 			`search and home remain independent at ${width}px`,

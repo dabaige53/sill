@@ -4,6 +4,7 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { A, B, claims, identity, setupBoundary } from "./helpers/boundary-fixture.ts";
 
+// @wu-test type=integration | scope=database backup operations | protects=Prevent cross-owner access, stale restores, mutable captures and duplicate restores
 test("external backup: owner boundary, immutable capture, atomic replacement, revision and durable receipt", async () => {
 	const db = new PGlite();
 	try {

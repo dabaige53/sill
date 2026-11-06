@@ -81,6 +81,7 @@ private actor AccountStub: CloudAccountService {
 }
 
 @MainActor @Suite struct AccountTests {
+  // @wu-test type=boundary | scope=CloudLogin email validation | protects=Reject malformed email before login
   @Test func loginValidatesEmailBeforeSubmitting() {
     #expect(CloudLogin.validEmail("user@example.com"))
     #expect(CloudLogin.validEmail("  a+b@example.com  "))
@@ -97,6 +98,7 @@ private actor AccountStub: CloudAccountService {
     Issue.record("The authenticated snapshot was not applied")
   }
 
+  // @wu-test type=integration | scope=Account session restoration | protects=Restore the signed-in workspace after restart | debt=D9,D6
   @Test func restoresSavedSessionAndAttachesBackend() async throws {
     let service = AccountStub()
     await service.configure(restored: true)
@@ -111,6 +113,7 @@ private actor AccountStub: CloudAccountService {
     #expect(!account.busy)
   }
 
+  // @wu-test type=integration | scope=Account session restoration | protects=Keep scheduled reminders after a temporary identity lookup failure | debt=D6
   @Test func transientSessionFailurePreservesNotificationsUntilIdentityIsKnown() async {
     for failure in [
       CloudWorkspaceError.service("unavailable", 503), .unauthenticated, .service("forbidden", 403),
@@ -126,6 +129,7 @@ private actor AccountStub: CloudAccountService {
     }
   }
 
+  // @wu-test type=integration | scope=Account switching | protects=Prevent previous account content and activity from reaching the next account | debt=D9,D6
   @Test func accountSwitchClearsWorkspaceActivityAndAllSurfaces() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
@@ -158,6 +162,7 @@ private actor AccountStub: CloudAccountService {
     #expect(!oldReader.sessionActive && !workspace.recorder.hasRecords)
   }
 
+  // @wu-test type=boundary | scope=Account login callback | protects=Prevent a second login from replacing the signed-in account | debt=D9
   @Test func signedInAccountRejectsAnotherLoginCallback() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
@@ -174,6 +179,7 @@ private actor AccountStub: CloudAccountService {
     #expect(workspace.notice?.text == Copy.text("auth.logoutBeforeLogin"))
   }
 
+  // @wu-test type=integration | scope=Account logout | protects=Keep the workspace when an unresolved write blocks logout | debt=D9
   @Test func pendingWriteBlocksLogoutWithoutLosingTheWorkspace() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
@@ -188,6 +194,7 @@ private actor AccountStub: CloudAccountService {
     #expect(await service.logoutCalls == 0)
   }
 
+  // @wu-test type=integration | scope=Account password setup | protects=Finish password setup after email login | debt=D9
   @Test func emailCallbackAndFirstPasswordSetup() async throws {
     let service = AccountStub()
     await service.configure(setup: true)
@@ -204,6 +211,7 @@ private actor AccountStub: CloudAccountService {
     try await ready(workspace)
   }
 
+  // @wu-test type=integration | scope=Account session restoration | protects=Prevent a late restore from reviving an expired account | debt=D9
   @Test func lateRestoreCannotReviveAnExpiredAccount() async throws {
     let service = AccountStub()
     await service.configure(restored: true, delay: .milliseconds(80))
@@ -218,6 +226,7 @@ private actor AccountStub: CloudAccountService {
     #expect(account.owner == nil && !account.busy)
   }
 
+  // @wu-test type=integration | scope=Account login and logout | protects=Show login failure and unconfirmed logout without exposing workspace data | debt=D9
   @Test func failedLoginAndUnconfirmedLogoutRemainExplicit() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)

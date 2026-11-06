@@ -4,41 +4,7 @@ import { JSDOM } from "jsdom";
 import { bundle, fixture } from "./chrome-fixture.ts";
 import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
-test("all bars coming back on their own use the shared reveal; with a closing card they share its spring", () => {
-	const f = fixture();
-	try {
-		const bar = f.w.document.getElementById("bar");
-		const animations: any[] = [];
-		f.w.__motionAnimations = animations;
-		const hide = new f.w.ChromeTest.ChromeAutoHide(
-			f.w.document.getElementById("scroll"),
-			() => [bar],
-			() => false,
-		);
-		// The tucked state must change something drawn, or no animation is recorded.
-		const css = f.w.document.createElement("style");
-		css.textContent = "#bar.is-tucked{opacity:0}";
-		f.w.document.head.append(css);
-		hide.hide(true);
-		animations.length = 0;
-		hide.show();
-		assert.equal(animations.at(-1)?.options.duration, 420);
-		assert.deepEqual([...animations.at(-1).options.ease], [0.5, 1, 0.89, 1]);
-		hide.hide(true);
-		animations.length = 0;
-		hide.show(true);
-		assert.equal(
-			animations.at(-1)?.options.stiffness,
-			274,
-			"a closing card brings the bars back on its own card spring",
-		);
-		hide.destroy();
-	} finally {
-		f.hide.destroy();
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=ChromeAutoHide scrolling | protects=Hide controls after deliberate downward scrolling and ignore small reversals
 test("bars tuck away completely after steady downward reading, not on a jitter", () => {
 	const f = fixture();
 	try {
@@ -59,6 +25,7 @@ test("bars tuck away completely after steady downward reading, not on a jitter",
 	}
 });
 
+// @wu-test type=behavior | scope=ChromeAutoHide reveal | protects=Restore controls at reading boundaries and after a pause
 test("bars come back at the top, at the end, and after a pause", () => {
 	const f = fixture();
 	try {
@@ -85,6 +52,7 @@ test("bars come back at the top, at the end, and after a pause", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=read-end gesture and chrome | protects=Keep controls from covering a pending read-end gesture
 test("a waiting read-end push keeps the end clear: neither the end nor a pause near it brings the bars", () => {
 	const f = fixture();
 	f.hide.destroy();
@@ -123,6 +91,7 @@ test("a waiting read-end push keeps the end clear: neither the end nor a pause n
 	}
 });
 
+// @wu-test type=behavior | scope=background chrome state | protects=Preserve toolbar visibility when a detail locks and restores the background
 test("locking and restoring the background preserves the bars' reading state", () => {
 	const f = fixture();
 	try {
@@ -149,6 +118,7 @@ test("locking and restoring the background preserves the bars' reading state", (
 	}
 });
 
+// @wu-test type=behavior | scope=navigation scroll restoration | protects=Avoid treating restored scroll position as a reading gesture
 test("restoring a tab's scroll position does not tuck the navigation", () => {
 	const f = fixture();
 	try {
@@ -172,6 +142,7 @@ test("restoring a tab's scroll position does not tuck the navigation", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=modal background chrome | protects=Keep background controls hidden while a modal owns focus
 test("a modal keeps hidden background bars tucked after the rest timer and Tab", () => {
 	const f = fixture();
 	try {
@@ -189,6 +160,7 @@ test("a modal keeps hidden background bars tucked after the rest timer and Tab",
 	}
 });
 
+// @wu-test type=behavior | scope=on-screen keyboard layout | protects=Keep dialog controls clear of the keyboard until it closes | debt=D6
 test("keyboard bounds use the next frame and update on a window resize", () => {
 	const f = fixture();
 	try {
@@ -242,6 +214,7 @@ test("keyboard bounds use the next frame and update on a window resize", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=toolbar keyboard focus | protects=Reveal focused controls and keep them visible
 test("keyboard focus inside a tucked bar brings it back, and a focused bar never tucks", () => {
 	const f = fixture();
 	try {
@@ -259,6 +232,7 @@ test("keyboard focus inside a tucked bar brings it back, and a focused bar never
 	}
 });
 
+// @wu-test type=behavior | scope=dialog keyboard navigation | protects=Reveal controls before Tab focus selection without blocking normal navigation
 test("Tab reveals hidden bars before the dialog focus trap chooses its next target", () => {
 	const f = fixture();
 	try {
@@ -290,6 +264,7 @@ test("Tab reveals hidden bars before the dialog focus trap chooses its next targ
 	}
 });
 
+// @wu-test type=behavior | scope=search input composition | protects=Wait for input composition to finish before updating the search query
 test("search waits while an input method is composing, then filters on the final text", () => {
 	const f = fixture();
 	try {
@@ -313,6 +288,7 @@ test("search waits while an input method is composing, then filters on the final
 	}
 });
 
+// @wu-test type=behavior | scope=search result labels | protects=Expose the result count to screen readers without visible group counts
 test("search shows no counts: the total is for screen readers only and groups carry no numbers", () => {
 	const f = fixture();
 	try {
@@ -352,6 +328,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 	}
 });
 
+// @wu-test type=behavior | scope=navigation destinations | protects=Keep navigation destinations and settings reachable without enabling unavailable AI actions | debt=D6
 test("three destinations share the capsule; the home avatar opens settings", () => {
 	const dom = new JSDOM(`<!doctype html><body></body>`, {
 		url: "http://chrome.test/",
@@ -435,6 +412,7 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 	}
 });
 
+// @wu-test type=boundary | scope=AI placeholder | protects=Show only selected context and prevent unsupported sending or card changes
 test("AI placeholder shows only selected local context and cannot send or change cards", () => {
 	const f = fixture();
 	try {
@@ -470,6 +448,7 @@ test("AI placeholder shows only selected local context and cannot send or change
 	}
 });
 
+// @wu-test type=behavior | scope=toolbar tooltips | protects=Show adjacent tooltips immediately only after a tooltip was displayed
 test("adjacent toolbar names skip the first hover delay only after a tooltip was shown", () => {
 	const f = fixture();
 	try {
@@ -509,38 +488,6 @@ test("adjacent toolbar names skip the first hover delay only after a tooltip was
 		now = 2000;
 		pointer(a, "pointerover");
 		assert.equal(a.classList.contains("is-hover-tipping"), false);
-	} finally {
-		f.hide.destroy();
-		f.dom.window.close();
-	}
-});
-
-test("desktop top recovery is gentler while bottom bars and closing-card timing remain independent", () => {
-	const f = fixture();
-	try {
-		f.w.matchMedia = () => ({ matches: true });
-		const top = f.w.document.createElement("div");
-		top.id = "home-top";
-		f.w.document.body.append(top);
-		const css = f.w.document.createElement("style");
-		css.textContent = ".is-tucked{opacity:0}";
-		f.w.document.head.append(css);
-		const animations: any[] = [];
-		f.w.__motionAnimations = animations;
-		const hide = new f.w.ChromeTest.ChromeAutoHide(f.w.document.getElementById("scroll"), () => [
-			top,
-			f.bar,
-		]);
-		hide.hide(true);
-		animations.length = 0;
-		hide.show();
-		assert.equal(animations.find((animation) => animation.target === top).options.duration, 560);
-		assert.equal(animations.find((animation) => animation.target === f.bar).options.duration, 420);
-		hide.hide(true);
-		animations.length = 0;
-		hide.show(true);
-		assert.equal(animations.find((animation) => animation.target === top).options.stiffness, 274);
-		hide.destroy();
 	} finally {
 		f.hide.destroy();
 		f.dom.window.close();

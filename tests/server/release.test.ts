@@ -7,6 +7,7 @@ import { test } from "node:test";
 
 const script = new URL("../../scripts/deploy-release.ts", import.meta.url).href;
 for (const scenario of ["success", "missing-database-check", "health-failure"]) {
+	// @wu-test type=integration | scope=scripts/deploy-release | protects=Prevent release verification from succeeding without database verification or healthy deployment
 	test(`release deployment: ${scenario}`, async () => {
 		const root = await mkdtemp(join(tmpdir(), "sill-release-test-"));
 		try {

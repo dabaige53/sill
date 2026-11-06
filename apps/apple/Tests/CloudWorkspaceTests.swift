@@ -77,6 +77,7 @@ struct CloudWorkspaceTests {
     }
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Restore the saved account
   @Test func loginUsesPasswordEndpointAndRestoresFromVault() async throws {
     let vault = MemoryCloudVault()
     let store = make(
@@ -94,6 +95,7 @@ struct CloudWorkspaceTests {
     #expect(restored?.owner == result.owner)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Return conflict without retry | debt=D7
   @Test func conflictIsReturnedWithoutRetry() async throws {
     let store = make { request in
       if let result = auth(request) { return result }
@@ -112,6 +114,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Block duplicate timeout writes
   @Test func timeoutRetainsPendingKeyAndBlocksAnotherWrite() async throws {
     let store = make { request in
       if let result = auth(request) { return result }
@@ -131,6 +134,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == key)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Clear session on logout; reject redirects
   @Test func redirectResponseIsRejectedAndLogoutClearsVault() async throws {
     let vault = MemoryCloudVault()
     let store = make(
@@ -153,6 +157,7 @@ struct CloudWorkspaceTests {
       try await store.login(email: "synthetic@example.com", password: "synthetic")
     }
   }
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Block unresolved account change
   @Test func accountChangeNeverReusesPreviousOwnerOrPendingWrite() async throws {
     var currentOwner = "first-owner"
     let store = make { request in
@@ -182,6 +187,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Reconcile without duplicate writes
   @Test func committedTimeoutReadsBackBeforeSuccessWithoutRepeatingWrite() async throws {
     var committed = false
     var writes = 0
@@ -207,6 +213,7 @@ struct CloudWorkspaceTests {
     #expect(writes == 1)
     #expect(await store.pendingWriteKey == nil)
   }
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Verify lost card write receipts
   @Test func createReplaceAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
@@ -267,6 +274,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Reject invalid account identity
   @Test func unauthenticatedAndOwnerMismatchInvalidateIdentity() async throws {
     var failure = 0
     var requests = 0
@@ -294,6 +302,7 @@ struct CloudWorkspaceTests {
     #expect(requests == afterUnauthorized)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Keep login; reject other backup owners
   @Test func backupCredentialFailureKeepsTheSillAccountAndRejectsAnotherOwner() async throws {
     var calls = 0
     let store = make { request in
@@ -318,6 +327,7 @@ struct CloudWorkspaceTests {
     }
     #expect(calls == 1)
   }
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Bind callbacks to login verifier
   @Test func nativeEmailRetainsPKCEAndRedeemsOnlyFixedCallback() async throws {
     let vault = MemoryCloudVault()
     var redeemed = false
@@ -379,6 +389,7 @@ struct CloudWorkspaceTests {
     #expect(result.owner == "synthetic-owner")
     #expect(try JSONValue.decode(#require(try vault.load()))["__Host-sill-pkce"] == nil)
   }
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Reject expired login verifiers
   @Test func expiredPKCECannotBeSentAfterRestart() async throws {
     let vault = MemoryCloudVault()
     try vault.save(
@@ -395,6 +406,7 @@ struct CloudWorkspaceTests {
       try await store.completeLogin(url: URL(string: "sill://auth/callback?code=synthetic")!)
     }
   }
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Finish email password setup
   @Test func passwordSetupContinuesAfterEmailAndUsesExistingUpdateEndpoint() async throws {
     var updated = false
     let store = make { request in

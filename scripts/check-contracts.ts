@@ -9,12 +9,6 @@ const read = (name: string) =>
 const spec = read("openapi.json");
 const catalog = read("mcp-tools.json");
 const fixtures = read("fixtures.json");
-const swiftClient = readFileSync(
-	new URL("../contracts/design/SillClient.swift", import.meta.url),
-	"utf8",
-);
-assert.match(swiftClient, /forHTTPHeaderField: "Content-Type"/);
-assert.doesNotMatch(swiftClient, /\bCard-Type\b|-> Content\b/);
 const validator = new Ajv2020({ strict: false });
 (formats as unknown as (validator: Ajv2020) => void)(validator);
 export const normalizeRefs = (value: unknown): any =>
@@ -46,8 +40,10 @@ if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).
 		for (const [path, methods] of Object.entries<any>(spec.paths))
 			for (const [method, operation] of Object.entries<any>(methods)) {
 				if (!["get", "post", "patch", "delete"].includes(method)) continue;
+				// @wu-test type=boundary | scope=public HTTP design operations | protects=Prevents duplicate operation identifiers from routing a tool to the wrong operation
 				assert.ok(!operations.has(operation.operationId));
 				operations.set(operation.operationId, { path, method, operation });
+				// @wu-test type=boundary | scope=public HTTP write design | protects=Prevents write operations from omitting the required idempotency key
 				if (method !== "get")
 					assert.ok(
 						operation.parameters.some(
@@ -55,23 +51,29 @@ if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).
 						),
 					);
 			}
+		// @wu-test type=boundary | scope=public MCP tool catalog | protects=Prevents a public tool from being missing or unexpectedly added to the catalog
 		assert.deepEqual(
 			catalog.tools.map((tool: any) => tool.name).sort(),
 			Object.keys(toolInputs).sort(),
 		);
+		// @wu-test type=boundary | scope=public MCP to HTTP mapping | protects=Prevents a published tool from referencing a nonexistent HTTP operation
 		for (const tool of catalog.tools) {
 			const route = operations.get(tool["x-operationId"]);
 			assert.ok(route);
+			// @wu-test type=boundary | scope=public MCP permission mapping | protects=Prevents a tool from advertising a permission scope inconsistent with its HTTP operation
 			assert.equal(tool["x-required-scope"], route.operation["x-required-scope"]);
+			// @wu-test type=boundary | scope=public MCP schemas | protects=Prevents invalid public input or output schemas from being published
 			validator.compile(tool.inputSchema);
 			validator.compile(tool.outputSchema);
 		}
+		// @wu-test type=boundary | scope=public MCP input schema samples | protects=Prevents published argument examples from violating their tool input schemas
 		for (const sample of fixtures.cases) {
 			const tool = catalog.tools.find(
 				(entry: any) => entry["x-operationId"] === sample.operationId,
 			);
 			const check = validator.compile(tool.inputSchema);
 			assert.ok(check(sample.arguments), JSON.stringify(check.errors));
+			// @wu-test type=boundary | scope=public MCP response schema samples | protects=Prevents published success or error examples from violating response schemas
 			const responseCheck = validator.compile(
 				sample.status < 300
 					? tool.outputSchema

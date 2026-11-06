@@ -6,6 +6,7 @@ import { changes, create } from "../../contracts/cloud.ts";
 import { applyCardMigrations, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 import { skillExamples } from "./helpers/skill-examples.ts";
 
+// @wu-test type=integration | scope=database image migration | protects=Preserve HTTPS image URLs and reject insecure or credential-bearing images
 test("HTTPS image migration preserves remote photos through cloud writes and reads", async () => {
 	const db = new PGlite();
 	try {
@@ -43,6 +44,7 @@ test("HTTPS image migration preserves remote photos through cloud writes and rea
 	}
 });
 
+// @wu-test type=integration | scope=database rich card operations | protects=Preserve card fields and reject stale or invalid changes
 test("rich cloud cards preserve fields, merge state, protect revisions and reject unknown fields", async () => {
 	const db = new PGlite();
 	try {
@@ -148,6 +150,7 @@ test("rich cloud cards preserve fields, merge state, protect revisions and rejec
 	}
 });
 
+// @wu-test type=integration | scope=database card fixtures and skill examples | protects=Preserve shared valid card fields through cloud storage
 test("all eleven card fixtures round-trip through cloud storage and skill examples match the contract", async () => {
 	const db = new PGlite();
 	try {
@@ -183,6 +186,7 @@ test("all eleven card fixtures round-trip through cloud storage and skill exampl
 	}
 });
 
+// @wu-test type=boundary | scope=database card validation | protects=Reject invalid structured card values without creating rows
 test("rich SQL rejects invalid structured values without changing existing rows", async () => {
 	const db = new PGlite();
 	try {

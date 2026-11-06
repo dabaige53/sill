@@ -19,6 +19,7 @@ const card: Record<string, any> = {
 	url: "https://example.com",
 };
 
+// @wu-test type=integration | scope=server/local LocalRepository | protects=Reject stale card edits and deletes without overwriting newer data
 test("conditional whole-card writes reject stale edits, deletes and duplicate creates without blocking independent reading", async () => {
 	const dir = await mkdtemp(join(tmpdir(), "sill-cas-"));
 	try {
@@ -52,6 +53,7 @@ test("conditional whole-card writes reject stale edits, deletes and duplicate cr
 	}
 });
 
+// @wu-test type=integration | scope=server/local LocalRepository | protects=Persist card state and roll back conflicting batches
 test("local operations persist all card states and reject conflicts atomically", async () => {
 	const dir = await mkdtemp(join(tmpdir(), "qg-local-")),
 		file = join(dir, "cards.json");
@@ -132,6 +134,7 @@ test("local operations persist all card states and reject conflicts atomically",
 	}
 });
 
+// @wu-test type=integration | scope=server/local LocalRepository | protects=Preserve legacy sources while rejecting source operations
 test("legacy sources remain opaque state and source operations are unsupported", async () => {
 	const dir = await mkdtemp(join(tmpdir(), "qg-legacy-sources-")),
 		file = join(dir, "cards.json");
@@ -175,6 +178,7 @@ test("legacy sources remain opaque state and source operations are unsupported",
 	}
 });
 
+// @wu-test type=integration | scope=server/local HTTP and CLI | protects=Share local data between HTTP and CLI while rejecting foreign origins
 test("loopback HTTP and actual agent CLI share the same data without App/MCP login", async () => {
 	const dir = await mkdtemp(join(tmpdir(), "qg-http-")),
 		file = join(dir, "cards.json");

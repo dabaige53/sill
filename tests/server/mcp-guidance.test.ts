@@ -25,6 +25,7 @@ const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf
 const examples = skillExamples;
 const catalog = JSON.parse(read("../../contracts/design/mcp-tools.json"));
 
+// @wu-test type=integration | scope=skills and MCP contract examples | protects=Keep published skill examples usable with current card and operation schemas | debt=D11
 test("skill recipes cover current card kinds and every writable field", () => {
 	assert.deepEqual([...new Set(examples.map((card) => card.type))].sort(), [...cardTypes].sort());
 	assert.deepEqual(
@@ -76,6 +77,7 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	}
 });
 
+// @wu-test type=boundary | scope=contracts/cloud agentCardIssues | protects=Require summaries for applicable cards while allowing documented exceptions
 test("agents may leave out summary only on short kinds, quotes and short notes", () => {
 	const missing = [{ path: ["summary"], message: "missing_summary" }];
 	for (const type of ["task", "reminder", "event"])
@@ -91,6 +93,7 @@ test("agents may leave out summary only on short kinds, quotes and short notes",
 	assert.deepEqual(agentCardIssues({ type: "article", title: "Written", summary: "结论。" }), []);
 });
 
+// @wu-test type=integration | scope=published MCP JSON schemas | protects=Accept supported source URLs and reject unsafe schemes in published schemas
 test("published URL schemas avoid escaped slashes and keep HTTP(S) validation", () => {
 	const validator = new Ajv2020({ strict: false });
 	(formats as unknown as (validator: Ajv2020) => void)(validator);
@@ -150,6 +153,7 @@ test("published URL schemas avoid escaped slashes and keep HTTP(S) validation", 
 	}
 });
 
+// @wu-test type=integration | scope=MCP skill examples | protects=Preserve skill example fields through MCP writes, reads, retries and batches
 test("skill recipes round trip through discovered MCP tools, including batch and retry", async () => {
 	const f = await cloudFixture();
 	const client = new Client({ name: "skill-recipes", version: "1" });

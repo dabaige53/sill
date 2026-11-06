@@ -10,6 +10,7 @@ import { Panels } from "../../apps/web/interactions/panels.ts";
 const cards = Object.keys(CardTypes).map((type) => SeedCards.find((card) => card.type === type));
 cards.push(SeedCards.find((card) => card.type === "media" && card.media === "podcast"));
 for (const [index, seed] of cards.entries()) {
+	// @wu-test type=boundary | scope=card preview rendering | protects=Escape untrusted content across every card type without exposing handoff actions
 	test(`preview preserves escaped content without an assistant action: ${seed.type}/${index}`, () => {
 		Store.state = Store.fresh();
 		const text = 'Synthetic <script> & "quoted" ${literal}';
@@ -42,6 +43,7 @@ for (const [index, seed] of cards.entries()) {
 	});
 }
 
+// @wu-test type=behavior | scope=Card preview content | protects=Avoid duplicate summaries and links to missing cards
 test("quote and repeated summaries stay out of the preview lead; suggestions link only known cards", () => {
 	Store.state = Store.fresh();
 	const article = {
@@ -86,6 +88,7 @@ test("quote and repeated summaries stay out of the preview lead; suggestions lin
 	}
 });
 
+// @wu-test type=behavior | scope=Task and reminder preview | protects=Show stored completion state without changing card content
 test("task checks and completed reminder controls reflect stored state without changing the card", () => {
 	Store.state = Store.fresh();
 	const task = SeedCards.find((card) => card.type === "task"),
@@ -119,6 +122,7 @@ test("task checks and completed reminder controls reflect stored state without c
 	}
 });
 
+// @wu-test type=behavior | scope=Article detail | protects=Show cover and authored content in the intended order
 test("article preview and reader both put the cover before the ruled header", () => {
 	Store.state = Store.fresh();
 	const card = {
@@ -146,6 +150,7 @@ test("article preview and reader both put the cover before the ruled header", ()
 	reader.window.close();
 });
 
+// @wu-test type=behavior | scope=Task detail | protects=Show the full checklist and separate summary
 test("task detail shows the complete checklist before body with a separate summary", () => {
 	Store.state = Store.fresh();
 	const card = {
@@ -163,6 +168,7 @@ test("task detail shows the complete checklist before body with a separate summa
 	dom.window.close();
 });
 
+// @wu-test type=behavior | scope=Card detail summaries | protects=Keep summary separate from authored body
 test("all detail types keep card summaries out of the authored body", () => {
 	Store.state = Store.fresh();
 	for (const seed of cards) {
@@ -179,6 +185,7 @@ test("all detail types keep card summaries out of the authored body", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Detail tags | protects=Show edited tags in video and pull request details
 test("video and PR details show the card tags after an edit", () => {
 	Store.state = Store.fresh();
 	for (const type of ["media", "pr"]) {
@@ -196,6 +203,7 @@ test("video and PR details show the card tags after an edit", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Podcast detail | protects=Show the external listening record without creating local playback controls
 test("podcast introductions preserve the external listening record without players, tabs or seeking", () => {
 	Store.state = Store.fresh();
 	const card = {
@@ -242,6 +250,7 @@ test("podcast introductions preserve the external listening record without playe
 	}
 });
 
+// @wu-test type=behavior | scope=Detail actions | protects=Keep bookmark and edit actions available with legacy preferences
 test("detail actions stay available despite legacy hidden preferences, including saved bookmark state", () => {
 	Store.state = Store.fresh();
 	const card = SeedCards.find((card) => card.type === "article");

@@ -5,14 +5,7 @@ import { createHostActions } from "../../apps/web/cloud-bridge.ts";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
-import {
-	type AgentCard,
-	AgentHandoff,
-	type AgentScope,
-	agentKey,
-	agentPayload,
-	openCardLink,
-} from "../../apps/web/services/agent-handoff.ts";
+import { type AgentCard, type AgentScope, agentPayload, openCardLink } from "../../apps/web/services/agent-handoff.ts";
 
 const scope: AgentScope = { kind: "cloud", owner: "owner-a" };
 const card = {
@@ -23,7 +16,6 @@ const card = {
 	summary: "需要核对的结论",
 };
 const payload = agentPayload(card, scope);
-const key = agentKey(card.id, scope);
 
 function fixture() {
 	const messages: any[] = [];
@@ -70,6 +62,7 @@ function fixture() {
 	};
 }
 
+// @wu-test type=boundary | scope=agentPayload | protects=Preserve full card content while excluding personal state and unknown fields
 test("attachments include full content without personal state or unknown fields", () => {
 	const prepared = agentPayload(
 		{
@@ -86,6 +79,7 @@ test("attachments include full content without personal state or unknown fields"
 	assert.doesNotMatch(prepared.text, /private|secret/);
 });
 
+// @wu-test type=integration | scope=createHostActions.discuss and syncContext | protects=Preserve accumulated attachments and respect host context removal without sending a message
 test("attachments accumulate without sending and follow host removal", async () => {
 	const f = fixture();
 	await Promise.all([
@@ -99,6 +93,7 @@ test("attachments accumulate without sending and follow host removal", async () 
 	assert.equal(f.contexts[2].content.length, 1);
 });
 
+// @wu-test type=boundary | scope=createHostActions.discuss | protects=Reject unavailable hosts, changed accounts and uncertain context updates
 test("unsupported hosts, rejected updates and changed accounts never send", async () => {
 	const f = fixture();
 	f.flags.context = false;
@@ -119,6 +114,7 @@ test("unsupported hosts, rejected updates and changed accounts never send", asyn
 	assert.equal(f.messages.length, 0);
 });
 
+// @wu-test type=boundary | scope=openCardLink | protects=Reject unsafe links and host failures without reporting an unconfirmed browser open
 test("host navigation never falls back to blocked popups, and browser ambiguity is not an acknowledged open", async () => {
 	const f = fixture();
 	let popups = 0;
@@ -143,6 +139,7 @@ test("host navigation never falls back to blocked popups, and browser ambiguity 
 	assert.equal(popups, 1);
 });
 
+// @wu-test type=behavior | scope=Panels.preview, Panels.reader and Panels.lightbox | protects=Keep removed handoff actions out of card details while retaining digest content
 test("details omit handoff actions even when a host can supply one", () => {
 	Store.state = Store.fresh();
 	const app = {

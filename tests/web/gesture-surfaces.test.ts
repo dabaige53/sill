@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
+// @wu-test type=behavior | scope=phone detail drag cancellation | protects=prevents the backdrop from jumping or remaining dimmed after a cancelled drag | debt=D5,D6
 test("cancelling a phone drag fades its backdrop back from the drawn opacity", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -23,6 +24,7 @@ test("cancelling a phone drag fades its backdrop back from the drawn opacity", (
 	}
 });
 
+// @wu-test type=boundary | scope=reader horizontal gestures | protects=prevents scrolling horizontal content or using player controls from dismissing the reader
 test("horizontal content and player buttons do not start reader dismissal", () => {
 	const f = fixture({ kind: "reader", phone: true });
 	try {
@@ -60,6 +62,7 @@ test("horizontal content and player buttons do not start reader dismissal", () =
 	}
 });
 
+// @wu-test type=boundary | scope=podcast reader gestures | protects=prevents a horizontal swipe from dismissing a podcast reader
 test("podcast reader stays fixed during a horizontal swipe", () => {
 	const f = fixture({ kind: "reader", phone: true });
 	try {
@@ -76,6 +79,7 @@ test("podcast reader stays fixed during a horizontal swipe", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=phone detail exit cancellation | protects=prevents the current detail from remaining inaccessible after exit cancellation | debt=D6
 test("cancelled phone exit unlocks the current detail instead of leaving it inert", async () => {
 	const f = fixture({ phone: true });
 	try {

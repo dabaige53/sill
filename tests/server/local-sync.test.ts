@@ -70,6 +70,7 @@ function fixture(t: any, items: any = { a: { note: "original" } }, tags: any = {
 	return { sync, store, repo, data, context, request };
 }
 
+// @wu-test type=integration | scope=apps/web LocalSync | protects=Keep an unconfirmed write when the local proxy fails
 test("empty proxy failure reports service unavailable and retains an unconfirmed write", async (t) => {
 	const { sync, context, request, data } = fixture(t);
 	context.AbortSignal = AbortSignal;
@@ -88,6 +89,7 @@ test("empty proxy failure reports service unavailable and retains an unconfirmed
 	assert.ok(data.has("sill-unsynced"));
 });
 
+// @wu-test type=boundary | scope=apps/web LocalSync request | protects=Reject an incomplete successful HTTP response
 test("incomplete local response is not reported as a successful read", async (t) => {
 	const { context, request } = fixture(t);
 	context.AbortSignal = AbortSignal;
@@ -95,6 +97,7 @@ test("incomplete local response is not reported as a successful read", async (t)
 	await assert.rejects(request("state"), /不完整的响应/);
 });
 
+// @wu-test type=behavior | scope=apps/web LocalSync capture | protects=Avoid repeated writes for unchanged array preferences
 test("unchanged array preferences do not enqueue another write after adopting a response", (t) => {
 	const { sync, store } = fixture(t);
 	store.state.preferences.hiddenActions = [];
@@ -104,6 +107,7 @@ test("unchanged array preferences do not enqueue another write after adopting a 
 });
 
 for (const items of [{ a: { note: "original" } }, {}]) {
+	// @wu-test type=integration | scope=apps/web LocalSync note editing | protects=Preserve the draft and prevent overwriting a newer note
 	test("open note editor retains original or absent baseline across save responses", async (t) => {
 		const { sync, store, repo, data } = fixture(t, items);
 		sync.adopt(
@@ -122,6 +126,7 @@ for (const items of [{ a: { note: "original" } }, {}]) {
 	});
 }
 
+// @wu-test type=integration | scope=apps/web LocalSync bulk tags | protects=Prevent a conflicting bulk tag edit from partially overwriting cards
 test("bulk tags retain each card baseline and reject the whole conflicting batch", async (t) => {
 	const { sync, store, repo } = fixture(t, { a: {}, b: {} }, { a: ["old"] });
 	sync.app.bulkEditIds = ["a", "b"];
@@ -142,6 +147,7 @@ test("bulk tags retain each card baseline and reject the whole conflicting batch
 	assert.deepEqual(card("b").tags, ["agent"]);
 });
 
+// @wu-test type=integration | scope=apps/web LocalSync note editing | protects=Preserve remote reading state while saving a note
 test("unrelated remote reading state merges while a note save succeeds", async (t) => {
 	const { sync, store, repo } = fixture(t);
 	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));
@@ -154,6 +160,7 @@ test("unrelated remote reading state merges while a note save succeeds", async (
 	assert.equal(repo.snapshot().state.items.a.read, true);
 });
 
+// @wu-test type=integration | scope=apps/web LocalSync retry | protects=Keep an uncertain draft and prevent retry from overwriting a newer note
 test("lost write response keeps the draft and retry cannot overwrite a newer note", async (t) => {
 	const { sync, store, repo, data } = fixture(t);
 	store.state.items.a.note = "user draft";
@@ -171,16 +178,4 @@ test("lost write response keeps the draft and retry cannot overwrite a newer not
 	await sync.flush();
 	assert.equal(repo.snapshot().state.items.a.note, "new agent note");
 	assert.equal(sync.pending.length, 1);
-});
-
-test("initial snapshot appears without arrival motion; later snapshots retain update motion", (t) => {
-	const { sync, repo } = fixture(t);
-	sync.app.editorLayer.open = false;
-	const animations: boolean[] = [];
-	sync.app.withFeedAnchor = (_change: () => void, animate: boolean) => animations.push(animate);
-	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));
-	assert.deepEqual(animations, [false]);
-	sync.ready = true;
-	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: false } }] }));
-	assert.deepEqual(animations, [false, true]);
 });

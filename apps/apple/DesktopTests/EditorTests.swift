@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct EditorTests {
+  // @wu-test type=integration | scope=Bulk editing | protects=Apply tags to all selected cards and the note only to the first
   @Test func bulkSaveTagsAllAndNotesFirst() async {
     let (workspace, _) = await ready()
     let baseline = workspace.editBaseline(["a", "b"])
@@ -23,6 +24,7 @@ import Testing
     #expect(workspace.notice?.text == Copy.text("web.app.5fa0ce52b47e") || !workspace.isLocal)
   }
 
+  // @wu-test type=integration | scope=Bulk editing conflict | protects=Reject edits based on an outdated baseline
   @Test func changedBaselineIsAConflictAndWritesNothing() async {
     let (workspace, backend) = await ready()
     let baseline = workspace.editBaseline(["a"])
@@ -36,6 +38,7 @@ import Testing
     #expect(await backend.writes == writes)
   }
 
+  // @wu-test type=behavior | scope=Tag input | protects=Normalize and deduplicate entered tags
   @Test func tagInputIsCleaned() {
     #expect(EditorPanel.split(" #Work，AI\nwork, 阅读 ") == ["Work", "AI", "阅读"])
     #expect(!EditorPanel.suggestions(card: nil, chosen: ["ai"]).contains("AI"))

@@ -38,6 +38,7 @@ try {
 			}),
 		),
 	);
+	// @wu-test type=behavior | scope=home header scrolling | protects=prevent pointer focus from keeping the header visible during scroll | debt=D9
 	await page.goto(`http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}`);
 	await page.waitForTimeout(700);
 	// Pointer focus on a filter must not pin the header while scrolling.
@@ -55,6 +56,7 @@ try {
 		"hidden",
 	);
 	console.log("PASS filter header hides after pointer scrolling");
+	// @wu-test type=behavior | scope=detail from scrolled feed | protects=prevent opening a card from moving the feed or revealing hidden navigation | debt=D9
 	const hiddenPosition = await page.evaluate(() => {
 		const card = [...document.querySelectorAll<HTMLElement>(".card-title-button")].find((el) => {
 			const rect = el.getBoundingClientRect();
@@ -101,6 +103,7 @@ try {
 	});
 	console.log("PASS opening and closing from hidden tabs preserves the document and card position");
 
+	// @wu-test type=behavior | scope=drawer drag and feed return | protects=prevent drawer dragging from resizing content or moving home controls | debt=D6,D9
 	await page.evaluate(() => window.scrollTo(0, 0));
 	await page.waitForTimeout(300);
 	const homeChrome = () =>
@@ -200,6 +203,7 @@ try {
 		beforeChrome,
 		"home controls do not appear in a second step after closing",
 	);
+	// @wu-test type=null | scope=gesture performance measurement | protects=preserve diagnostic measurements and traces
 	const difference = (a: Record<string, number>, b: Record<string, number>) =>
 		Object.fromEntries(
 			[
@@ -230,6 +234,7 @@ try {
 	);
 	console.log("PASS fixed-size drag, native exit, stable feed return");
 
+	// @wu-test type=behavior | scope=home controls through detail | protects=prevent home controls from shifting when details open or close | debt=D9
 	await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 	for (const colorScheme of ["dark", "light"] as const) {
 		await page.emulateMedia({ colorScheme });
@@ -243,6 +248,7 @@ try {
 	}
 	await page.emulateMedia({ colorScheme: "light" });
 	console.log("PASS home header and navigation stay stable through detail exit in light and dark");
+	// @wu-test type=behavior | scope=reader dismissal after mixed input | protects=prevent mixed keyboard and wheel input from skipping the reader exit | debt=D9,D6
 	// A preceding keyboard action must not disable a later wheel gesture's animation.
 	await page.keyboard.press("Tab");
 	await page.mouse.wheel(0, 1);
@@ -253,6 +259,7 @@ try {
 	await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
 	console.log("PASS reader closes with a visible exit after keyboard-to-wheel input");
 
+	// @wu-test type=behavior | scope=reading completion dismissal | protects=prevent completion feedback from being skipped before detail closes | debt=D9,D6
 	for (const reading of [false, true]) {
 		await page.evaluate((reading) => window.__app.openCard("gesture-1", reading), reading);
 		await page.waitForTimeout(450);
@@ -294,6 +301,7 @@ try {
 	}
 	console.log("PASS read completion confirms first, then animates preview and reader exits");
 
+	// @wu-test type=behavior | scope=wheel refresh feedback | protects=prevent refresh before release or missing loading and success feedback | debt=D9
 	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
 	await page.evaluate(() => {
 		(document.activeElement as HTMLElement)?.blur();

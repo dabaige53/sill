@@ -8,6 +8,7 @@ const expired = () => token({ exp: Math.floor(Date.now() / 1000) - 60 });
 const cookie = (access: any = expired(), refresh: any = "synthetic-unused-refresh") =>
 	"__Host-sill-access=" + access + (refresh ? "; __Host-sill-refresh=" + refresh : "");
 
+// @wu-test type=integration | scope=HTTP session refresh | protects=Refresh expired sessions without sharing duplicate concurrent refresh work
 test("expired browser session rotates with SDK, serves API, and coalesces concurrent refresh", async () => {
 	const f = await cloudFixture();
 	try {
@@ -51,6 +52,7 @@ test("expired browser session rotates with SDK, serves API, and coalesces concur
 	}
 });
 
+// @wu-test type=integration | scope=HTTP session refresh failures | protects=Clear invalid credentials but preserve them on temporary upstream failure
 test("missing/revoked refresh clears cookies; temporary upstream failure preserves them", async () => {
 	const f = await cloudFixture();
 	try {
@@ -83,6 +85,7 @@ test("missing/revoked refresh clears cookies; temporary upstream failure preserv
 	}
 });
 
+// @wu-test type=integration | scope=OAuth pages and session logout | protects=Use refreshed credentials for OAuth pages and revoke them on logout
 test("OAuth pages use renewed browser credentials; logout refreshes before revocation and clears both cookies", async () => {
 	const f = await cloudFixture({ oauth: true });
 	try {
@@ -124,6 +127,7 @@ test("OAuth pages use renewed browser credentials; logout refreshes before revoc
 	}
 });
 
+// @wu-test type=integration | scope=HTTP session transport failures | protects=Preserve credentials on transport failure and report unconfirmed logout revocation
 test("transport exceptions preserve browser credentials and failed logout reports unconfirmed revocation", async () => {
 	const f = await cloudFixture();
 	try {

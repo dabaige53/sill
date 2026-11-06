@@ -74,6 +74,7 @@ try {
 		);
 		await page.goto(origin);
 		await page.waitForFunction(() => window.__app?.layout.frame === 0);
+		// @wu-test type=behavior | scope=home navigation layout | protects=prevent missing filters or misaligned navigation across viewports
 		const head = page.locator("#home-top");
 		assert.equal(await head.isVisible(), true);
 		assert.equal(
@@ -125,6 +126,7 @@ try {
 			assert.equal(geometry.position, "fixed");
 			assert.notEqual(geometry.mark, "none");
 		}
+		// @wu-test type=behavior | scope=home navigation after scrolling | protects=prevent home filters from remaining hidden after scrolling stops | debt=D9
 		await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
 		await page.waitForTimeout(1000);
 		assert.ok(
@@ -140,6 +142,7 @@ try {
 			"home tabs return after scrolling pauses",
 		);
 		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+		// @wu-test type=behavior | scope=home filters and search | protects=prevent home filters from changing search state or card data
 		// Desktop picks a view from the ⌄ menu (✓ is aria-checked); phones keep the pressed tab row
 		// (web-interaction handbook).
 		const pickTab = async (key: string) => {
@@ -191,6 +194,7 @@ try {
 		await page.waitForFunction(() => !document.getElementById("modal").hasAttribute("open"));
 		await assertTab("all");
 
+		// @wu-test type=behavior | scope=home filter stability | protects=prevent completion from moving cards until the filter is explicitly changed | debt=D9
 		await page.evaluate(() => {
 			window.__app.sort = "priority";
 		});
@@ -237,6 +241,7 @@ try {
 			"explicit tab change applies latest filter",
 		);
 		await pickTab("all");
+		// @wu-test type=behavior | scope=home filter scroll restoration | protects=prevent switching filters from losing the prior reading position | debt=D9,D6
 		{
 			await page.evaluate(() => {
 				const seed = window.__store.state.cards.find((card) => card.type === "article");
@@ -288,6 +293,7 @@ try {
 			);
 			await pickTab("all");
 			assert.equal(await page.evaluate(() => scrollY), 500);
+			// @wu-test type=behavior | scope=home panel navigation | protects=prevent panel navigation from losing scroll position or keyboard focus | debt=D6
 			if (width > 650) await page.evaluate(() => window.__app.action("search"));
 			else await page.locator('#nav [data-extra="search"]').click();
 			assert.equal(
@@ -347,6 +353,7 @@ try {
 				assert.equal(await head.evaluate((node) => getComputedStyle(node).opacity), "1");
 			}
 		}
+		// @wu-test type=behavior | scope=desktop search and notice timing | protects=prevent search shortcut failure or a hovered notice disappearing too soon | debt=D6
 		if (width === 1920) {
 			await page.keyboard.press("ControlOrMeta+k");
 			assert.equal(
@@ -366,6 +373,7 @@ try {
 			await page.locator("#toast").waitFor({ state: "hidden" });
 			await page.evaluate(() => window.scrollTo(0, 0));
 		}
+		// @wu-test type=integration | scope=home browser scenarios | protects=prevent browser errors or unexpected external requests from passing silently
 		await page.screenshot({ path: path.join(artifacts, width + "-" + theme + ".png") });
 		assert.deepEqual(errors, []);
 		assert.deepEqual(external, []);

@@ -68,6 +68,7 @@ try {
 				),
 			{ cards: materialDensityCards(), theme },
 		);
+		// @wu-test type=behavior | scope=search categories and type filter | protects=prevent search controls from overflowing or applying the wrong type filter
 		await page.goto(origin);
 		await page.waitForFunction(() => window.__app?.layout.frame === 0);
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
@@ -107,6 +108,7 @@ try {
 			false,
 		);
 		await page.locator('[data-action="search-reset"]').click();
+		// @wu-test type=behavior | scope=search keyboard viewport | protects=prevent the keyboard from covering the search field or leaving results unusable | debt=D6
 		if (width < 650 && height === 844) {
 			await page.locator("#filter-search").fill("jje");
 			await page.waitForFunction(
@@ -172,6 +174,7 @@ try {
 					document.querySelectorAll(".search-category").length === 6,
 			);
 		}
+		// @wu-test type=behavior | scope=search category and status conditions | protects=prevent category or saved filters from returning the wrong cards
 		if (await page.locator("#modal").evaluate((node) => node.classList.contains("search-editing")))
 			await page.locator('[data-action="search-reset"]').click();
 		await page.locator('.search-category[data-extra="note"]').focus();
@@ -191,6 +194,7 @@ try {
 		assert.equal(await page.locator('.search-token[data-extra="status"]').innerText(), "#收藏");
 		await page.locator("#filter-search").press("Backspace");
 		assert.equal(await page.locator('.search-token[data-extra="status"]').count(), 0);
+		// @wu-test type=behavior | scope=search tag suggestions | protects=prevent a focused tag suggestion from disappearing or selecting the wrong cards | debt=D9
 		await page.locator("#filter-search").fill("#交互");
 		await page.locator('[data-action="search-hash"][data-extra="tag:交互"]').focus();
 		// A keyboard user can pause on a suggestion after leaving the input.
@@ -202,6 +206,7 @@ try {
 		await page.keyboard.press("Space");
 		assert.deepEqual(await ids(), ["review-note-2"]);
 		assert.equal(await page.locator('.search-token[data-extra="tag"]').innerText(), "#交互");
+		// @wu-test type=behavior | scope=search detail return | protects=prevent closing detail from losing search conditions or changing home cards
 		await page.locator('.search-token[data-extra="tag"]').click();
 		await page.locator("#filter-search").fill("密度");
 		await page.waitForFunction(

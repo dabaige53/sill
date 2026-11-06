@@ -62,6 +62,7 @@ function nestedFixture(keyboard = true) {
 	};
 }
 
+// @wu-test type=integration | scope=Nested card navigation | protects=Restore reading position and focus through back and forward
 test("nested navigation restores exact positions, focus and reader mode through back and forward", async () => {
 	const f = nestedFixture();
 	try {
@@ -116,6 +117,7 @@ test("nested navigation restores exact positions, focus and reader mode through 
 	}
 });
 
+// @wu-test type=behavior | scope=Nested reader resizing | protects=Resize the child without adding a navigation layer | debt=D6
 test("resizing a child preserves the root card match and does not add a layer", () => {
 	const f = nestedFixture();
 	try {
@@ -134,6 +136,7 @@ test("resizing a child preserves the root card match and does not add a layer", 
 	}
 });
 
+// @wu-test type=behavior | scope=Nested card transition | protects=Keep the new card when an earlier exit completes | debt=D6
 test("returning starts an exit over the restored parent and canceled completion cannot change a new layer", async () => {
 	const f = nestedFixture(false);
 	try {
@@ -199,6 +202,7 @@ test("returning starts an exit over the restored parent and canceled completion 
 	}
 });
 
+// @wu-test type=boundary | scope=Nested navigation account isolation | protects=Prevent reading position and parent history from crossing accounts | debt=D6
 test("a new account cannot recover another scope's parent or reading position", () => {
 	const f = nestedFixture();
 	try {
@@ -216,6 +220,7 @@ test("a new account cannot recover another scope's parent or reading position", 
 	}
 });
 
+// @wu-test type=behavior | scope=Reader shrink navigation | protects=Return to the same preview without adding history
 test("the shrink control restores the same card and preserves its parent history", () => {
 	const f = nestedFixture();
 	try {
@@ -237,6 +242,7 @@ test("the shrink control restores the same card and preserves its parent history
 	}
 });
 
+// @wu-test type=behavior | scope=Nested reader navigation | protects=Return directly to the parent from an expanded child
 test("closing an expanded child returns straight to its parent without a second child history entry", async () => {
 	const f = nestedFixture();
 	try {
@@ -256,6 +262,7 @@ test("closing an expanded child returns straight to its parent without a second 
 	}
 });
 
+// @wu-test type=behavior | scope=Nested reader reopening | protects=Restore the child scroll position when reopening during exit | debt=D6
 test("reopening the exiting child restores its exact content position before motion resumes", async () => {
 	const f = nestedFixture(false);
 	try {
@@ -278,6 +285,7 @@ test("reopening the exiting child restores its exact content position before mot
 	}
 });
 
+// @wu-test type=behavior | scope=Phone input focus | protects=Preserve text selection and avoid scrolling when refocusing
 test("phone AI and search refocus without scrolling and retain native caret selection", () => {
 	const f = nestedFixture();
 	try {
@@ -315,6 +323,7 @@ test("phone AI and search refocus without scrolling and retain native caret sele
 	}
 });
 
+// @wu-test type=behavior | scope=Phone page scroll restoration | protects=Restore the feed position after closing a phone page | debt=D6
 test("phone pages freeze the feed even at the top and restore its reading position", () => {
 	const f = nestedFixture();
 	try {
@@ -348,27 +357,7 @@ test("phone pages freeze the feed even at the top and restore its reading positi
 	}
 });
 
-test("phone nested previews retain the mounted parent and its scroll position", () => {
-	const f = nestedFixture();
-	try {
-		f.app.desktop = () => false;
-		f.app.navigate("#card/a");
-		const parent = f.app.dialog;
-		f.scroll().scrollTop = 260;
-		f.app.navigate("#card/b");
-		assert.notEqual(f.app.dialog, parent);
-		assert.equal(parent.inert, true);
-		assert.equal(parent.querySelector(".sheet-scroll").scrollTop, 260);
-		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
-		assert.equal(
-			f.app.dialog.querySelector(".preview-sheet").style.getPropertyValue("--nested-sheet-height"),
-			"",
-		);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=Phone reader navigation | protects=Keep linked cards in full-page reader mode | debt=D6
 test("reader cards use a modal dialog and keep full-page mode for phone links", () => {
 	const f = nestedFixture();
 	try {

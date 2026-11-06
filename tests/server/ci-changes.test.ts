@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { changedPaths, classifyChanges, planChanges } from "../../scripts/ci-changes.ts";
 
+// @wu-test type=behavior | scope=scripts/ci-changes classifyChanges | protects=Avoid running product checks for documentation-only changes
 test("documentation only uses lightweight checks", () => {
 	const plan = classifyChanges([
 		"docs/implementation/CI.md",
@@ -18,6 +19,7 @@ test("documentation only uses lightweight checks", () => {
 	assert.equal(plan.apple, false);
 });
 
+// @wu-test type=behavior | scope=scripts/ci-changes classifyChanges | protects=Run required checks for product, mixed and global changes
 test("product Markdown, mixed changes and global inputs cannot skip product checks", () => {
 	for (const path of [
 		"skills/sill-cards/SKILL.md",
@@ -35,6 +37,7 @@ test("product Markdown, mixed changes and global inputs cannot skip product chec
 	assert.equal(classifyChanges(["apps/apple/Sill.swift"]).apple, true);
 });
 
+// @wu-test type=behavior | scope=scripts/ci-changes planChanges | protects=Run all checks when a full run is requested or the diff is unavailable
 test("manual full runs and unavailable diffs retain all checks", () => {
 	for (const plan of [
 		classifyChanges(null),
@@ -48,6 +51,7 @@ test("manual full runs and unavailable diffs retain all checks", () => {
 	}
 });
 
+// @wu-test type=integration | scope=scripts/ci-changes Git ranges | protects=Detect source changes across commit ranges and renames
 test("Git ranges retain the whole PR, all push commits and source renames", () => {
 	const root = mkdtempSync(join(tmpdir(), "sill-ci-changes-"));
 	const git = (...args: string[]) =>

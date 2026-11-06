@@ -6,6 +6,7 @@ import { cloudState, workspaceBatch } from "../../contracts/cloud.ts";
 import { A, B, claims, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 import { verifyHiddenActionsMigration } from "./helpers/hidden-actions-migration.ts";
 
+// @wu-test type=integration | scope=database workspace operations | protects=Prevent partial writes, stale overwrites, replay conflicts and cross-owner access
 test("workspace atomic operations, state validation, old API, replay and owner boundary", async () => {
 	const db = new PGlite();
 	try {
@@ -261,6 +262,7 @@ test("workspace atomic operations, state validation, old API, replay and owner b
 		await db.close();
 	}
 });
+// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject forged revision metadata and unknown item state
 test("workspace request schemas reject forged server metadata and unknown state", () => {
 	assert.equal(cloudState.safeParse({ lessLike: true }).success, true);
 	assert.equal(cloudState.safeParse({ unknown: true }).success, false);
@@ -278,6 +280,7 @@ test("workspace request schemas reject forged server metadata and unknown state"
 	);
 });
 
+// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject oversized batches without exposing validation work to unbounded input | debt=D6
 test("oversized workspace batches stop before validating every operation", () => {
 	const result = workspaceBatch.safeParse({
 		operations: Array.from({ length: 10000 }, () => ({})),
@@ -290,6 +293,7 @@ test("oversized workspace batches stop before validating every operation", () =>
 	}
 });
 
+// @wu-test type=integration | scope=server/cloud workspace HTTP | protects=Prevent cross-owner HTTP operations and preserve idempotent receipts
 test("workspace HTTP uses the same validation, session and receipt boundary", async () => {
 	const { cloudFixture } = await import("./helpers/cloud-fixture.ts");
 	const { createSillRuntime } = await import("../../server/cloud/http.ts");
@@ -390,6 +394,7 @@ test("workspace HTTP uses the same validation, session and receipt boundary", as
 	}
 });
 
+// @wu-test type=integration | scope=database hiddenActions migration | protects=Preserve preferences and roll back invalid migration-era writes
 test("hiddenActions migration: public preferences write, validation and atomic rollback", async () => {
 	const db = new PGlite();
 	try {

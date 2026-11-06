@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { SelectionBar } from "../../apps/web/atoms/selection.tsx";
 
 export async function registerToolbarContextTests({ fixture }: { fixture: any }) {
+	// @wu-test type=behavior | scope=phone search selection navigation | protects=Restore navigation after leaving the selected search surface
 	test("selection: phone search hands the navigation rail back when the surface changes", () => {
 		const f = fixture();
 		try {
@@ -29,6 +30,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=bulk bookmark | protects=Remove bookmarks from a fully bookmarked selection and add them for a mixed selection
 	test("selection: an entirely bookmarked selection shows active and can be unbookmarked together", () => {
 		for (const search of [false, true]) {
 			const f = fixture();
@@ -66,6 +68,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=bulk later and tag actions | protects=Keep selection and toolbar while updating later status or opening tags
 	test("selection: later and tag actions retain the selected cards and toolbar", () => {
 		const f = fixture();
 		try {
@@ -94,6 +97,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection toolbar visibility | protects=Disable an exiting toolbar and prevent stale exit from hiding a new selection
 	test("selection: toolbar exit disables hit and focus immediately and stale exit cannot hide re-entry", async () => {
 		const f = fixture();
 		try {
@@ -130,6 +134,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=integration | scope=search and home selection | protects=Keep search and home selections independent across gestures and bulk actions
 	test("selection: search reuses gestures and toolbar with its own selected set", () => {
 		const f = fixture();
 		try {
@@ -180,6 +185,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection drag receiver | protects=Expose the AI receiver only during movement and restore the rail after cancellation
 	test("selection: desktop rail becomes AI only after movement and restores on cancel", () => {
 		const f = fixture();
 		try {
@@ -202,6 +208,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection AI context | protects=Attach selected cards to local AI context without changing card data
 	test("selection: dragging into AI receiver opens a local context window without changing cards", () => {
 		for (const search of [false, true]) {
 			const f = fixture();
@@ -260,6 +267,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection AI context cancellation | protects=Avoid opening AI after a canceled or outside drop while retaining a keyboard action
 	test("selection: outside release and touch cancellation never open AI; keyboard alternative does", () => {
 		for (const cancel of [false, true]) {
 			const f = fixture();

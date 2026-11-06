@@ -25,6 +25,7 @@ const toolbar = (card: any) => {
 };
 const seed = (type: string) => SeedCards.find((card: any) => card.type === type);
 
+// @wu-test type=behavior | scope=detail toolbar | protects=prevents common card actions from disappearing | debt=D6
 test("card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons", () => {
 	Store.state = Store.fresh();
 	for (const card of SeedCards.filter((c: any) => c.type !== "photo")) {
@@ -45,6 +46,7 @@ test("card detail: shared verbs in ink, a rule, then at most three own verbs; no
 	}
 });
 
+// @wu-test type=behavior | scope=card-specific detail actions | protects=prevents users from losing mail, calendar, or reminder actions | debt=D9
 test("mail opens its web page, events download and reminders remind again from the toolbar", () => {
 	Store.state = Store.fresh();
 	const mailURL = "https://mail.example.com/message/1";
@@ -71,6 +73,7 @@ test("mail opens its web page, events download and reminders remind again from t
 	}
 });
 
+// @wu-test type=behavior | scope=legacy detail action preferences | protects=prevents old hidden-action preferences from hiding current actions
 test("legacy hidden preferences do not remove shared or own detail actions", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["bookmark", "tag", "later"]);
@@ -94,11 +97,13 @@ test("legacy hidden preferences do not remove shared or own detail actions", () 
 	Store.state = Store.fresh();
 });
 
+// @wu-test type=boundary | scope=legacy preference contract | protects=prevents valid legacy preferences from being rejected while rejecting unknown actions
 test("legacy hiddenActions remains readable in the shared preference contract", () => {
 	assert.ok(Preferences.safeParse({ hiddenActions: ["reply", "download"] }).success);
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
 });
 
+// @wu-test type=behavior | scope=legacy action settings | protects=prevents removed controls from returning or saved legacy preferences from being changed
 test("settings omit action hiding controls and preserve saved legacy preferences", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["tag"]);
@@ -113,6 +118,7 @@ test("settings omit action hiding controls and preserve saved legacy preferences
 	}
 });
 
+// @wu-test type=behavior | scope=photo lightbox actions | protects=prevents legacy preferences from hiding photo actions or losing bookmark state
 test("photo lightbox shows every shared tool despite legacy hidden preferences", () => {
 	const photo: Card = { ...seed("photo"), images: ["architecture", "coast"] };
 	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {
@@ -145,6 +151,7 @@ test("photo lightbox shows every shared tool despite legacy hidden preferences",
 	Store.state = Store.fresh();
 });
 
+// @wu-test type=behavior | scope=event detail actions | protects=prevents an imminent meeting from showing the wrong primary actions | debt=D9
 test("imminent event prioritizes dismiss over download only when join is available", () => {
 	const now = Date.now();
 	const event = {

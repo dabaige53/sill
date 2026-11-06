@@ -77,6 +77,7 @@ function fixture() {
 	};
 }
 
+// @wu-test type=behavior | scope=read-end touch gesture | protects=prevents short cancelled gestures from marking a card read and records completion at the threshold
 test("read-end cancels below threshold and completes at threshold without release", () => {
 	const f = fixture();
 	try {
@@ -103,6 +104,7 @@ test("read-end cancels below threshold and completes at threshold without releas
 	}
 });
 
+// @wu-test type=behavior | scope=gesture flick release | protects=prevents a held gesture from being mistaken for a flick while preserving a fresh flick | debt=D6
 test("holding before a flick does not dilute release speed; holding after it cancels the flick", () => {
 	const f = fixture();
 	try {
@@ -119,6 +121,7 @@ test("holding before a flick does not dilute release speed; holding after it can
 	}
 });
 
+// @wu-test type=behavior | scope=repeated content transition | protects=prevents content from flashing when an update interrupts its fade | debt=D5,D6
 test("a repeated content update starts at the currently visible opacity", () => {
 	const f = fixture();
 	try {
@@ -135,6 +138,7 @@ test("a repeated content update starts at the currently visible opacity", () => 
 	}
 });
 
+// @wu-test type=behavior | scope=toast gesture interruption | protects=prevents a cancelled toast exit from hiding a toast under a new gesture
 test("cancelled toast exit does not hide a toast grabbed again", async () => {
 	const f = fixture();
 	try {

@@ -4,6 +4,7 @@ import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { AUTH, oauthFixture } from "./helpers/oauth-fixture.ts";
 
+// @wu-test type=boundary | scope=server/cloud authentication configuration | protects=Prevent disabled email login from sending verification messages
 test("production defaults to password login and cannot send verification email", async () => {
 	const f = await cloudFixture();
 	try {
@@ -28,6 +29,7 @@ test("production defaults to password login and cannot send verification email",
 	}
 });
 
+// @wu-test type=behavior | scope=server/cloud recovery | protects=Resume an existing session instead of showing a stale link error
 test("recovery checks an existing session before displaying a stale email-link failure", async () => {
 	const f = await oauthFixture();
 	try {
@@ -41,6 +43,7 @@ test("recovery checks an existing session before displaying a stale email-link f
 	}
 });
 
+// @wu-test type=integration | scope=server/cloud email completion | protects=Prevent an email tab from consuming the original authorization return
 test("email completion stays out of the host callback tab and recovery recognizes the established session", async () => {
 	const f = await cloudFixture();
 	try {
@@ -98,6 +101,7 @@ test("email completion stays out of the host callback tab and recovery recognize
 	}
 });
 
+// @wu-test type=integration | scope=server/cloud email and OAuth handoff | protects=Resume an existing authorization only in the initiating tab
 test("email tab establishes only the session; the initiating tab resumes the existing OAuth grant", async () => {
 	const f = await oauthFixture();
 	try {

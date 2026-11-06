@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import { fixture } from "./search-state-fixture.ts";
 
+// @wu-test type=behavior | scope=search result order | protects=Keep search and suggestions consistent with the current home order
 test("search and empty suggestions retain home order across read changes and sort changes", () => {
 	const f = fixture();
 	try {
@@ -30,6 +31,7 @@ test("search and empty suggestions retain home order across read changes and sor
 	}
 });
 
+// @wu-test type=behavior | scope=search category filters | protects=Apply and remove a category without changing home filters
 test("a category card becomes an ink token and leaves the home filter alone", () => {
 	const f = fixture();
 	try {
@@ -60,6 +62,7 @@ test("a category card becomes an ink token and leaves the home filter alone", ()
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=search keyboard navigation | protects=Allow keyboard focus to reach collapsed search refinements
 test("Tab reaches the collapsed search refinements", () => {
 	const f = fixture();
 	try {
@@ -75,6 +78,7 @@ test("Tab reaches the collapsed search refinements", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=search filters | protects=Search active and archived cards without changing home filters
 test("search filters all shelves independently of the home projection", () => {
 	const f = fixture();
 	try {
@@ -94,6 +98,7 @@ test("search filters all shelves independently of the home projection", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=search selection keyboard handling | protects=Clear search selection before leaving the search page
 test("Escape clears only search selection before a second Escape leaves the search page", () => {
 	const f = fixture();
 	try {
@@ -124,6 +129,7 @@ test("Escape clears only search selection before a second Escape leaves the sear
 	}
 });
 
+// @wu-test type=behavior | scope=reminder completion from search | protects=Keep the reminder detail and retained search stable until close
 test("completing a reminder retains its detail and search until the user closes it", () => {
 	const f = fixture();
 	try {
@@ -171,6 +177,7 @@ test("completing a reminder retains its detail and search until the user closes 
 	}
 });
 
+// @wu-test type=integration | scope=home and search shared card state | protects=Reflect reading and completion changes on both surfaces
 test("home and search render the same shared completion and reading state", () => {
 	const f = fixture();
 	try {
@@ -194,6 +201,7 @@ test("home and search render the same shared completion and reading state", () =
 	}
 });
 
+// @wu-test type=behavior | scope=search and AI navigation | protects=Restore retained search when leaving the AI page
 test("AI preview returns to the same search through Escape or the search tab", () => {
 	for (const exit of ["Escape", "tab"]) {
 		const f = fixture();
@@ -220,6 +228,7 @@ test("AI preview returns to the same search through Escape or the search tab", (
 	}
 });
 
+// @wu-test type=behavior | scope=search route exit | protects=Close the AI page and remove retained search when leaving the route | debt=D5
 test("leaving the search route closes an AI preview as well as its retained background", () => {
 	const f = fixture();
 	try {
@@ -239,6 +248,7 @@ test("leaving the search route closes an AI preview as well as its retained back
 	}
 });
 
+// @wu-test type=behavior | scope=home and search selection | protects=Preserve independent selections when shared cards refresh
 test("shared card refresh keeps each surface's independent selection decoration", () => {
 	const f = fixture();
 	try {
@@ -272,6 +282,7 @@ test("shared card refresh keeps each surface's independent selection decoration"
 	}
 });
 
+// @wu-test type=boundary | scope=search hash conditions | protects=Escape tag text and apply the chosen search condition
 test("# lists statuses then existing tags; a pick becomes an escaped accent token", () => {
 	const f = fixture();
 	try {
@@ -303,6 +314,7 @@ test("# lists statuses then existing tags; a pick becomes an escaped accent toke
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=phone search hash suggestions | protects=Replace card suggestions with one list of search conditions
 test("phone # replaces the card suggestions with statuses and tags, in place", () => {
 	const f = fixture();
 	try {
@@ -324,6 +336,7 @@ test("phone # replaces the card suggestions with statuses and tags, in place", (
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=search filters and keyboard | protects=Preserve focus and remove search tokens in order
 test("type chips follow text only; Backspace on an empty field removes tokens from the end", () => {
 	const f = fixture();
 	try {
@@ -360,6 +373,7 @@ test("type chips follow text only; Backspace on an empty field removes tokens fr
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=search suspension | protects=Retain the latest search results when switching away
 test("switching away flushes pending search before retaining results", () => {
 	const f = fixture();
 	try {
@@ -375,6 +389,7 @@ test("switching away flushes pending search before retaining results", () => {
 	}
 });
 
+// @wu-test type=regression | scope=stacked card close | protects=Prevent repeated close requests from skipping a history entry | debt=D5
 test("repeated close requests on a stacked card only move back one history entry", () => {
 	const f = fixture();
 	try {
@@ -395,6 +410,7 @@ test("repeated close requests on a stacked card only move back one history entry
 	}
 });
 
+// @wu-test type=boundary | scope=home keyboard shortcuts | protects=Avoid consuming home shortcuts while a panel is open
 test("open panels keep home menu and search shortcuts from consuming keys", () => {
 	const f = fixture();
 	try {
@@ -432,6 +448,7 @@ test("open panels keep home menu and search shortcuts from consuming keys", () =
 
 /** Desktop top-bar search: tab token, # conditions and type chips share the home filter. */
 
+// @wu-test type=behavior | scope=phone search editing | protects=Keep the input and focus while updating suggestions and allow cancellation
 test("phone search retains its field on filter updates, suggests the cards it finds, and returns to browse", () => {
 	const f = fixture();
 	try {
@@ -467,6 +484,7 @@ test("phone search retains its field on filter updates, suggests the cards it fi
 	}
 });
 
+// @wu-test type=behavior | scope=favorite removal from detail | protects=Keep the source card visible until detail closes and then update favorites | debt=D9
 test("unbookmarking an open favorite retains its source until the detail closes", async () => {
 	const f = fixture();
 	try {

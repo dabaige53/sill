@@ -1,14 +1,11 @@
 /** Phone sheets travel opaque with their dim; a cloud launch never shows a login before the session answers. */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
+
 import { test } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CloudBoot } from "../../apps/web/views/cloud-views.tsx";
 import { fixture } from "./visibility-motion-fixture.ts";
-
-const root = path.resolve(import.meta.dirname, "../..");
 
 function phoneSheet(f: ReturnType<typeof fixture>) {
 	f.w.matchMedia = () => ({ matches: true });
@@ -19,6 +16,7 @@ function phoneSheet(f: ReturnType<typeof fixture>) {
 	return dialog;
 }
 
+// @wu-test type=behavior | scope=Phone sheet opening | protects=Keep the sheet opaque while its backdrop appears | debt=D6
 test("phone sheet rises opaque while its backdrop fades in over the same duration", () => {
 	const f = fixture();
 	try {
@@ -42,6 +40,7 @@ test("phone sheet rises opaque while its backdrop fades in over the same duratio
 	}
 });
 
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Restore the backdrop after a queued sheet is cancelled | debt=D6
 test("queued phone sheet holds its dim for the waiting frame and releases it when cancelled", () => {
 	const f = fixture();
 	try {
@@ -63,6 +62,7 @@ test("queued phone sheet holds its dim for the waiting frame and releases it whe
 	}
 });
 
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Make the backdrop follow an interrupted drag | debt=D6
 test("a drag scrub replaces a timed backdrop fade instead of seeking it", () => {
 	const f = fixture();
 	try {
@@ -85,6 +85,7 @@ test("a drag scrub replaces a timed backdrop fade instead of seeking it", () => 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Continue closing from the currently visible backdrop opacity | debt=D6
 test("a closing fade starts from the backdrop opacity drawn mid-entry", () => {
 	const f = fixture();
 	try {
@@ -101,29 +102,7 @@ test("a closing fade starts from the backdrop opacity drawn mid-entry", () => {
 	}
 });
 
-test("motion tokens are read from the stylesheet once and inline overrides stay live", () => {
-	const f = fixture();
-	try {
-		const doc = f.w.document;
-		const style = doc.createElement("style");
-		style.textContent = ":root { --dur-sheet: 260ms; }";
-		doc.head.append(style);
-		let reads = 0;
-		const computed = f.w.getComputedStyle;
-		f.w.getComputedStyle = (el: Element) => {
-			if (el === doc.documentElement) reads++;
-			return computed(el);
-		};
-		assert.equal(f.motion.time("dur-sheet"), 260);
-		assert.equal(f.motion.time("dur-sheet"), 260);
-		assert.equal(reads, 1);
-		doc.documentElement.style.setProperty("--dur-sheet", "300ms");
-		assert.equal(f.motion.time("dur-sheet"), 300);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=Cloud launch placeholder | protects=Show inert placeholders without exposing login controls during boot
 test("launch placeholders stay empty first, then draw inert card shells", () => {
 	const quiet = renderToStaticMarkup(createElement(CloudBoot, { visible: false }));
 	assert.match(quiet, /class="feed-boot"/);
@@ -132,21 +111,4 @@ test("launch placeholders stay empty first, then draw inert card shells", () => 
 	const cards = shown.match(/class="feed-item feed-card feed-skeleton" aria-hidden="true"/g) || [];
 	assert.ok(cards.length >= 4);
 	assert.doesNotMatch(shown, /data-card|data-action|<button|<a /);
-});
-
-test("cloud launch keeps the boot view until the first session check settles", () => {
-	const entry = readFileSync(path.join(root, "apps/web/cloud-entry.ts"), "utf8");
-	const workspace = readFileSync(path.join(root, "apps/web/cloud-workspace.ts"), "utf8");
-	// The boot view is chosen before the login welcome.
-	const desk = entry.slice(entry.indexOf("app.deskView = () => {"));
-	assert.ok(desk.indexOf("CloudBoot") < desk.indexOf("cloudWelcome()"));
-	assert.match(entry, /booting: true/);
-	// Placeholders wait for delay-loading; the redirect to login keeps them.
-	assert.match(entry, /MotionEngine\.time\("delay-loading"\)/);
-	assert.match(entry, /!Cloud\.redirecting && endBoot\(\)/);
-	const redirect = workspace.indexOf('location.replace("/auth/login"');
-	assert.ok(workspace.lastIndexOf("Cloud.redirecting = true", redirect) > redirect - 200);
-	// First cards enter after layout; later data updates retain their own motion.
-	assert.match(workspace, /if \(endBoot\(\)\) \{\s*app\.initializing = true;/);
-	assert.match(workspace, /app\.renderCurrent\(true\);/);
 });

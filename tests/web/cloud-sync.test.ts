@@ -17,6 +17,7 @@ const initial = () => ({
 	preferences: { theme: "system" },
 	seconds: 0,
 });
+// @wu-test type=boundary | scope=workspaceDiff | protects=Create valid atomic operations without sending server-owned card metadata
 test("cloud captures one bulk gesture atomically and strips server metadata from card writes", () => {
 	const before = initial(),
 		next = clone(before);
@@ -36,6 +37,7 @@ test("cloud captures one bulk gesture atomically and strips server metadata from
 		[{ bookmarked: false }, { bookmarked: false }],
 	);
 });
+// @wu-test type=integration | scope=CloudSync retry | protects=Retry an uncertain write with the same key and body without duplicating reading time
 test("unknown cloud write keeps the exact key and body; a successful retry does not duplicate reading time", async () => {
 	let state = initial(),
 		requestCount = 0;
@@ -73,6 +75,7 @@ test("unknown cloud write keeps the exact key and body; a successful retry does 
 	sync.reset();
 	assert.equal(sync.completedWrites, 2, "discarding drafts is not a save receipt");
 });
+// @wu-test type=integration | scope=CloudSync capture | protects=Keep changes made during an in-flight save and batch one bulk action
 test("one synchronous bulk action is one request and preserves later changes during a save", async () => {
 	let state = initial(),
 		resolve: any;
@@ -108,6 +111,7 @@ test("one synchronous bulk action is one request and preserves later changes dur
 	assert.equal(sync.pending.length, 0);
 });
 
+// @wu-test type=boundary | scope=CloudSync reauthentication | protects=Restore pending state only for the originating owner and avoid accidental deletions
 test("reauthentication restores the optimistic state before retry, never treating cleared UI as deletion", async () => {
 	let state = initial(),
 		denied = true;
@@ -142,6 +146,7 @@ test("reauthentication restores the optimistic state before retry, never treatin
 	assert.ok(sent.every((r) => r.body.operations.every((o) => o.op !== "card.delete")));
 	assert.equal(state.cards.length, 2);
 });
+// @wu-test type=boundary | scope=CloudSync owner binding | protects=Keep queued writes bound to their originating account
 test("queued batches retain their originating owner even if the current session changes", async () => {
 	let state = initial(),
 		owner = "owner-a";
@@ -168,6 +173,7 @@ test("queued batches retain their originating owner even if the current session 
 	assert.equal(sync.pending.length, 1);
 });
 
+// @wu-test type=boundary | scope=CloudSync queued writes | protects=Keep queued nested values unchanged after later local edits | debt=D6
 test("unchanged collection keeps baseline and queued nested values remain immutable", () => {
 	const state = initial();
 	const sync = new CloudSync({
@@ -190,6 +196,7 @@ test("unchanged collection keeps baseline and queued nested values remain immuta
 	assert.deepEqual(sync.pending[0].body.operations[0].values.taskDone, ["task-a"]);
 });
 
+// @wu-test type=behavior | scope=workspaceDiff | protects=Avoid a card write when only object field order changes
 test("reordered JSON fields do not produce card writes", () => {
 	const before = initial();
 	const next = clone(before);

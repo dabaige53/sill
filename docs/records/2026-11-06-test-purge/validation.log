@@ -1,0 +1,11 @@
+Node: 31 files, 264 passed, 0 failed, 0 skipped.
+Agent handoff: 5 passed, 0 failed.
+Swift: 5 filtered suites, 47 passed, 0 failed.
+TypeScript: changed files and imports, exit 0.
+Design contract checks: 11 HTTP designs, 10 MCP mappings, 11 synthetic responses, exit 0.
+Standalone images: existing build artifact, exit 0.
+Marker audit: 875/875 cases plus 14 shared checks, 889 markers total.
+No full test run, browser, production access, CI dispatch or deployment.
+File management: npm run files:check, exit 0.
+Diff whitespace: git diff --check, exit 0.
+Commit: blocked by PreToolUse file-size hook; four unchanged baseline files exceed local limits. No commit created.

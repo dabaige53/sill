@@ -37,6 +37,7 @@ function checkPlayer(response: Response, local: boolean) {
 	assert.deepEqual(csp["default-src"], [local ? "'self'" : "'none'"]);
 }
 
+// @wu-test type=integration | scope=local application content security policy | protects=Restrict local player resources to the approved origins
 test("local application pages allow only the implemented player origins", async () => {
 	const dir = await mkdtemp(
 		(process.platform === "darwin" ? "/private/tmp" : tmpdir()) + "/sill-player-policy-",
@@ -56,6 +57,7 @@ test("local application pages allow only the implemented player origins", async 
 	}
 });
 
+// @wu-test type=boundary | scope=cloud application content security policy | protects=Allow supported players without granting their origins to authentication pages
 test("cloud application allows the same players without widening authentication pages", async () => {
 	const runtime = createSillRuntime(config, { html: "<html>Application</html>" });
 	const page = await runtime(new Request(config.appOrigin + "/"));

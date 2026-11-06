@@ -4,6 +4,7 @@ import { authenticateSupabase } from "../../server/cloud/supabase-auth.ts";
 import { A, resource } from "./helpers/boundary-fixture.ts";
 import { clientFactory, config, token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=boundary | scope=server/cloud Supabase authentication | protects=Reject tampered, expired or wrong-audience tokens
 test("official SDK verifies real ES256 signatures and rejects tampering/expiry/resource substitution", async () => {
 	const good = token();
 	assert.equal(

@@ -13,6 +13,7 @@ export async function runCaptureLayout({
 	rect: any;
 	scenario: any;
 }) {
+	// @wu-test type=behavior | scope=desktop selection and bottom rail | protects=prevent selection from moving card content, obscuring notices, or becoming impossible to exit
 	await scenario(
 		"Bottom rail, selection menu, refresh and stacked previews share one rule",
 		async (page?: any) => {
@@ -84,6 +85,7 @@ export async function runCaptureLayout({
 			assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
 			await page.waitForFunction(() => document.getElementById("selection-bar").hidden);
 			assert.equal(await page.locator("#selection-bar").isVisible(), false);
+			// @wu-test type=behavior | scope=desktop long-press selection | protects=prevent long press from losing selection or opening an unsupported menu | debt=D9
 			await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 			const start = await card(page, ids[0]).locator(".card-head").boundingBox(),
 				x = start.x + start.width / 2,
@@ -101,6 +103,7 @@ export async function runCaptureLayout({
 			assert.equal(await page.locator("#selection-menu").isVisible(), false);
 			assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
 			await page.keyboard.press("Escape");
+			// @wu-test type=behavior | scope=related card navigation | protects=prevent closing a child card from losing its parent or returning to the wrong page | debt=D9
 			await action(page, "refresh");
 			await page.waitForFunction(
 				() => document.getElementById("pull-ring").dataset.state === "success",
@@ -149,6 +152,7 @@ export async function runCaptureLayout({
 			assert.equal(await page.evaluate(() => location.hash), "#feed");
 		},
 	);
+	// @wu-test type=behavior | scope=phone selection and notices | protects=prevent the selection toolbar from overflowing or important notices from closing automatically | debt=D9
 	await scenario(
 		"Phone selection takes the whole rail and the toast rises above it",
 		async (page?: any) => {
@@ -172,6 +176,7 @@ export async function runCaptureLayout({
 		},
 		{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 	);
+	// @wu-test type=behavior | scope=phone page navigation | protects=prevent settings content from being obscured or the wrong page appearing during navigation | debt=D9,D6
 	await scenario(
 		"Phone pages switch without showing the desk; settings fills the screen; card menu has icons and clears the rail",
 		async (page?: any) => {
@@ -197,6 +202,7 @@ export async function runCaptureLayout({
 		},
 		{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 	);
+	// @wu-test type=behavior | scope=desktop preview transitions | protects=prevent previews from opening at the wrong position or displaying incorrect text after closing | debt=D9,D6
 	await scenario(
 		"Desktop preview grows from its card and returns on the same spring",
 		async (page?: any) => {
@@ -252,6 +258,7 @@ export async function runCaptureLayout({
 			);
 		},
 	);
+	// @wu-test type=boundary | scope=manual capture boundary | protects=prevent unsupported drag and drop from creating content | debt=D7
 	await scenario("Manual capture, paste and text drop do not create cards", async (page?: any) => {
 		const count = await page.locator(".feed-card").count();
 		await page.keyboard.press("n");

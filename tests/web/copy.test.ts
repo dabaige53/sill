@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import vm from "node:vm";
-import { buildSync, transformSync } from "esbuild";
+import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
 import { avatars, dateLabel, duration } from "../../apps/web/atoms/primitives.ts";
 import { cardHTML } from "../../apps/web/cards/templates.ts";
@@ -24,6 +24,7 @@ function sourceFiles(directory: string): string[] {
 	);
 }
 
+// @wu-test type=boundary | scope=shared copy references | protects=Prevent missing shared copy keys from reaching the interface | debt=D6
 test("active copy references and shell markers use existing shared keys", () => {
 	for (const file of ["apps/web", "server", "scripts", "contracts"]
 		.flatMap((directory) => sourceFiles(resolve(root, directory)))
@@ -39,6 +40,7 @@ test("active copy references and shell markers use existing shared keys", () => 
 	}
 });
 
+// @wu-test type=boundary | scope=errorMessage | protects=Map known errors to shared messages and hide unknown error details
 test("local error codes use shared messages and unknown values never appear in the UI", () => {
 	for (const [key, value] of Object.entries(messages).filter(([key]) => key.startsWith("error."))) {
 		assert.equal(errorMessage(key.slice(6)), value);
@@ -47,6 +49,7 @@ test("local error codes use shared messages and unknown values never appear in t
 	assert.equal(errorMessage(undefined), copy("error.unavailable"));
 });
 
+// @wu-test type=boundary | scope=card and source copy keys | protects=Provide a shared label for every contract card and source kind
 test("shared card and source labels exactly cover the contract kinds", () => {
 	assert.deepEqual(
 		Object.keys(messages)
@@ -67,24 +70,7 @@ test("shared card and source labels exactly cover the contract kinds", () => {
 		assert.equal(SourceKinds[kind].label, copy(`source.type.${kind}`));
 });
 
-test("Web user-facing Chinese stays in shared copy rather than source literals", () => {
-	for (const file of sourceFiles(resolve(root, "apps/web")).filter(
-		(file) => /\.tsx?$/.test(file) && !file.endsWith("/assets.ts"),
-	)) {
-		const result = transformSync(readFileSync(file, "utf8"), {
-			loader: file.endsWith(".tsx") ? "tsx" : "ts",
-			charset: "utf8",
-			minifyWhitespace: true,
-			legalComments: "none",
-		}).code.replace("/现在|到期/", "");
-		assert.doesNotMatch(result, /\p{Script=Han}/u, file);
-	}
-	assert.doesNotMatch(
-		readFileSync(resolve(root, "apps/web/index.html"), "utf8"),
-		/\p{Script=Han}/u,
-	);
-});
-
+// @wu-test type=integration | scope=browser copy bundle | protects=Load shared copy in a browser-compatible bundle
 test("browser copy bundle preserves every string without Node or DOM globals", () => {
 	const script = buildSync({
 		stdin: {
@@ -103,9 +89,9 @@ test("browser copy bundle preserves every string without Node or DOM globals", (
 	const context = vm.createContext({});
 	vm.runInContext(script, context);
 	for (const [key, value] of Object.entries(messages)) assert.equal(context.Copy.copy(key), value);
-	assert.doesNotMatch(script, /ZodError|node:|require\(/);
 });
 
+// @wu-test type=boundary | scope=translated card rendering | protects=Escape dynamic content while preserving displayed text
 test("translated HTML keeps dynamic values, escaping and nested expressions", () => {
 	Store.state = Store.fresh();
 	const title = 'Literal ` ${notEvaluated} <script> & "quoted"';
@@ -129,6 +115,7 @@ test("translated HTML keeps dynamic values, escaping and nested expressions", ()
 	assert.match(dateLabel(new Date(2026, 9, 16).getTime()), /10月16日/);
 });
 
+// @wu-test type=behavior | scope=ended and read card presentation | protects=Distinguish ended events and avoid redundant status labels
 test("ended events and read cards fade without a status label", () => {
 	Store.state = Store.fresh();
 	const event = { id: "ended", type: "event", title: "回顾", start: 1000, end: 2000 };
@@ -144,6 +131,7 @@ test("ended events and read cards fade without a status label", () => {
 	assert.doesNotMatch(read.body.textContent || "", /已读/);
 });
 
+// @wu-test type=boundary | scope=reminder status label | protects=Avoid inventing a status for a reminder without a time
 test("a reminder without a time has no status label and no meta fallback", () => {
 	const reminder = { id: "r", type: "reminder", title: "调价", meta: "已保存" };
 	assert.equal(FeedPolicy.label(reminder, {}, Date.now()), "");

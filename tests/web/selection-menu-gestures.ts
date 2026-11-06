@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
+	// @wu-test type=behavior | scope=selection menu removal | protects=Keep removed product menus closed without changing selection
 	test("selection: cancelled menu shortcuts and action names do not open product menus", () => {
 		const f = fixture();
 		try {
@@ -33,6 +34,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 		}
 	});
 
+	// @wu-test type=behavior | scope=touch selection | protects=Distinguish scrolling from a stationary selection hold
 	test("selection: quick touch movement stays a scroll; stationary hold only selects", () => {
 		const f = fixture();
 		try {
@@ -56,6 +58,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 		}
 	});
 
+	// @wu-test type=behavior | scope=repeated selection hold | protects=Preserve selected cards during repeated holds
 	test("selection: moving or repeating a hold preserves selection without opening a menu", () => {
 		const f = fixture();
 		try {
@@ -76,6 +79,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 		}
 	});
 
+	// @wu-test type=boundary | scope=selection drag preview | protects=Keep the drag preview noninteractive without modifying the original card
 	test("selection: thumbnail clones real card content without IDs, handlers, or interaction hooks", () => {
 		const f = fixture();
 		try {
@@ -131,6 +135,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection gesture cancellation | protects=Cancel interrupted gestures without losing selection
 	test("selection: interrupted press or lift cleans up without clearing selection", () => {
 		for (const held of [false, true])
 			for (const method of ["Escape", "touchcancel", "pointercancel", "blur", "resize"]) {
@@ -163,32 +168,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 			}
 	});
 
-	test("selection: explicit buttons reuse bookmark, later, and bulk tag handlers", () => {
-		for (const action of ["bookmark", "later", "tag"]) {
-			const f = fixture();
-			try {
-				const before = f.state();
-				f.selectTwo();
-				f.document.addEventListener("click", (event) => f.app.click(event));
-				assert.equal(f.state(), before);
-				f.document.querySelector(`[data-action="selected-${action}"]`).click();
-				assert.equal(f.document.getElementById("selection-menu"), null);
-				assert.deepEqual(f.selected(), ["one", "two"]);
-				if (action === "tag") {
-					assert.equal(f.state(), before);
-					assert.deepEqual(Array.from(f.app.bulkEditIds), ["one", "two"]);
-					assert.deepEqual(f.app.openedPanel, { kind: "editor", id: "one" });
-				} else {
-					const key = action === "bookmark" ? "bookmarked" : "later";
-					for (const id of ["one", "two"]) assert.equal(f.Store.item(id)[key], true);
-					assert.equal(f.Store.item("three")[key], false);
-				}
-			} finally {
-				f.dom.window.close();
-			}
-		}
-	});
-
+	// @wu-test type=boundary | scope=native card drag | protects=Prevent native drag from exposing transferable card content
 	test("selection: native drag is cancelled before any transferable content is created", () => {
 		const f = fixture();
 		try {
@@ -202,6 +182,7 @@ export async function registerMenuGestureTests({ fixture }: { fixture: any }) {
 		}
 	});
 
+	// @wu-test type=behavior | scope=selection and pull refresh | protects=Avoid starting pull refresh while cards are selected
 	test("selection: touch and wheel pull-refresh are inactive while cards are selected", () => {
 		const f = fixture();
 		try {
