@@ -27,7 +27,7 @@ SOFTWARE.
 .typeset {
 	--typeset-flow: 1.25em;
 }
-.typeset :where(p, ul, ol, blockquote, table) {
+.typeset :where(p, ul, ol, blockquote, .markdown-table) {
 	margin-block-start: var(--typeset-flow);
 	margin-block-end: 0;
 }
@@ -66,7 +66,7 @@ SOFTWARE.
 	margin-block-start: 0.5em;
 	padding-inline-start: 0.4em;
 }
-.typeset :where(li > p, li > ul, li > ol, li > blockquote, li > table) {
+.typeset :where(li > p, li > ul, li > ol, li > blockquote, li > .markdown-table) {
 	margin-block-start: 0.5em;
 }
 .typeset :where(pre) {
@@ -81,18 +81,6 @@ SOFTWARE.
 .typeset :where(hr) {
 	margin-block-start: calc(var(--typeset-flow) * 2.4);
 	margin-block-end: 0;
-}
-.typeset :where(table) {
-	max-width: 100%;
-}
-.typeset :where(thead th) {
-	padding: 0.65em 1em;
-}
-.typeset :where(tbody td, tbody th, tfoot td, tfoot th) {
-	padding: 0.75em 1em;
-}
-.typeset :where(th:first-child, td:first-child) {
-	padding-inline-start: 0;
 }
 .typeset > :where(:first-child),
 .typeset

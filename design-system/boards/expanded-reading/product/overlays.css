@@ -394,6 +394,30 @@ dialog::backdrop {
 	padding: 0;
 	background: none;
 }
+/* Tables keep word-level columns and scroll in their own frame; the body's break-anywhere rule
+ * would otherwise shrink every column to one character and make phone tables very tall. */
+.preview-full .markdown-table {
+	max-width: 100%;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+}
+.preview-full table {
+	border-collapse: collapse;
+}
+.preview-full :is(th, td) {
+	min-width: 7em;
+	padding: var(--space-8) var(--space-12);
+	border-bottom: 1px solid var(--line);
+	text-align: left;
+	vertical-align: top;
+	overflow-wrap: break-word;
+}
+.preview-full :is(th, td):first-child {
+	padding-inline-start: 0;
+}
+.preview-full th {
+	font-weight: calc(600 + var(--content-weight-add, 0));
+}
 .preview-full hr {
 	border: 0;
 	border-top: 1px solid var(--line);
