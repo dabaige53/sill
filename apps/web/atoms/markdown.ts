@@ -71,8 +71,28 @@ export function internalCardRoute(href: string, base: string): string | null {
 	}
 }
 
+// Feed faces, reading time and search read the same bodies on every render and keystroke.
+// Parsing is the costly part, so plain text is kept per body for the most recent bodies.
+const plainCache = new Map<string, { blocks: string[]; text?: string }>();
+const plainCacheSize = 500;
+
+function plain(text: string) {
+	let entry = plainCache.get(text);
+	if (entry) plainCache.delete(text);
+	else {
+		entry = { blocks: parseBlocks(text) };
+		if (plainCache.size >= plainCacheSize) plainCache.delete(plainCache.keys().next().value);
+	}
+	plainCache.set(text, entry);
+	return entry;
+}
+
 /** Plain text blocks of a Markdown string, for search, excerpts and the card face fallback. */
 export function markdownBlocks(text: string): string[] {
+	return plain(text).blocks.slice();
+}
+
+function parseBlocks(text: string): string[] {
 	return md
 		.parse(text, {})
 		.filter((token) => ["inline", "fence", "code_block"].includes(token.type))
@@ -93,5 +113,7 @@ export function markdownBlocks(text: string): string[] {
 }
 
 export function markdownText(text: string): string {
-	return markdownBlocks(text).join("\n");
+	const entry = plain(text);
+	entry.text ??= entry.blocks.join("\n");
+	return entry.text;
 }

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
+import MarkdownIt from "markdown-it";
 import {
 	internalCardRoute,
 	markdownBlocks,
@@ -68,6 +69,27 @@ test("plain text drops markup for search, excerpts and the card face", () => {
 	const text = "## Title\n\n1. **One** point\n2. Two\n\nA [link](https://example.com)\nwraps";
 	assert.deepEqual(markdownBlocks(text), ["Title", "One point", "Two", "A link wraps"]);
 	assert.equal(markdownText(text), "Title\nOne point\nTwo\nA link wraps");
+});
+
+test("feed faces, reading time and search parse each body once", () => {
+	const body = "## Plan\n\nRead **this** body once.";
+	const parse = MarkdownIt.prototype.parse;
+	let calls = 0;
+	MarkdownIt.prototype.parse = function (...args) {
+		calls++;
+		return parse.apply(this, args);
+	};
+	try {
+		const blocks = markdownBlocks(body);
+		blocks.push("changed by a caller");
+		for (let i = 0; i < 5; i++) {
+			assert.deepEqual(markdownBlocks(body), ["Plan", "Read this body once."]);
+			assert.equal(markdownText(body), "Plan\nRead this body once.");
+		}
+	} finally {
+		MarkdownIt.prototype.parse = parse;
+	}
+	assert.equal(calls, 1);
 });
 
 test("code blocks remain searchable and available as card text", () => {
