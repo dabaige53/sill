@@ -39,6 +39,13 @@ test("common Markdown blocks render as structure", () => {
 	assert.equal(doc.querySelector("code")?.textContent, "code");
 });
 
+test("tables render inside their own horizontal scroll frame", () => {
+	const doc = render("| 项目 | 说明 |\n| --- | --- |\n| A | 一段较长的说明文字 |");
+	const frame = doc.querySelector(".markdown-table");
+	assert.equal(frame?.firstElementChild?.tagName, "TABLE");
+	assert.equal(frame?.querySelectorAll("tbody td").length, 2);
+});
+
 test("raw HTML stays text, images are not loaded and only safe links open", () => {
 	const doc = render(
 		'<script>alert(1)</script> <img src="https://example.com/x.png">\n\n![Alt](https://example.com/y.png)\n\n[Safe](https://example.com) [Mail](mailto:a@example.com) [Bad](javascript:alert(1)) [File](file:///etc/passwd)',

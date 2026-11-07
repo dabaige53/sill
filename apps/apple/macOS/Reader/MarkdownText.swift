@@ -31,9 +31,11 @@ struct MarkdownText: View {
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space8))
         } else if !block.cells.isEmpty {
           HStack(alignment: .top, spacing: AppleMetrics.space16) {
+            // Table header cells keep body size, like Web; only weight and color mark them.
             ForEach(Array(block.cells.enumerated()), id: \.offset) { _, runs in
-              Text(attributed(runs, heading: block.heading))
+              Text(attributed(runs, heading: 0, strong: block.heading > 0))
                 .textStyle(size, leading: leading)
+                .foregroundStyle(block.heading > 0 ? AppleColors.secondary : AppleColors.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
@@ -104,14 +106,17 @@ struct MarkdownText: View {
     return (String(parts[1]), parts[0] == "read")
   }
 
-  private func attributed(_ runs: [MarkdownBody.Run], heading: Int) -> AttributedString {
+  private func attributed(_ runs: [MarkdownBody.Run], heading: Int, strong: Bool = false)
+    -> AttributedString
+  {
     runs.reduce(into: AttributedString()) { result, run in
       var text = AttributedString(run.text)
       var font: Font =
         run.code
         ? .system(size: size * appearance.scale, design: .monospaced)
         : .sans(headingSize(heading) * appearance.scale)
-      font = font.weight(appearance.weight(run.bold || heading > 0 ? .semibold : .regular))
+      let semibold = run.bold || strong || heading > 0
+      font = font.weight(appearance.weight(semibold ? .semibold : .regular))
       if run.italic { font = font.italic() }
       text.font = font
       text.strikethroughStyle = run.strike ? .single : nil
