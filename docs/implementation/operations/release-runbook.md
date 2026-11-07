@@ -6,7 +6,7 @@
 
 ## Tag 发布
 
-正式版本由 `v<package.json version>` tag 固定源码。`.github/workflows/release.yml` 复用全部现行 CI：集成测试、Web 浏览器回归、Postgres 与云端浏览器、授权策略、Swift 后台测试。任一必需检查失败，不生成发布包、不部署。手动重跑也必须选择同一版本 tag，不能使用 main 代替。
+正式版本由 `v<package.json version>` tag 固定源码。`.github/workflows/release.yml` 复用全部现行 CI：集成测试、Web 浏览器回归、Postgres 与云端浏览器、授权策略、Swift 后台测试。任一必需检查失败，不生成发布包、不部署。手动重跑也必须选择同一版本 tag，不能使用 main 代替。无法推送 tag 时，在 main 上手动运行 `Tag Sill release`（`release-tag.yml`）：它按 package.json 版本给 main 当前提交打 tag，tag 已存在则失败，然后以该 tag 启动 `release.yml`。
 
 通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：固定自签证书签名、未经公证，DMG 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
 

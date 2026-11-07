@@ -1,0 +1,30 @@
+name: Tag Sill release
+# Manual entry for sessions that cannot push tags: tag main at the package version, then run the
+# existing release on that tag. Tags made with the workflow token do not trigger push workflows,
+# so the release starts only through the explicit dispatch below.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: sill-release-tag
+  cancel-in-progress: false
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag the product version and start Release Sill
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main || { echo "::error::Run on main"; exit 1; }
+          tag="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::error::$tag already exists"; exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" >/dev/null
+          gh workflow run release.yml --ref "$tag"
+          echo "Tagged $tag at $GITHUB_SHA and started Release Sill"
