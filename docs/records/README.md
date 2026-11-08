@@ -8,7 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
-- [Web 搜索与信息流反复解析正文](2026-11-07-web-markdown-reparse/README.md)
+- [Web 性能排查](2026-11-07-web-markdown-reparse/README.md)
 - [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md)
 - [1.2.34 发布](2026-11-04-release-1.2.34/README.md)
 - [Resend 发信与 Supabase SMTP 配置](2026-11-04-email-setup/README.md)
