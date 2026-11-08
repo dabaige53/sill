@@ -71,8 +71,8 @@ test("plain text drops markup for search, excerpts and the card face", () => {
 	assert.equal(markdownText(text), "Title\nOne point\nTwo\nA link wraps");
 });
 
-test("feed faces, reading time and search parse each body once", () => {
-	const body = "## Plan\n\nRead **this** body once.";
+/** Counts the Markdown parses `read` causes. */
+function parses(read: () => void) {
 	const parse = MarkdownIt.prototype.parse;
 	let calls = 0;
 	MarkdownIt.prototype.parse = function (...args) {
@@ -80,16 +80,52 @@ test("feed faces, reading time and search parse each body once", () => {
 		return parse.apply(this, args);
 	};
 	try {
+		read();
+	} finally {
+		MarkdownIt.prototype.parse = parse;
+	}
+	return calls;
+}
+
+test("feed faces, reading time and search parse each body once", () => {
+	const body = "## Plan\n\nRead **this** body once.";
+	const calls = parses(() => {
 		const blocks = markdownBlocks(body);
 		blocks.push("changed by a caller");
 		for (let i = 0; i < 5; i++) {
 			assert.deepEqual(markdownBlocks(body), ["Plan", "Read this body once."]);
 			assert.equal(markdownText(body), "Plan\nRead this body once.");
 		}
-	} finally {
-		MarkdownIt.prototype.parse = parse;
-	}
+	});
 	assert.equal(calls, 1);
+});
+
+test("searching a large workspace again parses no body twice", () => {
+	const bodies = Array.from({ length: 1200 }, (_, i) => `## Card ${i}\n\nWorkspace body ${i}.`);
+	const calls = parses(() => {
+		for (let pass = 0; pass < 3; pass++) for (const body of bodies) markdownText(body);
+	});
+	assert.equal(calls, bodies.length);
+});
+
+test("bodies unused for ten minutes leave the cache as new bodies arrive", (t) => {
+	t.mock.timers.enable({ apis: ["Date"], now: Date.now() + 3600000 });
+	const stale = "Edited away **long ago**.",
+		recent = "Still on the **desk**.";
+	markdownText(stale);
+	t.mock.timers.tick(11 * 60000);
+	markdownText(recent);
+	parses(() => {
+		for (let i = 0; i < 6000; i++) markdownText(`Arrival ${i}`);
+	});
+	assert.equal(
+		parses(() => markdownText(recent)),
+		0,
+	);
+	assert.equal(
+		parses(() => markdownText(stale)),
+		1,
+	);
 });
 
 test("code blocks remain searchable and available as card text", () => {

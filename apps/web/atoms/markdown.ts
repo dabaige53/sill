@@ -72,18 +72,28 @@ export function internalCardRoute(href: string, base: string): string | null {
 }
 
 // Feed faces, reading time and search read the same bodies on every render and keystroke.
-// Parsing is the costly part, so plain text is kept per body for the most recent bodies.
-const plainCache = new Map<string, { blocks: string[]; text?: string }>();
-const plainCacheSize = 500;
+// Each distinct body is parsed once while it stays in use, so a full scan of an unchanged
+// workspace never parses again, whatever its size. Once the cache has doubled since the last
+// sweep, bodies unused for ten minutes (edited or deleted cards) are dropped.
+type Plain = { blocks: string[]; text?: string; used: number };
+const plainCache = new Map<string, Plain>();
+const plainMinimum = 256;
+const plainIdleMs = 600000;
+let plainKept = 0;
 
-function plain(text: string) {
+function plain(text: string): Plain {
+	const now = Date.now();
 	let entry = plainCache.get(text);
-	if (entry) plainCache.delete(text);
-	else {
-		entry = { blocks: parseBlocks(text) };
-		if (plainCache.size >= plainCacheSize) plainCache.delete(plainCache.keys().next().value);
+	if (!entry) {
+		entry = { blocks: parseBlocks(text), used: now };
+		plainCache.set(text, entry);
+		if (plainCache.size > Math.max(plainMinimum, 2 * plainKept)) {
+			for (const [key, value] of plainCache)
+				if (now - value.used > plainIdleMs) plainCache.delete(key);
+			plainKept = plainCache.size;
+		}
 	}
-	plainCache.set(text, entry);
+	entry.used = now;
 	return entry;
 }
 
