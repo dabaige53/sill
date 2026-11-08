@@ -159,22 +159,27 @@ function readingFixture() {
 	};
 }
 
-test("scrolling a long read saves progress once per interval, keeping the furthest point", () => {
+test("scrolling a long read writes no progress until its view is left, keeping the furthest point", () => {
 	const f = readingFixture();
 	try {
 		for (const top of [1000, 2000, 3000, 2500, 4000]) {
 			f.scroll.scrollTop = top;
 			f.app.updateReading("long-read", f.scroll);
 		}
-		assert.equal(f.saves(), 0, "progress alone must not save the workspace on every scroll event");
-		assert.equal(f.timers.length, 1, "one pending write per interval");
-		f.timers[0]();
+		assert.equal(
+			f.saves(),
+			0,
+			"every save returns the whole workspace; scrolling alone must not save",
+		);
+		assert.equal(f.timers.length, 0, "nothing is scheduled while reading, as on Mac");
+		f.flushReadingProgress();
 		assert.equal(f.saves(), 1);
 		assert.equal(f.Store.item("long-read").progress, 0.4);
-		// Scrolling back keeps the stored furthest point and schedules nothing new.
+		// Scrolling back keeps the stored furthest point and leaves nothing to write.
 		f.scroll.scrollTop = 1000;
 		f.app.updateReading("long-read", f.scroll);
-		assert.equal(f.timers.length, 1);
+		f.flushReadingProgress();
+		assert.equal(f.saves(), 1);
 	} finally {
 		f.dom.window.close();
 	}
@@ -291,6 +296,12 @@ test("lifecycle and close paths flush pending reading progress and reading time"
 	assert.match(
 		lifecycle,
 		/"pagehide", \(\) => \{\s*flushReadingProgress\(\);\s*this\.takeReadingTime\(\);\s*Store\.save\(\);/,
+	);
+	const panels = readFileSync(path.join(root, "apps/web/views/app-panels.ts"), "utf8");
+	// Another card or view reads the stored progress, so the one being left is written first.
+	assert.match(
+		panels,
+		/openCard\(this: AppController[^{]*\{\s*(?:\/\/[^\n]*\n\s*)*flushReadingProgress\(\);\s*return openCard\.call/,
 	);
 	const close = surfaces.slice(surfaces.indexOf("closeNative(this: AppController"));
 	const written = close.indexOf("if (this.takeReadingTime()) Store.save();");

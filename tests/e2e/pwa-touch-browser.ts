@@ -135,7 +135,7 @@ try {
 				await page.waitForTimeout(500);
 				await screenshot("detail");
 				const buttons = page.locator("#modal .float-bar .icon-button");
-				// Reading progress saves on its own timer after opening; card actions change the rest.
+				// Reading progress is written when the view is left; card actions change the rest.
 				const actionState = () =>
 					page.evaluate(() => {
 						const { progress, ...rest } = window.__store.item("review-event");
