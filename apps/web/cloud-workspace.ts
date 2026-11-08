@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { paintCloudDraft, stashCloudDraft } from "./cloud-compose.ts";
 import { app, Cloud, callbackFailed, messages, sync } from "./cloud-entry.ts";
 import { copy } from "./copy.ts";
-import { cloudCard } from "./data/cloud-card.ts";
+import { cloudCard, keepUnchanged, projectedCard, storedCard } from "./data/cloud-card.ts";
 import { sameData } from "./data/same-data.ts";
 import { Store } from "./data/store.ts";
 import { clone } from "./services/cloud-sync.ts";
@@ -150,13 +150,7 @@ export function cloudConnection() {
 export function workspaceState() {
 	const cards = Store.state.cards.map((card: any) => {
 		const raw = Cloud.records.get(card.id);
-		if (!raw) return card;
-		const projected = cloudCard(raw);
-		const value = { ...card };
-		for (const key of Object.keys(projected))
-			if (!(key in raw) && JSON.stringify(value[key]) === JSON.stringify(projected[key]))
-				delete value[key];
-		return value;
+		return raw ? storedCard(card, raw) : card;
 	});
 	return {
 		cards,
@@ -198,7 +192,7 @@ export function endBoot() {
 export function paintRecords(redraw = true) {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
-		.map((c: any) => cloudCard(c));
+		.map((c: any) => projectedCard(c));
 	if (!redraw) return;
 	app.checkReminders();
 	// The first snapshot appears together; later updates keep their arrival transition.
@@ -234,17 +228,19 @@ function holdArrivals(records: any[]) {
 	app.paintPending();
 }
 export function adoptWorkspace(value: any) {
+	// Unchanged records keep their objects, so their drawn cards and saved copies are reused.
+	const records = keepUnchanged(Cloud.records, value.state.cards);
 	// A save response that confirms the page's optimistic state keeps the mounted cards and detail.
 	const changed =
 		Cloud.booting ||
 		!sameData(
 			drawnState([...Cloud.records.values()], Store.state.items, Store.state.preferences),
-			drawnState(value.state.cards, value.state.items, value.state.preferences),
+			drawnState(records, value.state.items, value.state.preferences),
 		);
 	const detailChanged = !sameData(
 		cloudViewCard(Cloud.records.get(app.currentId), Store.state.items[app.currentId]),
 		cloudViewCard(
-			value.state.cards.find((card: any) => card.id === app.currentId),
+			records.find((card: any) => card.id === app.currentId),
 			value.state.items[app.currentId],
 		),
 	);
@@ -253,8 +249,8 @@ export function adoptWorkspace(value: any) {
 		editingIds.map((id) => [id, clone(Store.state.items[id] || {})]),
 	);
 	const editingTags = new Map(editingIds.map((id) => [id, Cloud.records.get(id)?.tags]));
-	holdArrivals(value.state.cards);
-	Cloud.records = new Map(value.state.cards.map((c: any) => [c.id, c]));
+	holdArrivals(records);
+	Cloud.records = new Map(records.map((c: any) => [c.id, c]));
 	Store.state.items = clone(value.state.items);
 	Store.state.preferences = { ...Store.fresh().preferences, ...value.state.preferences };
 	Store.state.seconds = value.state.seconds;

@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it";
+import { textMemo } from "./text-memo.ts";
 
 // One renderer for all detail text (ADR 0063): no raw HTML, no image loading, only http(s) and mailto links.
 const md = new MarkdownIt({ html: false, linkify: false, typographer: false });
@@ -92,6 +93,17 @@ export function markdownBlocks(text: string): string[] {
 		.filter((block) => block.trim());
 }
 
+/** Plain text and first block of one body, parsed once however many surfaces ask for it. */
+const plain = textMemo((text: string) => {
+	const blocks = markdownBlocks(text);
+	return { text: blocks.join("\n"), first: blocks[0] || "" };
+});
+
 export function markdownText(text: string): string {
-	return markdownBlocks(text).join("\n");
+	return plain(text).text;
+}
+
+/** The first plain text block: the card face falls back to it when there is no summary. */
+export function markdownExcerpt(text: string): string {
+	return plain(text).first;
 }

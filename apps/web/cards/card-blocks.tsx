@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { markdownBlocks } from "../atoms/markdown.ts";
+import { markdownExcerpt } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
 import { Icon, ProgressRing } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
@@ -122,7 +122,7 @@ export function Title({ card: c, ctx, className = "" }: BlockProps & { className
 }
 // @design card-summary
 export function Summary({ card: c }: { card: Card }) {
-	const summary = c.summary || markdownBlocks(c.body || "")[0] || "";
+	const summary = c.summary || markdownExcerpt(c.body || "");
 	return summary ? <p className="card-summary">{cardSummaryText(summary)}</p> : null;
 }
 

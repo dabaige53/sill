@@ -3,6 +3,20 @@ import { sameData } from "../data/same-data.ts";
 /** Cloud saves share the same conditional batch as MCP. Private drafts stay in memory. */
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 const equal = sameData;
+/**
+ * The state a save is compared against. Cards are replaced, never edited in place, so the
+ * baseline keeps the same card objects and the diff skips them at once; personal state and
+ * preferences are edited in place and are copied. Copying every card body made each tick,
+ * check and bookmark scale with the whole workspace.
+ */
+function baselineOf(state: any) {
+	return {
+		...state,
+		cards: [...state.cards],
+		items: clone(state.items),
+		preferences: clone(state.preferences),
+	};
+}
 export function itemDefaults(card: any) {
 	return {
 		seen: false,
@@ -100,7 +114,7 @@ export class CloudSync {
 	}
 	rebase(state: any, revision: number, owner: string | null = this.options.owner()) {
 		this.owner = owner;
-		this.baseline = clone(state);
+		this.baseline = baselineOf(state);
 		this.revision = revision;
 	}
 	resume(owner: string) {
@@ -134,7 +148,7 @@ export class CloudSync {
 		if (!this.baseline || this.suspended) return;
 		const next = this.options.snapshot();
 		const operations = workspaceDiff(this.baseline, next);
-		if (operations.length) this.baseline = clone(next);
+		if (operations.length) this.baseline = baselineOf(next);
 		if (operations.length) {
 			this.pending.push({
 				body: { operations: clone(operations) },

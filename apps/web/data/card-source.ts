@@ -2,6 +2,7 @@ import type { Card } from "../../../contracts/card.ts";
 import recipes from "../../../design-system/recipes.json" with { type: "json" };
 import { markdownText } from "../atoms/markdown.ts";
 import { shortDay, timeString } from "../atoms/primitives.ts";
+import { textMemo } from "../atoms/text-memo.ts";
 import { copy } from "../copy.ts";
 
 export function cardSource(card: Pick<Card, "sources">): string {
@@ -109,14 +110,62 @@ export function detailSource(card: Pick<Card, "sources">): string {
 
 const readingTypes = ["article", "digest"];
 
-/** Minutes to read a Markdown body: 400 Chinese characters or 200 English words per minute (ADR 0086). */
-export function readingMinutes(body: string | undefined): number {
-	const text = markdownText(body || "");
+/** Every card face shows its reading time; the count runs once per body, not once per render. */
+const bodyMinutes = textMemo((body: string) => {
+	const text = markdownText(body);
 	const han = text.match(/\p{Script=Han}/gu)?.length || 0;
 	const words =
 		text.replace(/\p{Script=Han}/gu, " ").match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length ||
 		0;
 	return Math.ceil(han / 400 + words / 200);
+});
+
+/** Minutes to read a Markdown body: 400 Chinese characters or 200 English words per minute (ADR 0086). */
+export function readingMinutes(body: string | undefined): number {
+	return body ? bodyMinutes(body) : 0;
+}
+
+type SearchFields = Pick<Card, "title" | "summary" | "body" | "sources" | "tags">;
+type SearchEntry = SearchFields & { note: string; text: string };
+const searchEntries = new WeakMap<object, SearchEntry>();
+
+/**
+ * Lowercased title, summary, source, note, body text and tags (Mac `CardModel.searchText`).
+ * Kept per card object and rebuilt when one of those fields or the note changes, so typing a
+ * query compares text instead of parsing every body again.
+ */
+export function cardSearchText(card: SearchFields, note = ""): string {
+	const entry = searchEntries.get(card);
+	if (
+		entry &&
+		entry.note === note &&
+		entry.title === card.title &&
+		entry.summary === card.summary &&
+		entry.body === card.body &&
+		entry.sources === card.sources &&
+		entry.tags === card.tags
+	)
+		return entry.text;
+	const text = [
+		card.title,
+		card.summary,
+		cardSource(card),
+		note,
+		markdownText(card.body || ""),
+		...(card.tags || []),
+	]
+		.join(" ")
+		.toLocaleLowerCase();
+	searchEntries.set(card, {
+		title: card.title,
+		summary: card.summary,
+		body: card.body,
+		sources: card.sources,
+		tags: card.tags,
+		note,
+		text,
+	});
+	return text;
 }
 
 /** Every surface shows the same estimate, calculated from the body. */
