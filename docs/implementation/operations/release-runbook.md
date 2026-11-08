@@ -10,7 +10,7 @@
 
 通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：固定自签证书签名、未经公证，DMG 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
 
-发布 job 使用 `production` environment。需要 `CLOUDFLARE_API_TOKEN` secret、`SILL_RELEASE_URL` variable，以及 `SILL_DATABASE_VERIFIED_COMMIT` variable。后者必须等于 tag 的完整提交号，只能在核对线上迁移和存量卡片兼容性后填写，是人工检查回执，不是自动数据库验证。该流程不自动清空数据或运行数据库迁移。
+发布 job 使用 `production` environment。需要 `CLOUDFLARE_API_TOKEN` secret、`SILL_RELEASE_URL` variable，以及 `production` environment 中的 `SILL_DATABASE_VERIFIED_COMMIT` variable（它优先于仓库级同名变量）。后者必须等于 tag 的完整提交号，只能在核对线上迁移和存量卡片兼容性后填写，是人工检查回执，不是自动数据库验证。该流程不自动清空数据或运行数据库迁移。
 
 `deploy-release.ts` 沿用现有 Worker，继承绑定，核对部署未被另一轮更新，上传已测试产物并重新读取部署，检查健康与匿名会话拒绝。成功后才创建同一 tag 的 GitHub Release，附件只上传内部 Mac DMG，版本说明写入 Release 正文。云端文件保留在 Actions 的 `release-cloud`，Mac 检查回执与安装背景图保留在 `release-macos`，部署回执与版本说明文件保留在 `release-receipt`，不作为 Release 附件上传。上传结果未知时不自动重试；发布附件失败而云端已更新时，先核对 `deployment.json` 和线上版本，再补发 Release，不重复部署。GitHub artifact 是候选文件，不代表已正式发布。
 
