@@ -1,5 +1,22 @@
 import assert from "node:assert/strict";
 
+/** Vaul moves the drawer over 0.5s and a busy machine can start that late, so poll rather than sleep. */
+async function pollDrawer(
+	page: any,
+	reached: (top: number, tops: number[]) => boolean,
+	message: string,
+) {
+	const tops: number[] = [];
+	const deadline = Date.now() + 10000;
+	while (true) {
+		const { y } = await page.locator(".phone-drawer").boundingBox();
+		tops.push(y);
+		if (reached(y, tops)) return y;
+		assert.ok(Date.now() < deadline, `${message}: drawer top ${y}`);
+		await page.waitForTimeout(50);
+	}
+}
+
 export async function runMaterialFocus({
 	material,
 	openSelection,
@@ -238,18 +255,26 @@ export async function runMaterialFocus({
 		"Real touchCancel keeps the drawer open without writing",
 		async (page, context) => {
 			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.waitForTimeout(600);
+			// Before its entry starts the drawer rests just below the screen, which is not landed.
+			const initial = await pollDrawer(
+				page,
+				(top, tops) =>
+					top < phone.viewport.height && tops.slice(-5).join() === Array(5).fill(top).join(),
+				"the drawer lands on open",
+			);
 			const before = await page.evaluate(() => localStorage.getItem("sill-v1"));
 			const handle = await page.locator("[data-vaul-handle]").boundingBox();
-			const initial = await page.locator(".phone-drawer").boundingBox();
 			const session = await context.newCDPSession(page);
 			await touch(session, "touchStart", 195, handle.y + 2);
 			await touch(session, "touchMove", 195, handle.y + 65);
+			await pollDrawer(page, (top) => top > initial + 10, "the touch drags the drawer");
 			await touch(session, "touchCancel");
-			await page.waitForTimeout(600);
+			await pollDrawer(
+				page,
+				(top) => Math.abs(top - initial) < 2,
+				"cancel restores the drawer position",
+			);
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
-			const final = await page.locator(".phone-drawer").boundingBox();
-			assert.ok(Math.abs(final.y - initial.y) < 2, "cancel restores the drawer position");
 			assert.equal(await page.evaluate(() => localStorage.getItem("sill-v1")), before);
 		},
 		phone,
