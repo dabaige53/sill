@@ -172,6 +172,13 @@ struct CardGeometryDestination: ViewModifier {
   let target: CGRect
   var ready = true
   @Environment(Reader.self) private var reader
+  @Environment(Workspace.self) private var workspace
+  @Environment(Feed.self) private var feed
+  /// A read card is gray without a shadow; the flight surface starts and ends the same way.
+  private var faded: Bool {
+    guard let card = workspace.model(id) else { return false }
+    return cardFaded(card, workspace.state(id), CardContext(feed: feed, workspace: workspace))
+  }
   func body(content: Content) -> some View {
     let origin = reader.overlayOrigin
     let resize = reader.top?.card == id ? reader.resizeSource : nil
@@ -186,6 +193,7 @@ struct CardGeometryDestination: ViewModifier {
           progress: resize != nil
             ? (reader.resizeShown ? 1 : 0) : (source != nil && !reader.shown ? 0 : 1),
           stationaryContent: resize != nil,
+          sourceFaded: resize == nil && source != nil && faded,
           targetRadius: reader.top?.full == true ? 0 : AppleMetrics.sheetRadius,
           sourceRadius: resize?.radius ?? CGFloat(AppleMetrics.cardRadius),
           frameChanged: { frame, radius in
@@ -193,7 +201,9 @@ struct CardGeometryDestination: ViewModifier {
           })
       )
       .opacity(ready || reader.shown ? 1 : 0)
-      .task(id: ready ? target : .zero) {
+      // Reported in the same update as the measurement: a task would wait at least one more
+      // frame, and the resizing surface would sit empty (text hidden) for that frame.
+      .onChange(of: ready ? target : .zero, initial: true) {
         if ready { reader.geometryReady(id) }
       }
   }
@@ -229,6 +239,16 @@ struct DetailReveal: ViewModifier {
   }
 }
 
+extension CardContext {
+  /// The feed tile's context, for drawing a card outside the feed during its flight.
+  @MainActor fileprivate init(feed: Feed, workspace: Workspace) {
+    self.init(
+      now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
+      fadeRead: workspace.preferences.fadeRead, appearance: workspace.preferences.cardAppearance,
+      paddingScale: workspace.preferences.cardPadding.scale)
+  }
+}
+
 /// Uses the complete live-card appearance, without pointer handlers or focus effects.
 private struct CardTransitionFace: View {
   let id: String
@@ -237,10 +257,7 @@ private struct CardTransitionFace: View {
   var body: some View {
     if let card = workspace.model(id) {
       let state = workspace.state(id)
-      let context = CardContext(
-        now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
-        fadeRead: workspace.preferences.fadeRead, appearance: workspace.preferences.cardAppearance,
-        paddingScale: workspace.preferences.cardPadding.scale)
+      let context = CardContext(feed: feed, workspace: workspace)
       CardFace(card: card, state: state, context: context, faded: cardFaded(card, state, context))
         .allowsHitTesting(false).accessibilityHidden(true)
     }
@@ -256,6 +273,7 @@ struct CardFlightSurface: AnimatableModifier {
   let target: CGRect
   nonisolated var progress: CGFloat
   var stationaryContent = false
+  var sourceFaded = false
   var targetRadius: CGFloat
   var sourceRadius: CGFloat = AppleMetrics.cardRadius
   var frameChanged: (CGRect, CGFloat) -> Void = { _, _ in }
@@ -296,13 +314,16 @@ struct CardFlightSurface: AnimatableModifier {
     let radius = sourceRadius + (targetRadius - sourceRadius) * lift
     let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
     ZStack(alignment: .topLeading) {
-      // The card's own shadow turns into the sheet's as it lifts, so nothing swaps at either end.
-      shape.fill(AppleColors.card).frame(width: rect.width, height: rect.height)
-        .shadow(.card).opacity(1 - lift)
+      // The card's own fill and shadow turn into the sheet's as it lifts, so nothing swaps at
+      // either end: a read card stays gray and shadowless instead of showing a white rim.
+      let sourceFill = sourceFaded ? AppleColors.readCard : AppleColors.card
+      shape.fill(sourceFill).frame(width: rect.width, height: rect.height)
+        .shadow(.card, visible: !sourceFaded).opacity(1 - lift)
       shape.fill(AppleColors.card).frame(width: rect.width, height: rect.height)
         .shadow(.sheet).opacity(lift)
       ZStack(alignment: .topLeading) {
-        AppleColors.card
+        sourceFill
+        AppleColors.card.opacity(sourceFaded ? lift : 1)
         content
           .frame(width: target.width, height: target.height, alignment: .topLeading)
           .opacity(id == nil ? 1 : Self.contentOpacity(progress))
@@ -316,20 +337,16 @@ struct CardFlightSurface: AnimatableModifier {
         }
       }
       .frame(width: target.width, height: target.height, alignment: .topLeading)
-      .clipShape(CardFlightMask(size: rect.size, radius: radius))
+      // The moving frame clips as a sized, rounded container: Core Animation rounds and masks
+      // it on the GPU. A custom path mask that changes every frame is rasterized on the main
+      // thread and makes rich text (links, inline code) redraw on each frame of the resize.
+      .frame(width: rect.width, height: rect.height, alignment: .topLeading)
+      .clipShape(shape)
     }
     .frame(width: target.width, height: target.height, alignment: .topLeading)
     .offset(x: rect.minX - target.minX, y: rect.minY - target.minY)
     .onChange(of: Reader.Surface(frame: rect, radius: radius), initial: true) { _, surface in
       frameChanged(surface.frame, surface.radius)
     }
-  }
-}
-
-private struct CardFlightMask: Shape {
-  var size: CGSize
-  var radius: CGFloat
-  func path(in rect: CGRect) -> Path {
-    Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: radius, style: .continuous)
   }
 }
