@@ -36,4 +36,3 @@ test("refreshing one card looks up the feed snapshot once instead of scanning th
 		f.dom.window.close();
 	}
 });
-
