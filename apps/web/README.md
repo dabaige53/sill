@@ -1,6 +1,6 @@
 # 浏览器端
 
-更新：2026-10-28。现行运行代码；通用规则见 [代码规范](../../docs/agent/code-standards.md)。
+更新：2026-11-08。现行运行代码；通用规则见 [代码规范](../../docs/agent/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
 
@@ -16,7 +16,9 @@
 
 `npm run build` 用 Vite 生成 `dist/web/index.html`，`npm start` 提供本地页面。`npm run build:cloud` 生成 `dist/cloud/`。产物不提交到 Git，不手工修改。
 
-卡片类型从 `contracts/` 导入。浏览器根据导出的 JSON Schema 检查写入，复用纯数据转换与业务规则，不打包 zod。未知卡片类型采用通用卡片；未知字段保持不变。
+卡片类型从 `contracts/` 导入。浏览器根据导出的 JSON Schema 检查写入，复用纯数据转换与业务规则，不打包 zod。未知卡片类型采用通用卡片；未知字段保持不变。zod 进入页面包时构建报错 `web_bundle_includes_zod`。
+
+云端卡片对象只整体替换，不原地修改：每条云端记录只投影一次界面卡片，内容未变的记录在回执与定时读取后沿用原对象，保存基线共享这些卡片，只复制个人状态与偏好。正文的纯文本、首段摘要、阅读时长与搜索文本按正文或卡片缓存（`atoms/text-memo.ts`、`data/card-source.ts`）。需要改卡片字段时创建新对象，例如 `Store.setTags`。
 
 来源设置的本地状态不是外部连接回执。线上整卡覆盖与虚假连接成功两个 P1 不因本次迁移关闭。浏览器视觉及辅助功能验收需单独执行。
 
