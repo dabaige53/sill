@@ -5,9 +5,34 @@ import { createHostActions } from "../../apps/web/cloud-bridge.ts";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
-import { type AgentCard, type AgentScope, agentPayload, openCardLink } from "../../apps/web/services/agent-handoff.ts";
+import {
+	type AgentCard,
+	type AgentScope,
+	agentPayload,
+	cardLinkURL,
+	openCardLink,
+} from "../../apps/web/services/agent-handoff.ts";
 
 const scope: AgentScope = { kind: "cloud", owner: "owner-a" };
+
+// @wu-test type=boundary | scope=source links | protects=Keep full source URLs and disable missing or unsafe destinations
+test("article source links are native links with full query and fragment; missing or unsafe URLs stay disabled", () => {
+	const url = "https://example.com/article?view=full&lang=zh#section";
+	const card = { id: "source-link", type: "article", title: "Article", body: "Body", url };
+	const app = { agentAction: () => "" };
+	Store.state = Store.fresh();
+	const document = new JSDOM(Panels.preview(app, card)).window.document;
+	const link = document.querySelector<HTMLAnchorElement>(".float-bar a.is-own");
+	assert.equal(link?.getAttribute("href"), url);
+	assert.equal(link?.target, "_blank");
+	assert.equal(link?.rel, "noopener noreferrer");
+	for (const value of [undefined, "", "javascript:alert(1)", "not a URL"]) {
+		assert.equal(cardLinkURL(value), undefined);
+		const unavailable = new JSDOM(Panels.preview(app, { ...card, url: value })).window.document;
+		assert.ok(unavailable.querySelector('[data-action="external"][disabled]'));
+		assert.equal(unavailable.querySelector(".float-bar a.is-own"), null);
+	}
+});
 const card = {
 	id: "card-a",
 	revision: 7,
@@ -164,8 +189,11 @@ test("details omit handoff actions even when a host can supply one", () => {
 			);
 			assert.equal(document.querySelectorAll(".preview-foot .preview-foot").length, 0, card.type);
 			// Shared verbs, then at most three of the card's own (ADR 0037).
-			assert.ok(document.querySelectorAll(".float-bar button:not(.is-own)").length <= 3, card.type);
-			assert.ok(document.querySelectorAll(".float-bar button.is-own").length <= 3, card.type);
+			assert.ok(
+				document.querySelectorAll(".float-bar .icon-button:not(.is-own)").length <= 3,
+				card.type,
+			);
+			assert.ok(document.querySelectorAll(".float-bar .icon-button.is-own").length <= 3, card.type);
 		} finally {
 			dom.window.close();
 		}

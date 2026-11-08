@@ -15,7 +15,7 @@
 - 两端都使用开源 Markdown 渲染器，不自写解析。Web 使用 markdown-it；macOS 使用 Swift 官方的 swift-markdown 0.9.0（cmark-gfm），解析后用 SwiftUI 按既有正文样式绘制。
 - 渲染规则两端一致：
   - 原始 HTML 不渲染，按文字显示。
-  - 图片语法不加载图片，只显示替代文字；Sill 不因正文去外部取内容（[ADR 0033](0033-ai-writes-composio-only.md) 不变）。
+  - 图片规则已由 [ADR 0092](0092-markdown-images-and-source-links.md) 替代：正文 HTTPS 图片按原文位置显示；这不增加来源抓取或同步能力。
   - 链接只接受 http、https 和 mailto，在新窗口打开；其他协议按文字显示。
 - 旧卡片在读取时于内存中转换，不改写存量数据：
   - `body` 数组按空行拼成一个字符串。

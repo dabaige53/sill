@@ -33,6 +33,8 @@
 - [卡片内容一致性第一批](2026-10-31-card-content-consistency/README.md)
 - [main 测试与功能提交不同步](2026-10-31-main-ci-tests/README.md)
 - [卡片链接写入与跳转排查](2026-10-31-card-links/README.md)
+- [正文图片与原文入口](2026-10-31-inline-images/README.md)
+
 - [设置关于与备份页面完善](2026-10-30-settings-about-backup/README.md)
 
 - [Mac 启动崩溃与共享头像压缩](2026-10-30-macos-resource-bundle/README.md)
