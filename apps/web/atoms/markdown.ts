@@ -9,6 +9,11 @@ md.renderer.rules.link_open = (tokens, index, options, _env, self) => {
 	tokens[index].attrSet("rel", "noopener noreferrer");
 	return self.renderToken(tokens, index, options);
 };
+// Tables scroll sideways inside their own frame so narrow screens keep readable columns.
+md.renderer.rules.table_open = (tokens, index, options, _env, self) =>
+	`<div class="markdown-table">${self.renderToken(tokens, index, options)}`;
+md.renderer.rules.table_close = (tokens, index, options, _env, self) =>
+	`${self.renderToken(tokens, index, options)}</div>`;
 
 export function markdownHtml(text: string, headingPrefix?: string): string {
 	const tokens = md.parse(text, {});

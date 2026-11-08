@@ -394,6 +394,45 @@ dialog::backdrop {
 	padding: 0;
 	background: none;
 }
+/* Tables keep word-level columns and scroll in their own frame; the body's break-anywhere rule
+ * would otherwise shrink every column to one character and make phone tables very tall.
+ * Reference data reads one step smaller and tighter than the body so rows stay short. */
+.preview-full .markdown-table {
+	max-width: 100%;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+}
+.preview-full table {
+	border-collapse: collapse;
+	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
+	line-height: calc(1.55 * var(--reader-line-scale, 1));
+	font-variant-numeric: tabular-nums;
+	color: var(--ink);
+}
+.preview-full :is(th, td) {
+	min-width: 6em;
+	padding: var(--space-8) var(--space-12);
+	border-bottom: 1px solid var(--line);
+	text-align: left;
+	vertical-align: top;
+	overflow-wrap: break-word;
+}
+.preview-full :is(th, td):first-child {
+	padding-inline-start: 0;
+}
+.preview-full :is(th, td):last-child {
+	padding-inline-end: 0;
+}
+.preview-full th {
+	font-weight: calc(600 + var(--content-weight-add, 0));
+	color: var(--secondary);
+}
+.preview-full thead th {
+	border-bottom-color: var(--line-hover);
+}
+.preview-full tbody tr:last-child > * {
+	border-bottom: 0;
+}
 .preview-full hr {
 	border: 0;
 	border-top: 1px solid var(--line);

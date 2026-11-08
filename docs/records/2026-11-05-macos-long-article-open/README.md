@@ -38,6 +38,6 @@
 
 ## 验证与后续
 
-- 本地只做了文件检查与 Swift 语法检查，未构建、未运行。新增 `MarkdownBodyTests.headingIndicesPointAtHeadingBlocks`。测试与构建由 GitHub Actions 执行。
+- 已随 1.2.36 发布（[发布记录](../2026-11-05-release-1.2.36/README.md)），正式流程的 Swift 测试与构建通过，其中包括新增的 `MarkdownBodyTests.headingIndicesPointAtHeadingBlocks`。首次合入时 `MarkdownBody.init` 存在编译错误，导致 1.2.35 未发布，已在 PR #119 修复。
 - 待验证：装新包后打开同一张长文卡片，用应用内性能追踪看主线程延迟是否消失；全屏阅读时检查目录高亮随滚动正确切换、点目录能跳到远处标题、滚动条和读完进度不跳。
 - 若仍卡顿，下一步用 Time Profiler 在打开时采样，重点看 `Text` 排版与文字选择开销。
