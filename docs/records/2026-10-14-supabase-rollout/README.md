@@ -19,7 +19,7 @@
 2. `sill_v1_rpc.sql`：caller_grants/destinations、业务函数、owner RLS；默认仍无调用权限。
 3. `sill_v1_boundary.sql`：新增 grants.audience；现有授权行 audience=NULL，刻意拒绝调用直到逐行审阅补齐。建立四个 public invoker 包装与四个 private definer 网关；网关归专用非表所有者 `sill_rpc_executor` 所有。
 
-4. `sill_v1_sessions_snapshots.sql`：新增受控 session_info 与共享快照表，清除旧临时游标投影；8份/owner、2MiB/份、15分钟固定有效期，128个游标/owner，分页引用同一内容快照。独立会话查询不再生成列表。
+4. `sill_v1_sessions_snapshots.sql`：新增受控 session_info 与共享快照表，清除旧临时游标投影；8份/owner、2MiB/份、15分钟固定有效期，128个游标/owner，分页引用同一内容快照。独立会话查询不生成列表。
 
 **废止 PR #19 先前提出的 authenticated 直接表授权清单。** 仅 owner RLS 不能阻止同 owner 的不同客户端跳过业务权限检查。最终候选权限如下：
 

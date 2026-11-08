@@ -6,10 +6,10 @@
 
 1.2.37 没有上线，它的改动随本次一起发布：
 
-- 详情正文表格放进独立横向滚动框，手机上列宽不再塌缩（PR [#123](https://github.com/dabaige53/sill/pull/123)）。
-- Mac 关闭卡片不再露出白框，放大缩小不再多出空白帧；Web 与 Mac 的概要标记和文字合成一个点击区域（PR [#121](https://github.com/dabaige53/sill/pull/121)）。
+- 详情正文表格放进独立横向滚动框，手机上列宽不塌缩（PR [#123](https://github.com/dabaige53/sill/pull/123)）。
+- Mac 关闭卡片不露出白框，放大缩小不多出空白帧；Web 与 Mac 的概要标记和文字合成一个点击区域（PR [#121](https://github.com/dabaige53/sill/pull/121)）。
 - Web 正文解析缓存、阅读写入改为离开时保存、卡片刷新去掉逐张扫描（PR [#125](https://github.com/dabaige53/sill/pull/125)）。
-- Web 与 Mac 不再整库处理与下载，页面去掉误打包的 zod（PR [#126](https://github.com/dabaige53/sill/pull/126)）。
+- Web 与 Mac 按变动记录处理并按修订号下载，页面去掉误打包的 zod（PR [#126](https://github.com/dabaige53/sill/pull/126)）。
 
 ## 合并取舍
 

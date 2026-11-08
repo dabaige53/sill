@@ -31,7 +31,7 @@
 - [Web 使用 React、TypeScript 与 Vite](0047-react-web.md)
 - [手机顶行统一，搜索改用分类与 # 标签](0048-phone-top-row-and-search-tokens.md)
 - [Web 顶栏搜索与底部 AI 框](0049-web-top-search-and-ai-dock.md)
-- [卡片使用明确字段，不再使用混合补充信息](0050-explicit-card-fields.md)
+- [卡片使用明确字段，不使用混合补充信息](0050-explicit-card-fields.md)
 - [卡片 A 字号、资讯阅读与 Mac 设置弹窗](0051-card-type-a-and-article-reading.md)
 - [登录授权页面与设置画板](0052-auth-pages-and-settings-boards.md)
 - [ADR 0053：桌面导航对齐与稳定搜索宽度](0053-desktop-navigation-alignment.md)

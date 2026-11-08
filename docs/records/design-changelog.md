@@ -116,7 +116,7 @@ Web 与 Mac 顶栏账号头像采用白底小栖圆形头像，图像铺满现�
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793089528-dedf | 1793089520-5e19 | 06 Web 搜索栏固定 280；手机点分类卡后搜索栏上移 |
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793089982-f6ea | 1793089973-388f | 06 搜索建议右侧改为类型列：图标对齐一条竖线 |
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793091157-8a3a | 1793091165-ac1c | 06 Web 搜索栏 315、建议列表不带动卡片页；24 播客介绍页按原型重排 |
-| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793102117-7f10 | 1793102104-2f50 | 06 搜索 ⌘K 不再移动、建议打开时滚动不带动卡片；24 播客与视频预览放宽到 860，播客画板换成介绍页 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793102117-7f10 | 1793102104-2f50 | 06 搜索 ⌘K 不移动、建议打开时滚动不带动卡片；24 播客与视频预览放宽到 860，播客画板换成介绍页 |
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793102748-a5fb | 1793102751-1f3c | 手机四页页名统一：字号、行高、字距与顶边一致；设置分组胶囊对齐主页分栏 |
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793103679-d94a | 1793103685-586f | PWA 设置页盖住顶栏与导航消除闪色；读完上推前到底不叫回工具胶囊；手机卡片建议同底色、行高 48、细线分隔 |
 | 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793104008-be29 | 1793104013-7cf7 | 读完上推 wheel 持续累计、停止 320ms 后回位（pushHoldMs） |

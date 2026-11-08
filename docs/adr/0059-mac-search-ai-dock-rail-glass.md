@@ -24,4 +24,4 @@
 
 ## 影响
 
-修改 foundation 设计变量；修改 Mac `SearchField`、`AIDock`、`DesktopView`、`SelectionBar`、`ReaderToolbar`、`Controls`、`Shadow`、`CardTile`、`PhotoLightbox`（照片切换改用内容淡入，不再以 id 重建视图），Web 搜索栏、AI 框拖入、底部轨道玻璃与 `MotionEngine`；更新手册 web-interaction、foundation、motion 和 SearchField 组件说明。真实窗口中的手感需用户确认。
+修改 foundation 设计变量；修改 Mac `SearchField`、`AIDock`、`DesktopView`、`SelectionBar`、`ReaderToolbar`、`Controls`、`Shadow`、`CardTile`、`PhotoLightbox`（照片切换改用内容淡入，不以 id 重建视图），Web 搜索栏、AI 框拖入、底部轨道玻璃与 `MotionEngine`；更新手册 web-interaction、foundation、motion 和 SearchField 组件说明。真实窗口中的手感需用户确认。

@@ -26,13 +26,13 @@
 | `singleKeyShortcuts` | boolean | 单键快捷键 N / R / T |
 | `onboarded` | boolean | 是否已完成首次引导；用户没要求时不要改 |
 
-以下字段仍能读写，但不再改变界面。不要用它们向用户承诺效果：
+以下字段仍能读写，但不改变界面。不要用它们向用户承诺效果：
 
 | 字段 | 现状 |
 | --- | --- |
 | `archiveAfter` | `3d / 7d / never`。旧的自动收起设置。现在读过或完成的卡片一直留在主页，只有明确归档才移走 |
-| `hiddenActions` | 卡片动作 ID 数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`。Web/PWA 不再按它隐藏动作；Mac 端尚未同步，可能仍按旧值隐藏 |
-| `reduceMotion`、`reduceTransparency` | boolean。旧设置，客户端不再展示或应用 |
+| `hiddenActions` | 卡片动作 ID 数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`。Web/PWA 不按它隐藏动作；Mac 端尚未同步，可能仍按旧值隐藏 |
+| `reduceMotion`、`reduceTransparency` | boolean。旧设置，客户端不展示或应用 |
 | `aiLocal` | boolean。保留字段，不代表存在内置助手 |
 
 设备上的设置不在账号偏好里，助手改不了：系统提醒开关、通知权限、存放位置。

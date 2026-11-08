@@ -29,7 +29,7 @@
 | V1 设计约定检查 | `scripts/check-contracts.ts` | `contracts/design/` → 准备材料一致性；不证明 API 已实现 |
 | V1 健康检查 | `scripts/smoke-health.ts` | 显式指定目标；使用前阅读 [V1 交接包](../docs/plans/external-agent-webhook.md) 的参数与边界 |
 
-`build-cloud-worker.ts` 由云端构建调用。脚本使用 Node 24+ 直接运行 TypeScript，不再依赖 Python。`build-plugin.ts` 会替换候选产物目录，不要在产物目录保存唯一副本。候选构建保留既有 App 身份，但不能证明该云端对象当前存在；发布前仍需核对平台。
+`build-cloud-worker.ts` 由云端构建调用。脚本使用 Node 24+ 直接运行 TypeScript，不依赖 Python。`build-plugin.ts` 会替换候选产物目录，不要在产物目录保存唯一副本。候选构建保留既有 App 身份，但不能证明该云端对象当前存在；发布前仍需核对平台。
 
 Codex 的提交前文件大小检查位于 [.codex](../.codex/README.md)，同时检查暂存版本与本地文件，不通过 npm 安装 Git hook。
 

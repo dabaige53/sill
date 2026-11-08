@@ -6,7 +6,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | tests/e2e/browser.ts:61 | 场景统一异常与外部请求检查 | KEEP | — | integration | prevent page errors or unexpected external requests from being reported as passing | 每个调用场景执行后检查页面异常和被拦截请求。 |
 | tests/e2e/cloud-operations-browser.ts:131 | 详情稳定与多选操作调用 | KEEP | — | integration | Keep remote updates and selection | 调用的独立断言位于 helpers；不在本批文件范围内重复展开。 |
-| tests/e2e/cloud-recovery-browser.ts:108 | 恢复场景共享隐私检查 | DELETE | D12 | — | — | 若删除本文件全部三个调用场景，共享执行器与该断言不再有调用者；随文件一起删除。 |
+| tests/e2e/cloud-recovery-browser.ts:108 | 恢复场景共享隐私检查 | DELETE | D12 | — | — | 若删除本文件全部三个调用场景，共享执行器与该断言没有调用者；随文件一起删除。 |
 | tests/e2e/drawer-browser.ts:112 | 抽屉场景共享执行器 | KEEP | — | integration | prevent page errors or unexpected external requests from passing silently | 第 150 至 152 行在每个子场景后检查浏览器异常和外部请求；执行器及测试数据由两个子模块共用。 |
 | tests/e2e/material-density-browser.ts:30 | 密度场景共享执行器 | KEEP | — | integration | prevent page errors or unexpected external requests from passing silently | 每个 run 调用共用隔离页面、测试数据及异常检查。 |
 | tests/e2e/material-density-browser.ts:119 | 卡片布局共享断言 | KEEP | — | behavior | prevent cards from overlapping or overflowing the viewport | 由桌面、紧凑和手机场景调用，不单独删除。 |

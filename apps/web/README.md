@@ -2,7 +2,7 @@
 
 更新：2026-11-08。现行运行代码；通用规则见 [代码规范](../../docs/agent/code-standards.md)。
 
-`index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
+`index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 声明依赖。
 
 `data/assets.ts` 统一解析图片地址，四份 `data/artwork-*.ts` 分别保存原有 WebP 素材。手机样式按 `phone.css`（页面与导航）、`phone-details.css`（详情与设置）、`phone-search.css`（搜索）和 `phone-overrides.css`（最终覆盖）依次加载；顺序只在 `styles/styles.json` 维护。
 

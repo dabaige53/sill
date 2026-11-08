@@ -4,7 +4,7 @@
 
 ## Considered Options
 
-- 不再构建的旧代码移入 `legacy/` 保留：未采用。保留就要决定是否保留它的依赖，搜索结果会混入旧代码，格式化、类型检查与文件检查都要为它设排除规则。改为删除，见下文。
+- 已停止构建的旧代码移入 `legacy/` 保留：未采用。保留就要决定是否保留它的依赖，搜索结果会混入旧代码，格式化、类型检查与文件检查都要为它设排除规则。改为删除，见下文。
 - iOS 与 Mac 分成 `apps/ios/` 和 `apps/macos/`：两端都用 SwiftUI，数据模型、接口客户端和 tokens 会重复。未采用。改为 `apps/apple/` 中一个 Swift Package，`SillKit` 放两端共享代码，`macOS/` 与 `iOS/` 只放平台专属部分。
 
 ## Consequences

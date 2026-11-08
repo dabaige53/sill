@@ -37,7 +37,7 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 | `macos-package.yml` | `package` | 手动、复用调用 | `build:macos`、`package:macos` | 30 分钟 |
 | `release.yml` | `version`、复用检查、打包、`publish` | `v*` tag push、手动选择版本 tag | 版本检查 → 五类检查 → 云端与 Mac 打包 → 发布 | version 5、cloud-package 10、publish 10 分钟；复用任务沿用各自限制 |
 
-自动检查只由 [ci.yml](../../.github/workflows/ci.yml) 触发，五类原工作流保留实际任务，供 CI 与发布复用。检查显示名称会带调用方前缀，例如 `web / verify` 和 `apple / macos`；不再由五个工作流分别响应同一 PR。
+自动检查只由 [ci.yml](../../.github/workflows/ci.yml) 触发，五类原工作流保留实际任务，供 CI 与发布复用。检查显示名称会带调用方前缀，例如 `web / verify` 和 `apple / macos`；五个工作流只接受统一入口调用。
 
 本项目不配置分支保护或必需检查汇总 Job。各检查仍保留非零失败退出。发布直接调用五类完整检查，不经过文档分流，全部通过后才打包。
 
@@ -95,7 +95,7 @@ Web 浏览器分组在 [ci-browser.ts](../../scripts/ci-browser.ts) 维护；`--
 
 工作分支通过 PR 检查，push 检查限定 main；未开 PR 的工作分支不自动运行。发布复用入口保持不变。
 
-`plugin:build` 只包装清单、skills 和宿主配置，包装脚本不读取 Web 产物。集成检查仍由 `npm test` 构建并验证 Web，不再为插件包装重复构建。Web 二次构建一致性检查保留。
+`plugin:build` 只包装清单、skills 和宿主配置，包装脚本不读取 Web 产物。集成检查仍由 `npm test` 构建并验证 Web，不为插件包装重复构建。Web 二次构建一致性检查保留。
 
 ## 维护与验证
 
