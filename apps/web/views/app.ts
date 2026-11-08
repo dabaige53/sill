@@ -53,6 +53,7 @@ class AppController {
 	declare exportAll: AppControllerMethods["exportAll"];
 	declare download: AppControllerMethods["download"];
 	declare tick: AppControllerMethods["tick"];
+	declare takeReadingTime: AppControllerMethods["takeReadingTime"];
 	declare setFlag: AppControllerMethods["setFlag"];
 	declare syncPreviewButtons: AppControllerMethods["syncPreviewButtons"];
 	declare toggleTask: AppControllerMethods["toggleTask"];
@@ -173,6 +174,8 @@ class AppController {
 	homeHashIndex = 0;
 	searchScroll = 0;
 	searchLimit = 40;
+	/** Reading time not yet in the workspace; see takeReadingTime(). */
+	readingSeconds = 0;
 	/** Last keyboard height written to the dialogs; -1 before the first reading. */
 	keyboardHeight = -1;
 	searchBackground?: HTMLDialogElement;

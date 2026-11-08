@@ -81,6 +81,8 @@ export function clearCloud({ retainDrafts = false }: any = {}) {
 	app.searchSelected.clear();
 	app.aiSelectionIds = [];
 	app.pendingCards = [];
+	// Unsaved reading time belongs to the account that is leaving.
+	app.readingSeconds = 0;
 	app.aiDraft = "";
 	app.renderAIDock?.();
 	app.selectAnchor = "";

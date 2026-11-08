@@ -250,13 +250,52 @@ test("phone completion saves immediately and redraws the background only after i
 	}
 });
 
-test("lifecycle and close paths flush pending reading progress", () => {
+test("reading time stays in memory while reading and is added once when it is written", () => {
+	const f = readingFixture();
+	try {
+		Object.assign(f.app, {
+			modalKind: "reader",
+			lastActivity: Date.now(),
+			readingSeconds: 0,
+			grid: f.dom.window.document.createElement("main"),
+			checkReminders() {},
+		});
+		f.Store.state.seconds = 30;
+		for (let second = 0; second < 12; second++) f.app.tick();
+		assert.equal(
+			f.saves(),
+			0,
+			"every save returns the whole workspace; reading alone must not save",
+		);
+		assert.equal(f.Store.state.seconds, 30);
+		assert.equal(f.app.takeReadingTime(), true);
+		assert.equal(f.Store.state.seconds, 42);
+		assert.equal(f.app.takeReadingTime(), false);
+		// One write carries at most a day, as on Mac and as the service accepts.
+		f.app.readingSeconds = 90000;
+		f.app.takeReadingTime();
+		assert.equal(f.Store.state.seconds, 42 + 86400);
+		assert.equal(f.app.readingSeconds, 3600);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("lifecycle and close paths flush pending reading progress and reading time", () => {
 	const lifecycle = readFileSync(path.join(root, "apps/web/views/app-lifecycle.ts"), "utf8");
 	const surfaces = readFileSync(path.join(root, "apps/web/views/app-surfaces.ts"), "utf8");
-	assert.match(lifecycle, /if \(document\.hidden\) \{\s*flushReadingProgress\(\);/);
-	assert.match(lifecycle, /"pagehide", \(\) => \{\s*flushReadingProgress\(\);/);
+	assert.match(
+		lifecycle,
+		/if \(document\.hidden\) \{\s*flushReadingProgress\(\);\s*this\.takeReadingTime\(\);\s*Store\.save\(\);/,
+	);
+	assert.match(
+		lifecycle,
+		/"pagehide", \(\) => \{\s*flushReadingProgress\(\);\s*this\.takeReadingTime\(\);\s*Store\.save\(\);/,
+	);
 	const close = surfaces.slice(surfaces.indexOf("closeNative(this: AppController"));
-	assert.ok(close.indexOf("flushReadingProgress()") < close.indexOf("if (this.skipReturnMotion)"));
+	const written = close.indexOf("if (this.takeReadingTime()) Store.save();");
+	assert.ok(close.indexOf("flushReadingProgress()") < written);
+	assert.ok(written > 0 && written < close.indexOf("if (this.skipReturnMotion)"));
 });
 
 const media = buildSync({
