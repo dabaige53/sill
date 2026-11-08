@@ -7,6 +7,7 @@ import { cloudFixture } from "./helpers/cloud-fixture.ts";
 const tasks = (count: number) =>
 	Array.from({ length: count }, (_, i) => ({ id: `task-${i}`, text: `Action ${i}` }));
 
+// @wu-test type=boundary | scope=contracts/cloud task writes | protects=Reject oversized new or changed task lists while preserving unchanged legacy lists
 test("new and changed task lists allow six items and request a split above six", () => {
 	const card = { id: "legacy", type: "task", title: "Work", tasks: tasks(7) };
 	const { id, ...input } = card;
@@ -32,6 +33,7 @@ test("new and changed task lists allow six items and request a split above six",
 	);
 });
 
+// @wu-test type=integration | scope=database card writes | protects=Preserve insertion time across retries and updates and enforce task limits
 test("database writes assign a stable insertion time and enforce the same task policy", async () => {
 	const fixture = await cloudFixture();
 	try {
@@ -85,6 +87,7 @@ test("database writes assign a stable insertion time and enforce the same task p
 	}
 });
 
+// @wu-test type=integration | scope=database legacy task writes | protects=Preserve legacy tasks and completion state while rejecting further growth
 test("legacy oversized lists retain their items and state while missing time uses creation", async () => {
 	const fixture = await cloudFixture();
 	try {

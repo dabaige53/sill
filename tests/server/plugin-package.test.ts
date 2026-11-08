@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(import.meta.dirname, "../..");
+// @wu-test type=integration | scope=scripts/build-plugin output | protects=Include usable skills and matching plugin metadata in the built package | debt=D6
 test("Sill builds only the original App with its two skills and both sidebar tools", async () => {
 	execFileSync(process.execPath, [resolve(root, "scripts/build-plugin.ts")]);
 	const dir = resolve(root, "dist/plugin/sill");

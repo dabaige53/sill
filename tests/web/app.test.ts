@@ -1,9 +1,10 @@
 /** Preserve public controller behavior while its responsibilities move into modules. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { renderToStaticMarkup } from "react-dom/server";
+
 import { fixture } from "./app-fixture.ts";
 
+// @wu-test type=behavior | scope=Markdown card links | protects=Open an internal card link in the existing surface | debt=D5
 test("opening a card from Markdown navigates the existing surface without opening the link", () => {
 	const f = fixture();
 	try {
@@ -23,6 +24,7 @@ test("opening a card from Markdown navigates the existing surface without openin
 	}
 });
 
+// @wu-test type=behavior | scope=photo tag editor | protects=Preserve the open photo and selected image when the tag editor closes
 test("tags open over the photo and close back to it without reopening", () => {
 	const f = fixture();
 	try {
@@ -57,6 +59,7 @@ test("tags open over the photo and close back to it without reopening", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=settings preference changes | protects=Preserve focus, scroll and unrelated preferences when changing a setting | debt=D6
 test("settings changes preserve focus, scroll, the previous value and unrelated preferences", () => {
 	const f = fixture();
 	try {
@@ -86,6 +89,7 @@ test("settings changes preserve focus, scroll, the previous value and unrelated 
 });
 
 for (const phone of [false, true]) {
+	// @wu-test type=behavior | scope=phone reminder detail | protects=Preserve the open detail, focus, scroll and unrelated state when completing or restoring a reminder
 	test(`reminder completion and restore retain the open ${phone ? "phone" : "desktop"} preview`, () => {
 		const f = fixture();
 		try {
@@ -142,6 +146,7 @@ for (const phone of [false, true]) {
 	});
 }
 
+// @wu-test type=boundary | scope=retired manual capture entry points | protects=Prevent retired manual capture actions from creating local notes
 test("manual capture actions, shortcut and panel no longer create a note", () => {
 	const f = fixture();
 	try {
@@ -163,6 +168,7 @@ test("manual capture actions, shortcut and panel no longer create a note", () =>
 	}
 });
 
+// @wu-test type=behavior | scope=settings button pointer feedback | protects=Restore pointer press feedback after keyboard interaction | debt=D6
 test("the settings button receives press feedback after keyboard use", async () => {
 	const f = fixture();
 	try {
@@ -193,6 +199,7 @@ test("the settings button receives press feedback after keyboard use", async () 
 	}
 });
 
+// @wu-test type=boundary | scope=AppController.action | protects=Reject unknown action names without invoking an action | debt=D5,D6
 test("public action routes refresh, reminder aliases, detail navigation and unknown names", () => {
 	const f = fixture();
 	try {
@@ -234,6 +241,7 @@ test("public action routes refresh, reminder aliases, detail navigation and unkn
 });
 
 for (const scenario of ["opened", "declined", "account-changed", "disconnected"]) {
+	// @wu-test type=boundary | scope=external mail action | protects=Keep mail unread and report disconnection when account access is unavailable
 	test(`external mail action marks read only after an accepted opening in the same account: ${scenario}`, async () => {
 		const f = fixture();
 		try {
@@ -268,6 +276,7 @@ for (const scenario of ["opened", "declined", "account-changed", "disconnected"]
 }
 
 for (const layout of ["source row", "title fallback", "podcast"]) {
+	// @wu-test type=behavior | scope=preview chrome resizing | protects=Keep the close control aligned after resizing every supported preview layout | debt=D6
 	test(`preview chrome tracks height and close-disc position after resize (${layout})`, () => {
 		const f = fixture();
 		try {

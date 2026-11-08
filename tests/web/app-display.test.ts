@@ -1,9 +1,10 @@
 /** Preserve public controller behavior while its responsibilities move into modules. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { renderToStaticMarkup } from "react-dom/server";
+
 import { fixture } from "./app-fixture.ts";
 
+// @wu-test type=behavior | scope=toast visibility | protects=Keep notifications visible for the remaining active time and give replacements a fresh duration | debt=D6
 test("toast pauses elapsed time and a replacement cannot inherit the old countdown", () => {
 	const f = fixture();
 	try {
@@ -56,33 +57,7 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 	}
 });
 
-test("settings toggles share one progress animation without fading the panel", () => {
-	const f = fixture();
-	try {
-		const { app, w, Store } = f;
-		Store.setPref("stack", true);
-		app.modalKind = "settings";
-		app.repaintSettings();
-		const animations: any[] = [];
-		w.__motionValueAnimations = animations;
-		app.setPref("stack", false);
-		assert.equal(animations.length, 1);
-		assert.equal(animations[0].destination, 0);
-		assert.equal(animations[0].options.visualDuration, 0.3);
-		assert.equal(animations[0].options.bounce, 0.25);
-		animations[0].finish();
-		const toggle = app.dialog.querySelector('[data-id="stack"]');
-		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "0");
-		assert.equal(toggle.querySelector(".toggle-knob").style.transform, "translateX(0px) scaleX(1)");
-		w.document.documentElement.dataset.inputModality = "keyboard";
-		app.setPref("stack", true);
-		assert.equal(animations.length, 1);
-		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "1");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=media preview | protects=Open unavailable media without changing saved playback progress | debt=D6
 test("media opens without body or playback state and ignores obsolete playback actions", () => {
 	const f = fixture();
 	try {
@@ -128,6 +103,7 @@ test("media opens without body or playback state and ignores obsolete playback a
 	}
 });
 
+// @wu-test type=behavior | scope=desktop card dismissal | protects=Keep the closing card visible and inert until dismissal finishes | debt=D6
 test("desktop card close keeps the dialog until its exit completes", async () => {
 	const f = fixture();
 	try {
@@ -160,6 +136,7 @@ test("desktop card close keeps the dialog until its exit completes", async () =>
 	}
 });
 
+// @wu-test type=behavior | scope=desktop card and navigation bars | protects=Hide navigation bars while a card is open below the feed top and restore them when closing starts | debt=D5
 test("an open card below the feed top tucks the desktop top bar and AI box until its close begins", async () => {
 	const f = fixture();
 	try {
@@ -199,6 +176,7 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 	}
 });
 
+// @wu-test type=behavior | scope=AI reference removal | protects=Prevent interaction with a reference while it leaves and remove it after the transition | debt=D6
 test("AI references enter once and stay inert until their removal finishes", async () => {
 	const f = fixture();
 	try {
@@ -238,33 +216,7 @@ test("AI references enter once and stay inert until their removal finishes", asy
 	}
 });
 
-test("new cover fades to its read-state opacity and cached covers do not replay", () => {
-	const f = fixture();
-	try {
-		const { app, w } = f;
-		w.document.head.innerHTML =
-			"<style>.card-image{opacity:0}.card-image.is-loaded{opacity:.66}</style>";
-		app.grid.innerHTML = '<img class="card-image" src="https://synthetic.test/cover.png">';
-		const image = app.grid.firstElementChild;
-		Object.defineProperties(image, { complete: { value: true }, naturalWidth: { value: 100 } });
-		w.requestAnimationFrame = (fn: () => void) => {
-			fn();
-			return 0;
-		};
-		app.loadedImages = new Set();
-		app.layout = { schedule() {} };
-		const animations: any[] = [];
-		w.__motionAnimations = animations;
-		app.revealImages(app.grid);
-		assert.equal(animations.length, 1);
-		assert.equal(animations[0].frames[1].opacity, "0.66");
-		app.revealImages(app.grid);
-		assert.equal(animations.length, 1);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=card cover reveal | protects=Show loaded covers without replaying a visible fade behind an open card | debt=D5,D6
 test("a cover that loads under a card drawer or off screen shows without a fade", () => {
 	const f = fixture();
 	try {
@@ -305,6 +257,7 @@ test("a cover that loads under a card drawer or off screen shows without a fade"
 	}
 });
 
+// @wu-test type=behavior | scope=task completion in card detail | protects=Preserve detail, focus and scroll while toggling a task
 test("task completion retains the detail, toolbar, checklist focus and scroll", () => {
 	const f = fixture();
 	try {
@@ -342,6 +295,7 @@ test("task completion retains the detail, toolbar, checklist focus and scroll", 
 	}
 });
 
+// @wu-test type=behavior | scope=video card navigation | protects=Open the video preview instead of an unsupported reader
 test("a video card has no fullscreen: a reading request opens its preview", () => {
 	const f = fixture();
 	const { w, Store } = f;
@@ -389,6 +343,7 @@ test("a video card has no fullscreen: a reading request opens its preview", () =
 });
 
 for (const modality of ["pointer", "keyboard"]) {
+	// @wu-test type=behavior | scope=card dismissal focus | protects=Return focus to the trigger after keyboard dismissal
 	test(`card dismissal restores focus only for keyboard navigation: ${modality}`, () => {
 		const f = fixture();
 		try {

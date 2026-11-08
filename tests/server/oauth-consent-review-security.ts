@@ -7,6 +7,7 @@ import { AUTH, C, oauthFixture } from "./helpers/oauth-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
 export async function registerReviewSecurityTests() {
+	// @wu-test type=integration | scope=OAuth consent and revocation | protects=Prevent consent replay and preserve the web session during revocation
 	test("actual SQL flow: review, approve, replay rejection, local/provider revoke, web session preserved", async () => {
 		const f = await oauthFixture();
 		try {
@@ -38,6 +39,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth consent failure handling | protects=Preserve existing grants on denial or uncertain provider responses
 	test("failure/deny do not replace existing grants and uncertain calls are not repeated", async () => {
 		const f = await oauthFixture();
 		try {
@@ -67,6 +69,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=OAuth decision endpoint | protects=Reject forged decisions before changing provider authorization
 	test("CSRF, origin, bearer-owner, body and browser binding reject before provider mutation", async () => {
 		const f = await oauthFixture();
 		try {
@@ -101,6 +104,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=OAuth consent flow | protects=Reject expired or changed authorization details without granting access
 	test("provider details, policy, expiry, unknown client and cross-owner changes fail closed", async () => {
 		const f = await oauthFixture();
 		try {
@@ -136,6 +140,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth concurrent approval and revocation | protects=Prevent an in-flight approval from restoring a revoked grant | debt=D9
 	test("revocation wins over an in-flight provider approval across independent requests", async () => {
 		const f = await oauthFixture();
 		try {
@@ -156,6 +161,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=database OAuth authorization boundary | protects=Prevent agent tokens and other owners from widening grants or reading private tables
 	test("SQL API independently rejects agent tokens, cross-owner data and grant widening; ACLs remain closed", async () => {
 		const f = await oauthFixture();
 		try {
@@ -212,6 +218,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth login return | protects=Resume the original consent path without approving access during login
 	test("login return is an exact bounded self path; successful SDK PKCE resumes without approving", async () => {
 		const f = await oauthFixture();
 		try {
@@ -245,6 +252,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=OAuth configuration | protects=Keep ordinary sessions available while blocking disabled OAuth consent
 	test("disabled or incomplete configuration never calls provider; ordinary session remains available", async () => {
 		const f = await oauthFixture();
 		try {
@@ -286,6 +294,7 @@ export async function registerReviewSecurityTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=OAuth provider adapter | protects=Prevent provider redirects and oversized responses and send the correct authorization
 	test("provider adapter uses supported access-token endpoints, disallows redirects and bounds responses", async () => {
 		const config: Record<string, any> = {
 				url: "https://project.supabase.co",
@@ -325,6 +334,7 @@ export async function registerReviewSecurityTests() {
 			);
 	});
 
+	// @wu-test type=integration | scope=OAuth uncertain provider decision | protects=Avoid installing a grant or retrying an uncertain provider decision
 	test("lost provider decision response consumes the flow without installing a grant", async () => {
 		const f = await oauthFixture();
 		try {
@@ -338,6 +348,7 @@ export async function registerReviewSecurityTests() {
 			await f.close();
 		}
 	});
+	// @wu-test type=boundary | scope=OAuth consent flow limits | protects=Reject changed grants and disabled clients and limit pending flows
 	test("bounded flows, inactive client and changed prior grant prevent widening", async () => {
 		const f = await oauthFixture();
 		try {

@@ -3,80 +3,9 @@ import Testing
 
 @testable import SillKit
 
-private final class MemoryCloudVault: CloudSessionVault, @unchecked Sendable {
-  private let lock = NSLock()
-  private var value: Data?
-  func load() throws -> Data? { lock.withLock { value } }
-  func save(_ data: Data) throws { lock.withLock { value = data } }
-  func clear() throws { lock.withLock { value = nil } }
-}
-
-private final class CloudProtocol: URLProtocol, @unchecked Sendable {
-  static let lock = NSLock()
-  nonisolated(unsafe) static var handler:
-    ((URLRequest) throws -> (Int, [String: String], JSONValue))?
-  override class func canInit(with request: URLRequest) -> Bool { true }
-  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-  override func startLoading() {
-    do {
-      let handler = Self.lock.withLock { Self.handler }
-      let (status, headers, json) = try handler!(request)
-      let response = HTTPURLResponse(
-        url: request.url!, statusCode: status, httpVersion: nil,
-        headerFields: headers)!
-      client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-      client?.urlProtocol(self, didLoad: try json.encoded())
-      client?.urlProtocolDidFinishLoading(self)
-    } catch { client?.urlProtocol(self, didFailWithError: error) }
-  }
-  override func stopLoading() {}
-}
-
 @Suite(.serialized)
 struct CloudWorkspaceTests {
-  private var empty: JSONValue {
-    .object([
-      "revision": .number(0),
-      "state": .object([
-        "cards": .array([]), "items": .object([:]), "preferences": .object([:]),
-        "seconds": .number(0),
-      ]),
-    ])
-  }
-  private func make(
-    _ handler: @escaping (URLRequest) throws -> (Int, [String: String], JSONValue),
-    vault: MemoryCloudVault = MemoryCloudVault()
-  ) -> CloudWorkspace {
-    CloudProtocol.lock.withLock { CloudProtocol.handler = handler }
-    let config = URLSessionConfiguration.ephemeral
-    config.protocolClasses = [CloudProtocol.self]
-    return CloudWorkspace(vault: vault, configuration: config)
-  }
-  private func auth(_ request: URLRequest) -> (Int, [String: String], JSONValue)? {
-    #expect(request.url?.host == "sill-web-preview.scs1213-temp-email.workers.dev")
-    #expect(
-      request.value(forHTTPHeaderField: "Origin")
-        == "https://sill-web-preview.scs1213-temp-email.workers.dev")
-    switch request.url?.path {
-    case "/auth/password":
-      return (
-        200,
-        [
-          "Set-Cookie":
-            "__Host-sill-access=synthetic; Secure; Path=/, __Host-sill-refresh=synthetic-refresh; Secure; Path=/"
-        ], .object([:])
-      )
-    case "/auth/session":
-      #expect(
-        request.value(forHTTPHeaderField: "Cookie")?.contains(
-          "__Host-sill-refresh=synthetic-refresh") == true)
-      return (
-        200, [:], .object(["userId": .string("synthetic-owner"), "workspaceRead": .bool(true)])
-      )
-    default: return nil
-    }
-  }
-
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Restore the saved account
   @Test func loginUsesPasswordEndpointAndRestoresFromVault() async throws {
     let vault = MemoryCloudVault()
     let store = make(
@@ -94,6 +23,7 @@ struct CloudWorkspaceTests {
     #expect(restored?.owner == result.owner)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Return conflict without retry | debt=D7
   @Test func conflictIsReturnedWithoutRetry() async throws {
     let store = make { request in
       if let result = auth(request) { return result }
@@ -112,6 +42,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Block duplicate timeout writes
   @Test func timeoutRetainsPendingKeyAndBlocksAnotherWrite() async throws {
     let store = make { request in
       if let result = auth(request) { return result }
@@ -131,6 +62,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == key)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Clear session on logout; reject redirects
   @Test func redirectResponseIsRejectedAndLogoutClearsVault() async throws {
     let vault = MemoryCloudVault()
     let store = make(
@@ -153,6 +85,7 @@ struct CloudWorkspaceTests {
       try await store.login(email: "synthetic@example.com", password: "synthetic")
     }
   }
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Block unresolved account change
   @Test func accountChangeNeverReusesPreviousOwnerOrPendingWrite() async throws {
     var currentOwner = "first-owner"
     let store = make { request in
@@ -182,6 +115,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Reconcile without duplicate writes
   @Test func committedTimeoutReadsBackBeforeSuccessWithoutRepeatingWrite() async throws {
     var committed = false
     var writes = 0
@@ -222,6 +156,7 @@ struct CloudWorkspaceTests {
     ])
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace.read | protects=Keep workspace data when polling returns an unchanged revision
   @Test func periodicReadSendsKnownRevisionAndKeepsWorkspaceWhenUnchanged() async throws {
     let full = synthetic(revision: 3)
     var revisions: [String?] = []
@@ -246,6 +181,7 @@ struct CloudWorkspaceTests {
     await #expect(throws: CloudWorkspaceError.invalidResponse) { try await store.read() }
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace.apply | protects=Avoid a redundant workspace read before a write at the known revision
   @Test func writeAtKnownRevisionIsSentWithoutReadingWorkspaceFirst() async throws {
     var reads = 0
     var writes = 0
@@ -269,6 +205,7 @@ struct CloudWorkspaceTests {
     #expect(reads == 2 && writes == 2)
   }
 
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Verify lost card write receipts
   @Test func createReplaceAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
@@ -329,6 +266,7 @@ struct CloudWorkspaceTests {
     #expect(await store.pendingWriteKey == nil)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Reject invalid account identity
   @Test func unauthenticatedAndOwnerMismatchInvalidateIdentity() async throws {
     var failure = 0
     var requests = 0
@@ -356,6 +294,7 @@ struct CloudWorkspaceTests {
     #expect(requests == afterUnauthorized)
   }
 
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Keep login; reject other backup owners
   @Test func backupCredentialFailureKeepsTheSillAccountAndRejectsAnotherOwner() async throws {
     var calls = 0
     let store = make { request in
@@ -380,6 +319,7 @@ struct CloudWorkspaceTests {
     }
     #expect(calls == 1)
   }
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Bind callbacks to login verifier
   @Test func nativeEmailRetainsPKCEAndRedeemsOnlyFixedCallback() async throws {
     let vault = MemoryCloudVault()
     var redeemed = false
@@ -441,6 +381,7 @@ struct CloudWorkspaceTests {
     #expect(result.owner == "synthetic-owner")
     #expect(try JSONValue.decode(#require(try vault.load()))["__Host-sill-pkce"] == nil)
   }
+  // @wu-test type=boundary | scope=CloudWorkspace | protects=Reject expired login verifiers
   @Test func expiredPKCECannotBeSentAfterRestart() async throws {
     let vault = MemoryCloudVault()
     try vault.save(
@@ -457,6 +398,7 @@ struct CloudWorkspaceTests {
       try await store.completeLogin(url: URL(string: "sill://auth/callback?code=synthetic")!)
     }
   }
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Finish email password setup
   @Test func passwordSetupContinuesAfterEmailAndUsesExistingUpdateEndpoint() async throws {
     var updated = false
     let store = make { request in

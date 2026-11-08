@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct DesktopSearchTests {
+  // @wu-test type=behavior | scope=Feed search token parsing | protects=Exclude an unfinished hash token from the text query
   @Test func hashFragmentNeverFiltersTheText() {
     #expect(Feed.searchText("Synthetic #wo") == "Synthetic")
     #expect(Feed.hashFragment("Synthetic #wo") == "wo")
@@ -14,6 +15,7 @@ import Testing
     #expect(Feed.hashFragment("a#b") == nil)
   }
 
+  // @wu-test type=behavior | scope=Feed search tokens | protects=Apply a selected tag without retaining its input fragment
   @Test func pickedHashOptionBecomesATokenAndLeavesTheText() async {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)
@@ -34,6 +36,7 @@ import Testing
     #expect(feed.tag == nil && feed.mark == nil && feed.scope == .all)
   }
 
+  // @wu-test type=behavior | scope=Feed scope and search filters | protects=Avoid retaining a duplicate status when selecting its matching scope | debt=D6
   @Test func scopeAbsorbsMatchingStatusAndFiltersAnimate() async {
     let (workspace, _) = await ready(["a"])
     let feed = Feed(workspace: workspace)
@@ -47,6 +50,7 @@ import Testing
     #expect(feed.animateChanges)
   }
 
+  // @wu-test type=behavior | scope=Feed search type filters | protects=Show available types and clear the selected type with search
   @Test func typeChipsListTypesWithResultsAndLeaveWithTheText() async {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)

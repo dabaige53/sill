@@ -5,6 +5,7 @@ import Testing
 @testable import Sill
 
 @MainActor struct PerformanceTraceTests {
+  // @wu-test type=behavior | scope=Performance trace recording | protects=Exclude user content and prevent duplicate or stale spans | debt=D6
   @Test func recordsAndStopsWithoutContent() throws {
     let root = URL(fileURLWithPath: "/private/tmp/sill-trace-test-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -41,6 +42,7 @@ import Testing
     #expect(!secondText.contains("search"))
   }
 
+  // @wu-test type=integration | scope=Performance trace sampling | protects=Record resource samples and main-thread delays | debt=D9
   @Test func samplesResources() async throws {
     let root = URL(fileURLWithPath: "/private/tmp/sill-trace-sample-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }

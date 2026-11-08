@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct ActionFeedbackTests {
+  // @wu-test type=behavior | scope=Task completion feedback | protects=Complete and reopen tasks without an unnecessary notice
   @Test func finishingTasksDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticTask])
     let card = try #require(workspace.model("task"))
@@ -19,6 +20,7 @@ import Testing
     #expect(!workspace.state("task").completed(card))
   }
 
+  // @wu-test type=behavior | scope=Reminder dismissal feedback | protects=Dismiss a reminder without an unnecessary notice
   @Test func reminderDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticReminder])
     workspace.changeReminder("reminder", .dismiss)

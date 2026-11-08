@@ -54,6 +54,7 @@ async function holding(name?: any) {
 	}
 	throw new Error("Writer never acquired lock");
 }
+// @wu-test type=integration | scope=PostgreSQL test entry and installer | protects=Install database drafts with restricted privileges and run PostgreSQL boundary checks
 test("PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback", {
 	timeout: 90000,
 }, async (t?: any) => {

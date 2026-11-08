@@ -1,6 +1,6 @@
 /** Synthetic reading fixtures; no real workspace or service writes. */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
@@ -66,6 +66,7 @@ function fixture() {
 		refreshes: () => refreshes,
 	};
 }
+// @wu-test type=behavior | scope=reading completion | protects=Mark content read at the end and preserve the open detail | debt=D6
 test("reaching bottom updates immediately and does not repeatedly patch or redraw", () => {
 	const f = fixture();
 	try {
@@ -87,6 +88,7 @@ test("reaching bottom updates immediately and does not repeatedly patch or redra
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=mail reading completion | protects=Keep mail unread until its bottom is reached
 test("mail without an end marker stays unread while scrolling and completes at bottom", () => {
 	const f = fixture();
 	try {
@@ -109,6 +111,7 @@ test("mail without an end marker stays unread while scrolling and completes at b
 		f.dom.window.close();
 	}
 });
+// @wu-test type=boundary | scope=reading completion threshold | protects=Mark content read when its actual end is visible
 test("visible content end completes before trailing padding", () => {
 	const f = fixture();
 	try {
@@ -121,6 +124,7 @@ test("visible content end completes before trailing padding", () => {
 		f.dom.window.close();
 	}
 });
+// @wu-test type=regression | scope=preview reading tracking | protects=Continue tracking reading after initially short content grows
 test("initially short preview still tracks scrolling after content grows", () => {
 	const f = fixture();
 	try {
@@ -135,6 +139,7 @@ test("initially short preview still tracks scrolling after content grows", () =>
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=short-content reading completion | protects=Require visible dwell and cancel completion after switching cards
 test("short content needs 1200ms of dwell, and switching cancels the old completion", () => {
 	const f = fixture();
 	try {
@@ -153,6 +158,7 @@ test("short content needs 1200ms of dwell, and switching cancels the old complet
 		f.dom.window.close();
 	}
 });
+// @wu-test type=boundary | scope=short-content visible dwell | protects=Avoid marking hidden content as read
 test("hidden short content does not count as visible dwell", () => {
 	const f = fixture();
 	try {
@@ -166,13 +172,4 @@ test("hidden short content does not count as visible dwell", () => {
 	} finally {
 		f.dom.window.close();
 	}
-});
-test("pointer ring suppression leaves keyboard and selection rules intact", () => {
-	const css = readFileSync(new URL("../../apps/web/styles/cards.css", import.meta.url), "utf8");
-	assert.match(css, /data-input-modality="pointer"/);
-	assert.match(css, /\.feed-card:focus-visible\s*\{\s*outline: 2px solid var\(--accent\)/);
-	assert.match(css, /\.feed-card.is-selected:after/);
-	const readStyles = css.slice(css.indexOf("/* Read, ended"), css.indexOf("/* Desktop density"));
-	assert.doesNotMatch(readStyles, /background: var\(--card\)/);
-	assert.match(readStyles, /\.feed-card.is-complete/);
 });

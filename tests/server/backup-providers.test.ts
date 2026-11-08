@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { backupProvider, backupText, webdavEndpoint } from "../../server/cloud/backup-providers.ts";
+import { backupProvider, webdavEndpoint } from "../../server/cloud/backup-providers.ts";
 import { BackupRuntime } from "../../server/cloud/backup-runtime.ts";
 import { backupDigest } from "../../server/cloud/backup-service.ts";
 import { backupEncryptionKey, sealBackupSecret } from "../../server/cloud/backup-vault.ts";
@@ -8,6 +8,7 @@ import { backupEncryptionKey, sealBackupSecret } from "../../server/cloud/backup
 const owner = "11111111-1111-4111-8111-111111111111",
 	targetId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
+// @wu-test type=boundary | scope=server/cloud/backup-providers WebDAV | protects=Prevent credentials from being sent to unapproved URLs or redirects
 test("WebDAV confines credentials to approved HTTPS destination and rejects redirects", async () => {
 	for (const endpoint of [
 		"http://dav.jianguoyun.com/dav/",
@@ -39,6 +40,7 @@ test("WebDAV confines credentials to approved HTTPS destination and rejects redi
 	assert.ok(calls.every((c) => c.init.redirect === "error"));
 	assert.ok(calls.every((c) => !c.url.includes("test-only")));
 });
+// @wu-test type=integration | scope=server/cloud/backup-providers R2 | protects=Send signed backup writes to the configured bucket without redirects
 test("R2 signs S3 requests with configured bucket and no retrying transport", async () => {
 	let call: any;
 	const provider = backupProvider(
@@ -61,6 +63,7 @@ test("R2 signs S3 requests with configured bucket and no retrying transport", as
 	assert.equal(call.init.redirect, "error");
 	assert.equal(call.init.body, "snapshot");
 });
+// @wu-test type=integration | scope=server/cloud/backup-runtime | protects=Prevent duplicate uploads after unknown results and reject corrupted restores
 test("unknown upload is verified using same reserved object; corrupt bytes never restore", async () => {
 	const key = "a".repeat(64),
 		id = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";

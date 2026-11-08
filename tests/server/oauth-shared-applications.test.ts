@@ -4,6 +4,7 @@ import { A, B, claims, identity, rpc } from "./helpers/boundary-fixture.ts";
 import { AUTH, C, oauthFixture } from "./helpers/oauth-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=integration | scope=shared OAuth application enrollment | protects=Resume consent after login without silently granting access
 test("shared application: password login resumes consent without per-account setup", async () => {
 	const f = await oauthFixture({ shared: true });
 	try {
@@ -44,6 +45,7 @@ test("shared application: password login resumes consent without per-account set
 	}
 });
 
+// @wu-test type=integration | scope=shared OAuth account grants | protects=Prevent one account's approval or revocation from changing another account's grant
 test("same public client keeps account grants, denial and revocation independent", async () => {
 	const f = await oauthFixture({ shared: true });
 	try {
@@ -101,6 +103,7 @@ test("same public client keeps account grants, denial and revocation independent
 	}
 });
 
+// @wu-test type=boundary | scope=shared OAuth application policy | protects=Preserve account restrictions and reject enrollment without workspace access
 test("defaults preserve account restrictions and require an existing Sill workspace grant", async () => {
 	const f = await oauthFixture({ shared: true });
 	try {
@@ -130,6 +133,7 @@ test("defaults preserve account restrictions and require an existing Sill worksp
 	}
 });
 
+// @wu-test type=boundary | scope=shared OAuth application policy | protects=Reject disabled or unknown clients and direct access to private policy tables
 test("shared defaults cannot bypass disabled policies, unknown clients or direct table access", async () => {
 	const f = await oauthFixture({ shared: true });
 	try {

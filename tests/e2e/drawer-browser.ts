@@ -109,6 +109,7 @@ try {
 				? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 				: [],
 	});
+	// @wu-test type=integration | scope=drawer scenario runner | protects=prevent page errors or unexpected external requests from passing silently
 	async function scenario(
 		name: string,
 		run: (page: any, context: any) => Promise<void>,

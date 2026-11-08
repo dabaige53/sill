@@ -75,6 +75,7 @@ const otherCards = [
 	},
 ];
 
+// @wu-test type=integration | scope=database card validation and writes | protects=Prevent invalid merged updates and preserve explicit card fields
 test("card SQL matches contract validation and checks merged partial updates", async () => {
 	const f = await cloudFixture();
 	try {
@@ -173,6 +174,7 @@ test("card SQL matches contract validation and checks merged partial updates", a
 	}
 });
 
+// @wu-test type=integration | scope=server/cloud HTTP and MCP card writes | protects=Preserve explicit card facts and reject legacy fields through public interfaces
 test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields", async () => {
 	const f = await cloudFixture();
 	let client: Client | undefined;
@@ -299,6 +301,7 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 	}
 });
 
+// @wu-test type=integration | scope=database workspace full-card writes | protects=Reject shared invalid card fixtures without changing workspace revision
 test("shared invalid card fixtures are rejected by database full-card operations", async () => {
 	const f = await cloudFixture();
 	try {

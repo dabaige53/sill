@@ -6,6 +6,7 @@ import UserNotifications
 @testable import SillKit
 
 @MainActor struct SystemReminderTests {
+  // @wu-test type=behavior | scope=System reminder planning | protects=Schedule snoozed reminders and exclude inactive cards
   @Test func schedulingUsesSnoozeAndExcludesCompletedArchivedAndEndedCards() async throws {
     let now = 2_000_000.0
     let workspace = Workspace(autoload: false)
@@ -130,6 +131,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
 }
 
 @MainActor extension SystemReminderTests {
+  // @wu-test type=integration | scope=System reminder account lifecycle | protects=Keep pending reminders until explicit signout | debt=D9
   @Test func startupPreservesPendingUntilExplicitSignout() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -163,6 +165,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(defaults.stringArray(forKey: "sill.reminders.scheduled.a") == [])
   }
 
+  // @wu-test type=integration | scope=System reminder capacity | protects=Schedule future reminders after earlier deliveries | debt=D9
   @Test func deliveredOld64DoNotBlockFutureAndCapacityRefills() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -190,6 +193,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(reminders.deferredCount == 0)
   }
 
+  // @wu-test type=integration | scope=System reminder scheduling | protects=Retry failed reminder scheduling without losing existing requests | debt=D9
   @Test func partialAddFailureRetriesIdenticalPlans() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -211,6 +215,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(reminders.message == nil)
   }
 
+  // @wu-test type=integration | scope=System reminder rollback | protects=Requeue a reminder when completion fails after its due time | debt=D9
   @Test func optimisticCompletionCancelsAndFailedWriteRequeuesAfterDue() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -240,6 +245,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(client.requests.keys.sorted() == ["sill-reminder:a:one:5000"])
   }
 
+  // @wu-test type=integration | scope=System reminder permission | protects=Schedule reminders after permission is granted | debt=D9
   @Test func grantingPermissionAndEnablingAgainRetriesUnchangedPlans() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -261,6 +267,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
 }
 
 @MainActor extension SystemReminderTests {
+  // @wu-test type=integration | scope=System reminder rollback | protects=Keep the reminder scheduled after a rapid rollback | debt=D9
   @Test func rapidRollbackSupersedesQueuedCancellationEvenWhenPlansMatchLastSuccess() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -280,6 +287,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(client.attempts == 1)
   }
 
+  // @wu-test type=integration | scope=System reminder capacity | protects=Keep nearest reminders and report deferred requests | debt=D9
   @Test func systemCapacityIsVisibleAndNextPassKeepsNearestRequests() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }

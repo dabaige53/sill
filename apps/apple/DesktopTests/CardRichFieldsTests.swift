@@ -5,6 +5,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct CardRichFieldsTests {
+  // @wu-test type=behavior | scope=Content date formatting | protects=Show consistent local dates and time precision
   @Test func contentDateLabelsShareLocalCalendarAndPrecision() throws {
     let now = try #require(Format.localDay("2026-10-22"))
     for (value, label) in [
@@ -22,6 +23,7 @@ import Testing
     #expect(Format.publication(timestamp, includeTime: true, now: now) == "今天 09:30")
   }
 
+  // @wu-test type=behavior | scope=Publication date display | protects=Show the same publication day on card and detail | debt=D9
   @Test func cardAndDetailUseTheSameCurrentPublicationDay() throws {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -40,6 +42,7 @@ import Testing
     }
   }
 
+  // @wu-test type=behavior | scope=Pull request card fields | protects=Preserve unknown counts and observation time
   @Test func snapshotKeepsUnknownCountsAndOriginalObservationTime() throws {
     let raw = try JSONValue.decode(
       Data(
@@ -54,6 +57,7 @@ import Testing
     #expect(pr.observedAt == "2026-10-22T13:00:00+08:00")
   }
 
+  // @wu-test type=behavior | scope=Mail card fields | protects=Show the first author and attached files
   @Test func mailSenderIsTheFirstAuthorAndAttachmentsAreFiles() throws {
     let raw = try JSONValue.decode(
       Data(
@@ -65,6 +69,7 @@ import Testing
     #expect(model.files.map(\.name) == ["brief.pdf"])
   }
 
+  // @wu-test type=behavior | scope=Card reading estimate | protects=Calculate reading time from body text for supported cards
   @Test func readingTimeIsCalculatedFromTheBody() throws {
     #expect(CardModel.readingMinutes(String(repeating: "字", count: 400)) == 1)
     #expect(CardModel.readingMinutes(String(repeating: "字", count: 401)) == 2)
@@ -84,6 +89,7 @@ import Testing
     #expect(try CardModel(card: Card(json: .object(event))).readingTime.isEmpty)
   }
 
+  // @wu-test type=behavior | scope=Card publication and files | protects=Show publication authors and preserve file URLs
   @Test func publicationAndFileURLAreReadyForViews() throws {
     let raw = try JSONValue.decode(
       Data(

@@ -22,6 +22,7 @@ export async function runTouchDrag({
 	state: any;
 	touchTargets: any;
 }) {
+	// @wu-test type=behavior | scope=settings and empty workspace | protects=prevent theme settings from being lost after reload or retired controls from appearing in an empty workspace
 	await scenario(
 		"Settings and first run omit retired capture and source connections",
 		async (page?: any) => {
@@ -50,6 +51,7 @@ export async function runTouchDrag({
 			assert.equal(await page.locator('[data-action="capture"], #capture-text').count(), 0);
 		},
 	);
+	// @wu-test type=behavior | scope=desktop card layout | protects=prevent cards from overlapping or extending beyond the window
 	for (const width of [680, 700, 810, 1440, 2048])
 		await scenario(
 			`${width}px desktop uses compact cards across the available screen`,
@@ -91,6 +93,7 @@ export async function runTouchDrag({
 			},
 			{ viewport: { width, height: 1000 } },
 		);
+	// @wu-test type=behavior | scope=page exit and reentry | protects=prevent a stale close action from hiding a new page or duplicating cards | debt=D9,D6
 	await scenario(
 		"Motion exits preserve live identity and survive rapid filtering and reselection",
 		async (page: any) => {
@@ -133,6 +136,7 @@ export async function runTouchDrag({
 			});
 		},
 	);
+	// @wu-test type=behavior | scope=phone drawer | protects=prevent a stale close callback from affecting a newly opened card | debt=D9,D6
 	await scenario(
 		"Phone drawer waits for its exit motion and cancels stale opening callbacks",
 		async (page: any) => {
@@ -166,6 +170,7 @@ export async function runTouchDrag({
 		},
 		{ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
 	);
+	// @wu-test type=behavior | scope=phone reminder controls | protects=prevent reminder touch actions from failing, controls from overflowing, or snooze times from being wrong | debt=D9
 	for (const width of [390, 320])
 		await scenario(
 			`${width}px touch layout, reminder controls`,
@@ -250,6 +255,7 @@ export async function runTouchDrag({
 				hasTouch: true,
 			},
 		);
+	// @wu-test type=behavior | scope=card drag cancellation | protects=prevent cancelled drags from leaving previews behind or marking cards as read | debt=D9
 	await scenario("Desktop drag cancellation preserves cards and read state", async (page?: any) => {
 		const box = await card(page, "article-01").locator(".card-head").boundingBox();
 		const x = box.x + box.width / 2,

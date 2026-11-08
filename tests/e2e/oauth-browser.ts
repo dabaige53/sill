@@ -4,7 +4,6 @@ import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { A } from "../server/helpers/boundary-fixture.ts";
 import { AUTH, oauthFixture } from "../server/helpers/oauth-fixture.ts";
-import { token } from "../server/helpers/signed-auth.ts";
 
 const callbackServer = createServer((_req?: any, res?: any) => {
 	res.writeHead(200, { "Content-Type": "text/html" });
@@ -79,6 +78,7 @@ try {
 					body: Buffer.from(await response.arrayBuffer()),
 				});
 			});
+			// @wu-test type=integration | scope=OAuth consent review | protects=prevent consent from being granted before review or becoming inaccessible on small screens
 			const page = await context.newPage(),
 				errors = [];
 			page.setDefaultNavigationTimeout(15000);
@@ -101,10 +101,12 @@ try {
 				await page.evaluate(() => (document.activeElement as HTMLInputElement).value),
 				"approve",
 			);
+			// @wu-test type=boundary | scope=OAuth consent denial | protects=prevent cancelling consent from creating a grant
 			await page.screenshot({ path: `tests/artifacts/oauth-${name}-review.png`, fullPage: true });
 			await page.getByRole("button", { name: "取消", exact: true }).click();
 			await page.waitForURL(callbackOrigin + "/**");
 			assert.equal(await f.grant(), undefined);
+			// @wu-test type=integration | scope=OAuth grant lifecycle | protects=prevent approved access from surviving revocation or revocation from deleting the login session
 			await page.goto(f.config.appOrigin + "/oauth/consent?authorization_id=" + AUTH);
 			await page.getByRole("button", { name: "允许访问", exact: true }).click();
 			await page.waitForURL(callbackOrigin + "/**");

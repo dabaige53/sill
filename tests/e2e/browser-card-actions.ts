@@ -22,6 +22,7 @@ export async function runCardActions({
 	scenario: any;
 	state: any;
 }) {
+	// @wu-test type=behavior | scope=card details and actions | protects=prevent bookmark, note, or task actions from losing state or focus | debt=D7
 	await scenario(
 		"Preview, reader, bookmark undo, tags and task controls remain independent",
 		async (page?: any) => {
@@ -98,6 +99,7 @@ export async function runCardActions({
 			);
 		},
 	);
+	// @wu-test type=behavior | scope=reminder snoozing | protects=prevent snooze state from being lost after reload or reminders from appearing twice
 	await scenario(
 		"Snooze stays on home, survives reload and queues one notification",
 		async (page?: any) => {
@@ -138,6 +140,7 @@ export async function runCardActions({
 			assert.equal(await page.locator("#new-count").isVisible(), false);
 		},
 	);
+	// @wu-test type=behavior | scope=reminder details | protects=prevent dismissed reminders from becoming unrestorable or completed reminders from disappearing from search
 	await scenario(
 		"Dismiss, completion, status recovery and undo use accessible actions",
 		async (page?: any) => {
@@ -169,6 +172,7 @@ export async function runCardActions({
 			assert.equal(await page.locator('#feed-grid [data-card="reminder-01"]').count(), 1);
 		},
 	);
+	// @wu-test type=behavior | scope=reminder keyboard actions | protects=prevent keyboard actions from opening the card, marking it read, or losing focus
 	await scenario(
 		"Inline reminder actions work by keyboard without opening or reading the card",
 		async (page?: any) => {
@@ -198,6 +202,7 @@ export async function runCardActions({
 			assert.equal(await reminder.locator('[data-action="snooze"]').count(), 0);
 		},
 	);
+	// @wu-test type=behavior | scope=card action entry points | protects=prevent right clicks from opening an unintended menu or making detail actions unavailable
 	await scenario(
 		"Card context menus remain absent and preview actions stay available",
 		async (page: any) => {
@@ -211,6 +216,7 @@ export async function runCardActions({
 			assert.equal((await state(page, "note-01")).later, true);
 		},
 	);
+	// @wu-test type=behavior | scope=preview close and browser history | protects=prevent closing details from losing scroll position or keyboard focus
 	await scenario(
 		"Expanded cards return to the same scroll position and focus, including rapid dismissal",
 		async (page?: any) => {

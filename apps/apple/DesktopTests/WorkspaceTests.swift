@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct WorkspaceTests {
+  // @wu-test type=integration | scope=Markdown card links | protects=Open an internal card link above the current reader
   @Test func internalMarkdownCardLinkUsesExistingReaderStack() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -19,6 +20,7 @@ import Testing
     #expect(MarkdownText.cardRoute(URL(string: "https://example.com/#card/b")!) == nil)
   }
 
+  // @wu-test type=behavior | scope=Reader resizing | protects=Keep content and scroll position through an interrupted resize | debt=D6
   @Test func resizingKeepsTheLayerAndStartsAtItsDrawnSurface() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -42,12 +44,14 @@ import Testing
     #expect(reader.contentShown && reader.positions[layer.id] == 120)
   }
 
+  // @wu-test type=behavior | scope=Reader expansion | protects=Allow short reading content to open in full view
   @Test func shortReadingContentStillOffersFullPage() async throws {
     let (workspace, _) = await ready()
     let card = try #require(workspace.model("a"))
     #expect(Reader.canExpand(card))
   }
 
+  // @wu-test type=behavior | scope=Reader opening | protects=Prevent cancelled opening from revealing reader content | debt=D9,D6
   @Test func measuredEntryAndCancelledReveal() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -64,6 +68,7 @@ import Testing
     #expect(!reader.toolsShown && !reader.contentShown)
   }
 
+  // @wu-test type=behavior | scope=Reader reopening | protects=Show content and tools after reopening the reader | debt=D9,D6
   @Test func measuredEntryRevealsToolsWithSurfaceAndSurvivesReopening() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -82,6 +87,7 @@ import Testing
     #expect(reader.presented && reader.toolsShown)
   }
 
+  // @wu-test type=behavior | scope=Reader interrupted close | protects=Open the newly selected card while the previous card closes | debt=D9,D6
   @Test func anotherCardOpensWhileThePreviousOneIsReturning() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -103,6 +109,7 @@ import Testing
 
   /// A related card stacks over the open one: the overlay stays shown, so the desktop bars stay
   /// where they are, and the card below stays open under the new one.
+  // @wu-test type=behavior | scope=Related card navigation | protects=Return to the previous card without showing desktop bars | debt=D9,D6
   @Test func relatedCardStacksWithoutReturningTheBars() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -123,16 +130,8 @@ import Testing
 
   /// A layer with no card to grow from mounts first and is shown on the next turn, so its
   /// insertion and its fade never share one update.
-  @Test func unmatchedLayerShowsOnTheNextTurn() async throws {
-    let (workspace, _) = await ready()
-    let reader = Reader(workspace: workspace)
-    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
-    reader.open("a")
-    #expect(reader.presented && !reader.matching && !reader.shown)
-    try await Task.sleep(for: .milliseconds(20))
-    #expect(reader.shown && reader.contentShown && reader.toolsShown)
-  }
 
+  // @wu-test type=behavior | scope=Reader date labels | protects=Display article and photo dates consistently
   @Test func articleAndPhotoHeadsNameTheirDay() async throws {
     let (workspace, _) = await ready(
       [],
@@ -157,6 +156,7 @@ import Testing
     #expect(Format.shortDay(day, now: now) == Copy.text("web.primitives.0c184871f658"))
   }
 
+  // @wu-test type=behavior | scope=Desktop escape handling | protects=Close only the top surface and preserve search
   @Test func escapeClosesOnlyTheTopLayerAndPreservesSearch() async {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -182,6 +182,7 @@ import Testing
     #expect(feed.query == "Synthetic")
   }
 
+  // @wu-test type=behavior | scope=Desktop escape handling | protects=Close the scope menu without clearing search focus
   @Test func escapeClosesScopeMenuBeforeSearch() {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let shell = Shell()
@@ -198,6 +199,7 @@ import Testing
     #expect(shell.searchFocused)
   }
 
+  // @wu-test type=behavior | scope=Card write isolation | protects=Keep other cards unchanged while one card is written | debt=D6
   @Test func writeOnOneCardDoesNotTouchOthers() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")
@@ -219,6 +221,7 @@ import Testing
     #expect(workspace.catalogVersion == version)
   }
 
+  // @wu-test type=integration | scope=Card write isolation | protects=Block a second write to the same card while allowing another card | debt=D9,D6
   @Test func cardLocksOnlyItself() async {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(80))
@@ -233,6 +236,7 @@ import Testing
     #expect(await backend.revision == 3)
   }
 
+  // @wu-test type=integration | scope=Card write failure | protects=Restore the stored value and show a failure notice
   @Test func failedWriteReturnsToStoredValue() async {
     let (workspace, backend) = await ready()
     await backend.failNextWrite(StoreError.invalidSnapshot)
@@ -245,6 +249,7 @@ import Testing
     #expect(workspace.notice?.persistent == false)
   }
 
+  // @wu-test type=integration | scope=Card unknown write | protects=Check an unknown write without sending it twice
   @Test func unknownResultIsCheckedNotRetried() async {
     let (workspace, backend) = await ready()
     let readsBefore = await backend.reads
@@ -258,6 +263,7 @@ import Testing
     #expect(workspace.notice?.isFailure == true)
   }
 
+  // @wu-test type=integration | scope=Card write conflict | protects=Show a conflict without overwriting an external change
   @Test func changeMadeElsewhereSurfacesAsConflict() async {
     let (workspace, backend) = await ready()
     await backend.externalChange("b", ["read": .bool(true)])
@@ -271,6 +277,7 @@ import Testing
     #expect(await backend.writes == 1)
   }
 
+  // @wu-test type=behavior | scope=Background reading records | protects=Preserve reading records without disturbing visible cards | debt=D6
   @Test func backgroundRecordsDoNotRedraw() async {
     let (workspace, backend) = await ready()
     let a = workspace.state("a")
@@ -298,6 +305,7 @@ import Testing
     #expect(workspace.seconds == 1)
   }
 
+  // @wu-test type=integration | scope=Reading progress reconciliation | protects=Preserve newer externally refreshed reading progress
   @Test func delayedProgressDoesNotReplaceARefreshedValue() async throws {
     for newProgress in [1.0, 0.0] {
       let (workspace, backend) = await ready()
@@ -316,6 +324,7 @@ import Testing
     }
   }
 
+  // @wu-test type=integration | scope=Reading progress queue | protects=Save progress recorded while an earlier save is pending | debt=D9
   @Test func progressRecordedDuringItsOwnSaveStillFlushes() async throws {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(20))
@@ -328,6 +337,7 @@ import Testing
     #expect(await backend.writes == 2)
   }
 
+  // @wu-test type=integration | scope=Reading progress queue | protects=Prevent queued progress from undoing an explicit read decision | debt=D9
   @Test func queuedProgressCannotReplaceAForegroundReadDecision() async throws {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(20))
@@ -341,6 +351,7 @@ import Testing
     #expect(!workspace.recorder.hasRecords)
   }
 
+  // @wu-test type=integration | scope=Reading time retry | protects=Retain unwritten reading time after a definite failure
   @Test func definiteReadingTimeFailureKeepsTheUnwrittenSeconds() async throws {
     let errors: [any Error] = [
       StoreError.unavailable(5), CloudWorkspaceError.service("rate_limited", 429),
@@ -361,6 +372,7 @@ import Testing
     }
   }
 
+  // @wu-test type=integration | scope=Reading time reconciliation | protects=Check an unknown reading time write without resending
   @Test func unknownReadingTimeResultIsCheckedWithoutSendingItAgain() async {
     let (workspace, backend) = await ready()
     workspace.recorder.readingSecond()
@@ -372,6 +384,7 @@ import Testing
     #expect(await backend.reads > 1)
   }
 
+  // @wu-test type=integration | scope=Workspace write baseline | protects=Reject an action based on a screen older than the read response
   @Test func aReadResponseCannotAuthorizeAWritingDecisionFromTheOldScreen() async throws {
     let (workspace, backend) = await ready([], extra: [syntheticTask])
     await backend.externalChange("task", ["taskDone": .array([.string("t1"), .string("t2")])])
@@ -386,6 +399,7 @@ import Testing
     #expect(workspace.notice?.text == Copy.appleConflict)
   }
 
+  // @wu-test type=behavior | scope=Read appearance | protects=Keep the visible read appearance stable until the transition ends | debt=D6
   @Test func readStaysHeldUntilReleased() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")

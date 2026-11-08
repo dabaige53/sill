@@ -26,6 +26,7 @@ struct CardStoreTests {
       .appendingPathComponent(".build/debug/SillStoreProbe")
   }
 
+  // @wu-test type=integration | scope=CardStore snapshot | protects=Preserve unknown snapshot fields across a write
   @Test func readsWithoutWritingAndPreservesSnapshot() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -50,6 +51,7 @@ struct CardStoreTests {
     #expect(changed.items["note"]?["bookmarked"] == .bool(true))
   }
 
+  // @wu-test type=integration | scope=CardStore revisions | protects=Reject stale writes and preserve changes across restart
   @Test func crudConflictAndRestart() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -71,6 +73,7 @@ struct CardStoreTests {
     #expect(deleted.cards.isEmpty)
   }
 
+  // @wu-test type=boundary | scope=CardStore bulk delete | protects=Reject invalid bulk deletion without partial changes
   @Test func bulkDeleteRejectsStaleOrMissingCardsWithoutPartialChanges() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -94,6 +97,7 @@ struct CardStoreTests {
     #expect(deleted.items["note"] == nil)
   }
 
+  // @wu-test type=integration | scope=CardStore concurrent writes | protects=Allow only one write against the same revision
   @Test func concurrentInstancesOnlyOneExpectedRevisionWins() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -112,6 +116,7 @@ struct CardStoreTests {
     #expect(try await first.read().revision == 1)
   }
 
+  // @wu-test type=integration | scope=CardStore process locking | protects=Release the write lock after a process crash
   @Test func crossProcessConflictAndCrashReleasesKernelLock() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -146,6 +151,7 @@ struct CardStoreTests {
     #expect(try await store.read().revision == 1)
   }
 
+  // @wu-test type=integration | scope=WorkspaceSession | protects=Prevent simultaneous sessions and release a crashed session
   @Test func desktopSessionIsExclusiveAndCrashReleasesIt() throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -173,6 +179,7 @@ struct CardStoreTests {
     }
   }
 
+  // @wu-test type=boundary | scope=CardStore malformed file | protects=Preserve malformed source bytes when a write fails
   @Test func malformedFileIsNotOverwritten() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -184,6 +191,7 @@ struct CardStoreTests {
     #expect(try Data(contentsOf: file) == bytes)
   }
 
+  // @wu-test type=integration | scope=CardStore draft restoration | protects=Restore the latest draft and preserve unchanged body fields
   @Test func draftRestorationQueueAndOriginalParagraphs() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -209,6 +217,7 @@ struct CardStoreTests {
     #expect(try store.drafts.restore() == nil)
   }
 
+  // @wu-test type=integration | scope=CardStore draft conflict | protects=Retain the draft when its revision conflicts
   @Test func conflictingDraftIsRetained() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -222,6 +231,7 @@ struct CardStoreTests {
     #expect(try store.drafts.restore()?.title == draft.title)
     #expect(try await store.read().cards.first?.title == original.title)
   }
+  // @wu-test type=integration | scope=CardStore item patch | protects=Reject invalid patches without partially changing items
   @Test func patchesAreAtomicAndPreserveUnrelatedFields() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -251,6 +261,7 @@ struct CardStoreTests {
     #expect(unchanged.items["note"]?["seen"] == .bool(true))
   }
 
+  // @wu-test type=boundary | scope=CardStore preferences and reading | protects=Reject invalid values and stale reading updates
   @Test func preferencesReadingAndValidation() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -280,6 +291,7 @@ struct CardStoreTests {
     }
   }
 
+  // @wu-test type=integration | scope=CardStore reading write | protects=Reconcile a committed reading update after a lost receipt
   @Test func unknownWriteIsReconciledBeforeReturningAndReadingIsNotRepeated() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -292,6 +304,7 @@ struct CardStoreTests {
     #expect(try await store.read().json == result.json)
   }
 
+  // @wu-test type=boundary | scope=CardStore item validation | protects=Reject unknown tasks and invalid item values
   @Test func taskPatchRejectsUnknownTasksAndInvalidValues() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -310,6 +323,7 @@ struct CardStoreTests {
     }
     #expect(try await store.read().revision == 1)
   }
+  // @wu-test type=integration | scope=CardStore reading write | protects=Report unknown outcome when committed data cannot be read back
   @Test func unknownWriteRemainsUnknownWhenReadbackFails() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -328,6 +342,7 @@ struct CardStoreTests {
     #expect(snapshot.revision == 1)
     #expect(snapshot.json["state"]?["seconds"] == .number(40))
   }
+  // @wu-test type=integration | scope=CardStore task state | protects=Store task completion in shared item state
   @Test func taskCompletionAndReminderStatesUseWebFields() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }

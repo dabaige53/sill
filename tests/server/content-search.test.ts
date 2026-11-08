@@ -5,6 +5,7 @@ import { searchPage, toolInputs } from "../../contracts/cloud.ts";
 import { searchResult } from "../../server/cloud/content-search.ts";
 import { applyCardMigrations, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 
+// @wu-test type=integration | scope=database search and server/cloud/content-search | protects=Prevent incorrect keyword matching, ranking, pagination, or disclosure of full card bodies
 test("database keyword search needs every word, ranks title hits then newest, and omits bodies", async () => {
 	const db = new PGlite();
 	try {
@@ -71,6 +72,7 @@ test("database keyword search needs every word, ranks title hits then newest, an
 	}
 });
 
+// @wu-test type=boundary | scope=contracts/cloud sill_searchContents input | protects=Reject empty queries, oversized pages, and unsupported search fields
 test("search input trims plain keywords and caps the page size", () => {
 	const input = toolInputs.sill_searchContents;
 	assert.deepEqual(input.parse({ query: "  雨水  " }), { query: "雨水" });

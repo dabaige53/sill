@@ -39,6 +39,7 @@ function fixture() {
 	return { dom, window, document, act: window.BackupTest.act };
 }
 
+// @wu-test type=integration | scope=backup target setup | protects=Preserve setup drafts through cancellation and failure, then clear credentials and select the saved target
 test("setup retains drafts on cancel, provider changes and failure, then selects the saved target", async () => {
 	const { dom, window, document, act } = fixture();
 	let targets: any[] = [];
@@ -103,6 +104,7 @@ test("setup retains drafts on cancel, provider changes and failure, then selects
 	}
 });
 
+// @wu-test type=integration | scope=backup target connection settings | protects=Keep existing target identity and separate its credential draft from a new target
 test("connection settings preserve target identity and keep drafts separate from adding a location", async () => {
 	const { dom, window, document, act } = fixture();
 	const target = {

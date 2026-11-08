@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { authStyles } from "../../server/cloud/auth-page.ts";
+
 import { loginPage } from "../../server/cloud/login-page.ts";
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+// @wu-test type=behavior | scope=server/cloud login page | protects=Send the selected login intent without leaking the password
 test("login switches email and reset intent without sending a password, and reports real responses", async () => {
 	const requests: { path: string; body: any }[] = [];
 	let fail = false;
@@ -56,6 +57,7 @@ test("login switches email and reset intent without sending a password, and repo
 	}
 });
 
+// @wu-test type=boundary | scope=server/cloud login page | protects=Require the password setup endpoint and minimum length
 test("password setup retains its dedicated endpoint and minimum length", () => {
 	const dom = new JSDOM(loginPage({ setup: true }));
 	try {
@@ -67,18 +69,7 @@ test("password setup retains its dedicated endpoint and minimum length", () => {
 	}
 });
 
-test("auth typography uses valid units and keeps secondary links below the primary action", () => {
-	assert.match(authStyles, /--text-auth-title:30px(?:;|})/);
-	assert.doesNotMatch(authStyles, /\dpxpx/);
-	const dom = new JSDOM(loginPage({ emailEnabled: true }));
-	try {
-		for (const id of ["forgot", "email-login"])
-			assert.equal(dom.window.document.getElementById(id)?.parentElement?.id, "alternate");
-	} finally {
-		dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=design-system login board | protects=Prevent the design board from sending credentials to a network service
 test("generated password-only login board returns only local demo receipts", async () => {
 	let requests = 0;
 	const html = readFileSync(

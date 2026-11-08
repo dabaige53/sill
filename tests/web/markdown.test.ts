@@ -13,6 +13,7 @@ import {
 
 const render = (text: string) => new JSDOM(markdownHtml(text)).window.document;
 
+// @wu-test type=boundary | scope=Markdown card links | protects=Route only recognized card URLs within Sill
 test("card URLs stay in Sill while external articles retain their destination", () => {
 	const base = "http://localhost:5173/#feed";
 	assert.equal(internalCardRoute("http://127.0.0.1:4318/#card/demo-note", base), "#card/demo-note");
@@ -28,6 +29,7 @@ test("card URLs stay in Sill while external articles retain their destination", 
 	assert.equal(internalCardRoute("http://localhost:5173/article#card/demo-note", base), null);
 });
 
+// @wu-test type=behavior | scope=Markdown rendering | protects=Render common Markdown blocks and inline formatting
 test("common Markdown blocks render as structure", () => {
 	const doc = render(
 		"## Heading\n\n1. First\n2. Second\n\n- Item\n\n> Quote\n\n**Bold** and `code`",
@@ -40,6 +42,7 @@ test("common Markdown blocks render as structure", () => {
 	assert.equal(doc.querySelector("code")?.textContent, "code");
 });
 
+// @wu-test type=behavior | scope=Markdown tables | protects=Keep wide tables inside a horizontal scroll frame
 test("tables render inside their own horizontal scroll frame", () => {
 	const doc = render("| 项目 | 说明 |\n| --- | --- |\n| A | 一段较长的说明文字 |");
 	const frame = doc.querySelector(".markdown-table");
@@ -47,6 +50,7 @@ test("tables render inside their own horizontal scroll frame", () => {
 	assert.equal(frame?.querySelectorAll("tbody td").length, 2);
 });
 
+// @wu-test type=boundary | scope=Markdown rendering | protects=Keep unsafe HTML and links inactive
 test("raw HTML stays text, images are not loaded and only safe links open", () => {
 	const doc = render(
 		'<script>alert(1)</script> <img src="https://example.com/x.png">\n\n![Alt](https://example.com/y.png)\n\n[Safe](https://example.com) [Mail](mailto:a@example.com) [Bad](javascript:alert(1)) [File](file:///etc/passwd)',
@@ -65,6 +69,7 @@ test("raw HTML stays text, images are not loaded and only safe links open", () =
 	}
 });
 
+// @wu-test type=behavior | scope=Markdown plain text | protects=Extract readable text for search and excerpts
 test("plain text drops markup for search, excerpts and the card face", () => {
 	const text = "## Title\n\n1. **One** point\n2. Two\n\nA [link](https://example.com)\nwraps";
 	assert.deepEqual(markdownBlocks(text), ["Title", "One point", "Two", "A link wraps"]);
@@ -87,6 +92,7 @@ function parses(read: () => void) {
 	return calls;
 }
 
+// @wu-test type=performance | scope=Markdown plain text | protects=Parse one body once across repeated consumers
 test("feed faces, reading time and search parse each body once", () => {
 	const body = "## Plan\n\nRead **this** body once.";
 	const calls = parses(() => {
@@ -100,6 +106,7 @@ test("feed faces, reading time and search parse each body once", () => {
 	assert.equal(calls, 1);
 });
 
+// @wu-test type=performance | scope=Markdown plain text | protects=Reuse parsed text when searching a large workspace
 test("searching a large workspace again parses no body twice", () => {
 	const bodies = Array.from({ length: 1200 }, (_, i) => `## Card ${i}\n\nWorkspace body ${i}.`);
 	const calls = parses(() => {
@@ -108,6 +115,7 @@ test("searching a large workspace again parses no body twice", () => {
 	assert.equal(calls, bodies.length);
 });
 
+// @wu-test type=behavior | scope=Markdown plain text | protects=Preserve code block text for search
 test("code blocks remain searchable and available as card text", () => {
 	assert.deepEqual(markdownBlocks("```js\nconst result = 42;\n```\n\n    indented"), [
 		"const result = 42;",
@@ -115,6 +123,7 @@ test("code blocks remain searchable and available as card text", () => {
 	]);
 });
 
+// @wu-test type=performance | scope=Markdown parsing | protects=Prevent malformed references from stalling text parsing | debt=D9
 test("an unclosed multiline reference does not stall card text parsing", () => {
 	const source = '[a]: https://example.com "' + "x\n".repeat(240000);
 	const start = process.cpuUsage();
@@ -125,6 +134,7 @@ test("an unclosed multiline reference does not stall card text parsing", () => {
 	assert.match(html, /example\.com/);
 });
 
+// @wu-test type=behavior | scope=Markdown article outline | protects=Link outline entries to the correct headings
 test("article outline targets actual headings including duplicate titles, not code or intro text", () => {
 	const source =
 		"Intro\n\n## **Chapter**\n\n### Detail `one`\n\n```md\n## Not a chapter\n```\n\n## **Chapter**";

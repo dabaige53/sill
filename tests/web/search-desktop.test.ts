@@ -54,6 +54,7 @@ function desktopFixture() {
 	return { ...f, input, type, key };
 }
 
+// @wu-test type=behavior | scope=desktop search conditions | protects=Apply a selected status token without searching the hash fragment | debt=D9
 test("desktop search: text ending in # lists statuses and tags, and picking one becomes a token", () => {
 	const f = desktopFixture();
 	try {
@@ -87,6 +88,7 @@ test("desktop search: text ending in # lists statuses and tags, and picking one 
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search keyboard tokens | protects=Remove search conditions in the expected order
 test("desktop search: Delete removes the # tag, then the # status, then the tab", () => {
 	const f = desktopFixture();
 	try {
@@ -106,6 +108,7 @@ test("desktop search: Delete removes the # tag, then the # status, then the tab"
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search type filters | protects=Show relevant type filters and clear them with the query
 test("desktop search: type chips show with text, list only types with results, and leave with the text", () => {
 	const f = desktopFixture();
 	try {
@@ -130,6 +133,7 @@ test("desktop search: type chips show with text, list only types with results, a
 	}
 });
 
+// @wu-test type=behavior | scope=nested search navigation | protects=Preserve search results, scroll and focus through nested card navigation
 test("nested card return keeps retained search nodes, position and focus through the whole session", () => {
 	const f = fixture();
 	try {
@@ -170,6 +174,7 @@ test("nested card return keeps retained search nodes, position and focus through
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search suggestions | protects=Preserve the query and show matching suggestions when search reopens | debt=D9
 test("desktop search suggests the cards it finds, keeps the query on reopen, and closes on blur", () => {
 	const f = desktopFixture();
 	try {
@@ -210,6 +215,7 @@ test("desktop search suggests the cards it finds, keeps the query on reopen, and
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search keyboard navigation | protects=Navigate and accept search conditions without losing the query
 test("combobox keys close without clearing, jump to endpoints and accept an engaged condition on Tab", () => {
 	const f = desktopFixture();
 	try {
@@ -246,6 +252,7 @@ test("combobox keys close without clearing, jump to endpoints and accept an enga
 	}
 });
 
+// @wu-test type=boundary | scope=desktop search combobox | protects=Avoid selecting a suggestion when Tab leaves an untouched list
 test("tabbing past an opened combobox does not pick an untouched first suggestion", () => {
 	const f = desktopFixture();
 	try {
@@ -259,6 +266,7 @@ test("tabbing past an opened combobox does not pick an untouched first suggestio
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search candidates | protects=Filter candidates and preserve the query when closing an empty list
 test("typing narrows cards and # conditions, empty candidates close with Escape, and # marks the chosen condition", () => {
 	const f = desktopFixture();
 	try {
@@ -295,6 +303,7 @@ test("typing narrows cards and # conditions, empty candidates close with Escape,
 	}
 });
 
+// @wu-test type=behavior | scope=desktop search status filters | protects=Avoid duplicate status conditions while preserving an independent tag
 test("desktop status tokens merge with the sidebar in either selection order", () => {
 	const f = desktopFixture();
 	try {

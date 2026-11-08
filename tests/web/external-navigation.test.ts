@@ -6,6 +6,7 @@ import { Store } from "../../apps/web/data/store.ts";
 import { openCardLink } from "../../apps/web/services/agent-handoff.ts";
 import { appInputMethods } from "../../apps/web/views/app-input.ts";
 
+// @wu-test type=integration | scope=embedded link navigation | protects=prevents external links from being routed as cards or card links from leaving the workspace
 test("embedded body and attachment links use host navigation, while card links stay local", () => {
 	const dom = new JSDOM(
 		`<div class="markdown"><a id="internal" href="https://sill.test/#card/local-card">Card</a><a id="body" href="https://example.com/article">Article</a></div><a id="file" href="https://example.com/file.pdf">File</a>`,
@@ -48,6 +49,7 @@ test("embedded body and attachment links use host navigation, while card links s
 	}
 });
 
+// @wu-test type=boundary | scope=host link navigation | protects=prevents a rejected host navigation from opening an unintended popup
 test("mailto uses host openLink and rejected host navigation never opens a popup", async () => {
 	let popups = 0;
 	const links: string[] = [];

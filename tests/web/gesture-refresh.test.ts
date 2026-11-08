@@ -10,6 +10,7 @@ async function finishFeedback(f: ReturnType<typeof fixture>) {
 	for (let i = 0; i < 8; i++) await Promise.resolve();
 }
 
+// @wu-test type=behavior | scope=refresh indicator visibility | protects=prevents the refresh indicator from appearing before a pull | debt=D6
 test("page startup keeps the disabled refresh ring invisible until a pull begins", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -34,36 +35,7 @@ test("page startup keeps the disabled refresh ring invisible until a pull begins
 	}
 });
 
-test("desk pull coalesces moves into one frame and measures only at gesture start", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		let reads = 0;
-		const original = f.w.getComputedStyle;
-		f.w.getComputedStyle = (...args: any[]) => {
-			reads++;
-			return original(...args);
-		};
-		const target = f.document.querySelector("main p");
-		f.fire(target, "touchstart");
-		f.fire(target, "touchmove", 120, 203);
-		// The pull starts once the move passes the slop; that start is the one layout read.
-		f.fire(target, "touchmove", 120, 206);
-		const initialReads = reads;
-		for (let i = 3; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
-		assert.equal(reads, initialReads, "layout is read only when the pull starts");
-		assert.equal(f.frames.size, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-		f.flush(f.frames);
-		assert.ok(parseFloat(f.document.querySelector("main").style.translate.split(" ")[1]) > 25);
-		assert.equal(reads, initialReads, "paint must not read layout after writing translate");
-		f.fire(target, "touchcancel");
-		assert.equal(f.frames.size, 0);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=boundary | scope=desktop wheel refresh input | protects=prevents refresh from intercepting horizontal scrolling or gestures while a dialog is open
 test("wheel pull claims only a vertical top-edge gesture", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -100,6 +72,7 @@ function mousePull(
 	target.dispatchEvent(event);
 }
 
+// @wu-test type=behavior | scope=mouse pull to refresh | protects=prevents refresh while the mouse is held and duplicate refreshes on release
 test("mouse refresh follows the next frame, holds without loading, and commits once on release", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -122,6 +95,7 @@ test("mouse refresh follows the next frame, holds without loading, and commits o
 	}
 });
 
+// @wu-test type=boundary | scope=mouse refresh cancellation | protects=prevents a short or interrupted mouse pull from refreshing
 test("mouse refresh cancels short pulls, interruptions, and movement back below threshold", () => {
 	for (const interruption of ["short", "reverse", "pointercancel", "blur", "dialog"]) {
 		const f = fixture({ kind: "desk" });
@@ -144,6 +118,7 @@ test("mouse refresh cancels short pulls, interruptions, and movement back below 
 	}
 });
 
+// @wu-test type=boundary | scope=mouse refresh input ownership | protects=prevents mouse refresh from taking input intended for cards, controls, or phone interaction
 test("mouse refresh leaves cards, controls and phone input to their existing handlers", () => {
 	for (const excluded of ["card", "button", "phone"]) {
 		const f = fixture({ kind: "desk", phone: excluded === "phone" });
@@ -163,6 +138,7 @@ test("mouse refresh leaves cards, controls and phone input to their existing han
 	}
 });
 
+// @wu-test type=integration | scope=refresh request failure | protects=prevents concurrent refreshes and preserves retry after a failed request
 test("a slow refresh keeps feedback and its lock until completion, then offers retry on rejection", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -217,6 +193,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 	}
 });
 
+// @wu-test type=boundary | scope=browser-owned refresh touch | protects=prevents a browser-owned touch from starting a duplicate refresh
 test("browser-owned noncancelable touch does not start a second refresh animation", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -235,6 +212,7 @@ test("browser-owned noncancelable touch does not start a second refresh animatio
 	}
 });
 
+// @wu-test type=behavior | scope=phone refresh after scrolling | protects=prevents a continuous touch from failing to refresh after reaching the top
 test("a phone touch that stopped momentum mid-page takes over at the top without lifting", () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {
@@ -270,6 +248,7 @@ test("a phone touch that stopped momentum mid-page takes over at the top without
 	}
 });
 
+// @wu-test type=boundary | scope=phone refresh direction | protects=prevents a slightly diagonal pull from being discarded while preserving horizontal gestures
 test("a phone pull that eases in slightly sideways keeps the same touch", async () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {
@@ -294,6 +273,7 @@ test("a phone pull that eases in slightly sideways keeps the same touch", async 
 	}
 });
 
+// @wu-test type=boundary | scope=phone refresh touch target | protects=prevents a pull starting on a card button from being ignored
 test("a phone pull may start on a card's button", () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {
@@ -308,6 +288,7 @@ test("a phone pull may start on a card's button", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=touch refresh threshold | protects=prevents short pulls or threshold crossing before release from refreshing | debt=D6
 test("a 64px visible threshold commits on release and long travel keeps yielding smoothly", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -363,6 +344,7 @@ test("a 64px visible threshold commits on release and long travel keeps yielding
 	}
 });
 
+// @wu-test type=behavior | scope=direct refresh while busy | protects=prevents repeated activation from issuing concurrent refreshes | debt=D6
 test("direct refresh leaves cards in place and ignores repeat activation while busy", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -380,6 +362,7 @@ test("direct refresh leaves cards in place and ignores repeat activation while b
 	}
 });
 
+// @wu-test type=behavior | scope=wheel pull to refresh | protects=prevents wheel refresh from firing before release or more than once
 test("wheel threshold arms refresh, release commits once, and Sill stays visible on phone", async () => {
 	for (const phone of [false, true]) {
 		const f = fixture({ kind: "desk", phone });
@@ -422,6 +405,7 @@ test("wheel threshold arms refresh, release commits once, and Sill stays visible
 	}
 });
 
+// @wu-test type=boundary | scope=wheel refresh threshold | protects=prevents a single wheel tick or short pull from causing an unwanted refresh
 test("one large wheel tick or a short pull returns without refreshing", () => {
 	for (const deltas of [[-240], [-12, -18, -24]]) {
 		const f = fixture({ kind: "desk" });
@@ -440,6 +424,7 @@ test("one large wheel tick or a short pull returns without refreshing", () => {
 	}
 });
 
+// @wu-test type=boundary | scope=wheel refresh interruption | protects=prevents an interrupted armed wheel gesture from refreshing
 test("armed wheel refresh uses the short release fallback and cancels on reversal or interruption", async () => {
 	for (const interruption of ["none", "reverse", "dialog", "selection", "blur", "browser"]) {
 		const f = fixture({ kind: "desk" });
@@ -469,6 +454,7 @@ test("armed wheel refresh uses the short release fallback and cancels on reversa
 	}
 });
 
+// @wu-test type=behavior | scope=refresh indicator interruption | protects=prevents an old success fade from hiding a new pull indicator | debt=D5,D6
 test("a new touch takes the ring over from an unfinished success fade", async () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {

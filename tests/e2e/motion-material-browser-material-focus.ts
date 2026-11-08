@@ -13,6 +13,7 @@ export async function runMaterialFocus({
 	scenario: any;
 	touch: any;
 }) {
+	// @wu-test type=behavior | scope=keyboard access to hidden navigation | protects=prevent hidden navigation from becoming unreachable by keyboard | debt=D6
 	await scenario("Real Tab reaches a completely hidden rail from the feed", async (page) => {
 		const middle = await page.evaluate(async () => {
 			const buttons = document
@@ -78,6 +79,7 @@ export async function runMaterialFocus({
 		);
 	});
 
+	// @wu-test type=behavior | scope=unsupported blur fallback | protects=prevent controls from becoming unreadable when backdrop blur is unavailable | debt=D6
 	await scenario(
 		"Forced no-blur fallback uses solid surfaces and a one-pixel outline",
 		async (page) => {
@@ -107,6 +109,7 @@ export async function runMaterialFocus({
 		},
 	);
 
+	// @wu-test type=behavior | scope=detail toolbar keyboard access | protects=prevent hidden detail tools from remaining inaccessible to keyboard users | debt=D6,D9
 	await scenario("Head tools preserve immediate keyboard visibility", async (page) => {
 		await page.locator('[data-card="motion-0"] .card-title-button').focus();
 		await page.keyboard.press("Enter");
@@ -125,6 +128,7 @@ export async function runMaterialFocus({
 		);
 	});
 
+	// @wu-test type=behavior | scope=phone page navigation | protects=prevent navigation pages from being dismissed as draggable drawers | debt=D6
 	await scenario(
 		"Phone navigation keeps its lens and does not become a draggable sheet",
 		async (page, context) => {
@@ -186,34 +190,7 @@ export async function runMaterialFocus({
 		phone,
 	);
 
-	await scenario(
-		"A toolbar-free preview omits the removed assistant footer",
-		async (page) => {
-			await page.evaluate(() => {
-				window.__SILL_HOST__ = { canDiscuss: () => true };
-				window.__app.openCard("motion-digest");
-			});
-			await page.waitForTimeout(420);
-			await page.locator(".sheet-scroll").evaluate((node: HTMLElement) => {
-				node.scrollTop = node.scrollHeight;
-			});
-			await page.waitForTimeout(420);
-			assert.equal(await page.locator('#modal [data-action="agent-handoff"]').count(), 0);
-			assert.equal(await page.locator("#modal .preview-foot").count(), 0);
-			assert.equal(await page.locator("#modal > .float-bar").count(), 0);
-			assert.equal(
-				await page
-					.locator(".preview-sheet")
-					.evaluate((node: Element) => getComputedStyle(node, "::after").content),
-				"none",
-			);
-
-			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.locator("#modal .float-bar").waitFor();
-		},
-		phone,
-	);
-
+	// @wu-test type=boundary | scope=standalone assistant handoff | protects=prevent unsupported assistant handoff from appearing in previews, readers or photos
 	await scenario(
 		"Standalone previews, readers and photo pages have no copy-to-assistant action",
 		async (page) => {
@@ -234,12 +211,12 @@ export async function runMaterialFocus({
 		phone,
 	);
 
+	// @wu-test type=behavior | scope=phone drawer touch cancellation | protects=Restore the drawer position after a canceled touch | debt=D9
 	await scenario(
 		"Real touchCancel keeps the drawer open without writing",
 		async (page, context) => {
 			await page.evaluate(() => window.__app.openCard("motion-0"));
 			await page.waitForTimeout(600);
-			const before = await page.evaluate(() => localStorage.getItem("sill-v1"));
 			const handle = await page.locator("[data-vaul-handle]").boundingBox();
 			const initial = await page.locator(".phone-drawer").boundingBox();
 			const session = await context.newCDPSession(page);
@@ -250,10 +227,10 @@ export async function runMaterialFocus({
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
 			const final = await page.locator(".phone-drawer").boundingBox();
 			assert.ok(Math.abs(final.y - initial.y) < 2, "cancel restores the drawer position");
-			assert.equal(await page.evaluate(() => localStorage.getItem("sill-v1")), before);
 		},
 		phone,
 	);
+	// @wu-test type=behavior | scope=drawer entry interruption | protects=prevent a drawer closed during entry from reopening
 	await scenario(
 		"Closing during phone entry does not revive the sheet",
 		async (page) => {

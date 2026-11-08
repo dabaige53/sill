@@ -4,6 +4,7 @@ import Testing
 @testable import SillKit
 
 struct CardTests {
+  // @wu-test type=boundary | scope=Card image validation | protects=Reject unsafe image URLs and preserve valid photos
   @Test func remotePhotosRoundTripAndRejectInsecureImages() throws {
     let image = "https://images.example.org/photo.jpg?size=800"
     let value: JSONValue = .object([
@@ -24,6 +25,7 @@ struct CardTests {
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
   }
 
+  // @wu-test type=behavior | scope=Draft submission | protects=Preserve unrelated fields and detect changed drafts | debt=D7
   @Test func editingDraftReplacesBody() throws {
     let original: JSONValue = .object([
       "id": .string("draft"), "type": .string("note"), "title": .string("Draft"),
@@ -45,6 +47,7 @@ struct CardTests {
     }
   }
 
+  // @wu-test type=integration | scope=Card contract fixtures | protects=Preserve every valid contract fixture through encoding
   @Test func allValidFixturesRoundTrip() throws {
     for fixture in try fixtureCases("valid") {
       let json = try #require(fixture["card"])
@@ -55,6 +58,7 @@ struct CardTests {
     }
   }
 
+  // @wu-test type=boundary | scope=Card contract fixtures | protects=Reject invalid contract fixtures
   @Test func allInvalidFixturesAreRejected() throws {
     for fixture in try fixtureCases("invalid") {
       let json = try #require(fixture["card"])
@@ -62,6 +66,7 @@ struct CardTests {
     }
   }
 
+  // @wu-test type=boundary | scope=Card field validation | protects=Reject invalid field types and bounds
   @Test func fullFieldBoundsAndTypesAreChecked() throws {
     let base: JSONValue = .object([
       "id": .string("bounds"), "type": .string("note"), "title": .string("Bounds"),
@@ -98,6 +103,7 @@ struct CardTests {
     }
   }
 
+  // @wu-test type=boundary | scope=Card explicit field validation | protects=Reject invalid dates and removed field semantics
   @Test func explicitFieldsRejectRemovedAndInvalidSemantics() throws {
     let base: JSONValue = .object([
       "id": .string("explicit"), "type": .string("article"), "title": .string("Explicit"),
@@ -138,6 +144,7 @@ struct CardTests {
     }
   }
 
+  // @wu-test type=integration | scope=Snapshot cloud card decoding | protects=Remove server metadata before loading a card
   @Test func cloudCardsLoadWithoutServerFields() throws {
     let card: JSONValue = .object([
       "id": .string("cloud"), "type": .string("note"), "title": .string("Cloud"),

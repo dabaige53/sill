@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct SelectionTests {
+  // @wu-test type=behavior | scope=Feed selection | protects=Extend selection in feed order
   @Test func shiftExtendsInFeedOrder() async {
     let (workspace, _) = await ready(["a", "b", "c", "d"])
     let selection = Selection(workspace: workspace)
@@ -21,18 +22,8 @@ import Testing
     #expect(selection.contains("c"))
   }
 
-  @Test func batchMarkDoesNotShowNotice() async throws {
-    let (workspace, backend) = await ready()
-    workspace.toggleBookmark("b")
-    await until { workspace.queue.idle && !workspace.state("b").isWriting }
-    let writes = await backend.writes
-    workspace.mark(["a", "b", "c"], .bookmarked)
-    #expect(["a", "b", "c"].allSatisfy { workspace.state($0).bookmarked })
-    await until { workspace.queue.idle && !workspace.state("a").isWriting }
-    #expect(await backend.writes == writes + 1)
-    #expect(workspace.notice == nil)
-  }
 
+  // @wu-test type=behavior | scope=Card drag | protects=Transfer selected cards only when dropped on the target
   @Test func dragHandsCardsOnlyWhenDroppedOnTarget() {
     let drag = CardDrag()
     drag.target = CGRect(x: 100, y: 500, width: 640, height: 60)

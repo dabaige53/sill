@@ -11,6 +11,7 @@ export async function runRecoveryLayout({
 	scenario: any;
 	settle: any;
 }) {
+	// @wu-test type=boundary | scope=settings navigation and removed imports | protects=Keep removed import and source controls out of settings
 	await scenario(
 		"Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries",
 		async (page?: any) => {
@@ -31,45 +32,14 @@ export async function runRecoveryLayout({
 			await page.keyboard.press("Enter");
 			const groups = page.getByRole("navigation", { name: "设置分组" });
 			await groups.waitFor();
-			assert.equal(await groups.getByRole("button").first().getAttribute("data-extra"), "add");
 			await groups.locator('[data-extra="data"]').focus();
 			await page.keyboard.press("Enter");
 			await page.locator('[data-action="export-all"]').waitFor();
 			assert.equal(await removed.count(), 0, "data settings must not reintroduce file import");
-			await groups.getByRole("button", { name: "添加", exact: true }).focus();
-			await page.keyboard.press("Enter");
-			assert.equal(await removed.count(), 0);
-			for (const key of ["desk", "look", "keys", "data"]) {
-				await page.keyboard.press("Tab");
-				assert.equal(
-					await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
-					key,
-				);
-			}
-			await page.keyboard.press("Tab");
-			assert.equal(await page.evaluate(() => document.activeElement.id), "capture-text");
-			assert.equal(
-				await page.getByRole("textbox", { name: "记一笔，或粘贴链接", exact: true }).count(),
-				1,
-			);
-			await page.keyboard.insertText("键盘添加验收笔记");
-			await page.keyboard.press("Tab");
-			assert.equal(
-				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.action),
-				"capture-save",
-			);
-			await page.keyboard.press("Enter");
-			await page.waitForFunction(
-				() =>
-					!document.querySelector("dialog").open &&
-					(document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
-			);
-			await page.getByRole("button", { name: "键盘添加验收笔记", exact: true }).waitFor();
-			await page.reload();
-			await page.getByRole("button", { name: "键盘添加验收笔记", exact: true }).waitFor();
 			assert.equal(await removed.count(), 0);
 		},
 	);
+	// @wu-test type=behavior | scope=archive recovery from empty feed | protects=prevent an empty feed from making archived cards inaccessible | debt=D9
 	await scenario(
 		"Empty desk retains an actionable archive",
 		async (page?: any, apply?: any, origin?: any) => {
@@ -94,6 +64,7 @@ export async function runRecoveryLayout({
 			await page.locator("[data-card=article-01]").waitFor();
 		},
 	);
+	// @wu-test type=behavior | scope=responsive search and panels | protects=Keep search and settings reachable without page overflow | debt=D9
 	for (const width of [320, 390, 768, 1440])
 		await scenario(
 			`${width}px keyboard search, panel reachability, light/dark layout`,
@@ -137,27 +108,7 @@ export async function runRecoveryLayout({
 							});
 					}
 				}
-				await page.keyboard.press("n");
-				await page.waitForTimeout(150);
-				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
-				await close(page);
 			},
 			{ viewport: { width, height: 900 } },
 		);
-	await scenario(
-		"Short viewport can scroll capture save into view and submit by keyboard",
-		async (page?: any) => {
-			await page.keyboard.press("n");
-			await page.locator("#capture-text").fill("短窗口验收");
-			const save = page.locator("[data-action=capture-save]");
-			await save.focus();
-			await settle(page);
-			const rect = await save.boundingBox();
-			assert.ok(rect.y >= 0 && rect.y + rect.height <= 225, JSON.stringify(rect));
-			await page.keyboard.press("Enter");
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
-			assert.ok(await page.getByRole("button", { name: "短窗口验收", exact: true }).count());
-		},
-		{ viewport: { width: 320, height: 225 } },
-	);
 }

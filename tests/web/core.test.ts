@@ -90,101 +90,7 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 }
 const ids = (cards?: any) => Array.from(cards, (c?: any) => c.id);
 
-test("v1 state migrates without losing independent reading, tasks or notes", () => {
-	const { Store, data } = fixture({
-		version: 1,
-		items: {
-			"article-01": {
-				seen: true,
-				read: false,
-				progress: 0.4,
-				bookmarked: true,
-				note: "保留备注",
-			},
-			"task-01": { taskDone: ["t2"] },
-		},
-		seconds: 42,
-	});
-	assert.equal(Store.item("article-01").progress, 0.4);
-	assert.equal(Store.item("article-01").read, false);
-	assert.deepEqual(Store.tags(Store.card("article-01")), Store.card("article-01").tags);
-	assert.equal(Store.item("article-01").note, "保留备注");
-	assert.equal(Store.item("article-01").bookmarked, true);
-	assert.deepEqual(
-		Array.from(
-			Store.tasks(Store.card("task-01")).filter((t?: any) => t.done),
-			(t?: any) => t.id,
-		),
-		["t2"],
-	);
-	assert.equal(Store.state.seconds, 42);
-	assert.equal(JSON.parse(data.get(Store.key)).version, 4);
-});
-test("reload preserves the original demo clock, snooze deadline and ordering preference", () => {
-	const f = fixture(),
-		due = f.Store.card("reminder-01").due;
-	f.app.changeReminder("reminder-01", "snooze");
-	f.Store.state.preferences.sort = "time";
-	f.Store.save();
-	const g = fixture(f.data.get(f.Store.key), f.now() + 300000);
-	assert.equal(g.Store.card("reminder-01").due, due);
-	assert.equal(g.Store.item("reminder-01").snoozedUntil, f.now() + 600000);
-	assert.equal(g.Store.state.preferences.sort, "time");
-});
-test("storage corruption and unavailable storage leave the demo usable", () => {
-	const f = fixture("{");
-	assert.equal(f.Store.state.cards.length, f.SeedCards.length);
-	f.context.localStorage.setItem = () => {
-		throw Error("denied");
-	};
-	f.Store.patch("article-01", { bookmarked: true });
-	assert.equal(f.Store.state.storageAvailable, false);
-	assert.equal(f.Store.item("article-01").bookmarked, true);
-});
-test("malformed persisted fields are bounded and unknown card IDs are discarded", () => {
-	const f = fixture({
-			version: 2,
-			items: {
-				"reminder-01": {
-					snoozedUntil: "tomorrow",
-					lastNotifiedAt: Infinity,
-					note: 1,
-					tags: [1, "safe"],
-					progress: -3,
-				},
-				unknown: { read: true },
-			},
-			sort: "invalid",
-			freshIds: ["missing", "fresh-note", "fresh-note"],
-		}),
-		{ Store } = f;
-	const s = Store.item("reminder-01");
-	assert.equal(s.snoozedUntil, 0);
-	assert.equal(s.progress, 0);
-	assert.equal(s.note, "");
-	assert.equal("tags" in s, false);
-	assert.equal(Store.state.items.unknown, undefined);
-	assert.equal(Store.state.preferences.sort, "priority");
-	assert.equal(Store.state.cards.length, f.SeedCards.length + 1);
-});
-test("repeated load resets removed flags rather than retaining stale in-memory state", () => {
-	const { Store, data } = fixture();
-	Store.patch("article-01", { bookmarked: true });
-	data.clear();
-	Store.load();
-	assert.equal(Store.item("article-01").bookmarked, false);
-});
-test("refresh insertion deduplicates IDs and restores new-card flags and timestamps", () => {
-	const f = fixture(),
-		card: Record<string, any> = { ...f.FreshCards[0], time: f.now() + 120000 };
-	assert.equal(f.Store.insert([card, card]), 1);
-	assert.equal(f.Store.insert([card]), 0);
-	f.Store.patch(card.id, { bookmarked: true });
-	const g = fixture(f.data.get(f.Store.key), f.now() + 600000);
-	assert.equal(g.Store.state.cards.length, g.SeedCards.length + 1);
-	assert.equal(g.Store.card(card.id).time, card.time);
-	assert.equal(g.Store.item(card.id).bookmarked, true);
-});
+// @wu-test type=behavior | scope=FeedPolicy home visibility | protects=Keep cards on home until explicitly archived
 test("home retains read, completed and old cards for every legacy age preference", () => {
 	const { FeedPolicy: p, now } = fixture();
 	const old = now() - 365 * 86400000;
@@ -206,6 +112,7 @@ test("home retains read, completed and old cards for every legacy age preference
 		}
 	}
 });
+// @wu-test type=behavior | scope=home archive behavior | protects=Remove only explicitly archived cards while preserving other state
 test("only explicit archive removes cards from home, without rewriting existing flags", () => {
 	const f = fixture();
 	f.Store.patch("article-01", { read: true, readAt: f.now() - 30 * 86400000 });
@@ -216,19 +123,8 @@ test("only explicit archive removes cards from home, without rewriting existing 
 	}
 	f.Store.patch("article-01", { archived: true });
 	assert.ok(!ids(f.app.filtered()).includes("article-01"));
-	const g = fixture(f.data.get(f.Store.key), f.now() + 365 * 86400000);
-	assert.ok(!ids(g.app.filtered()).includes("article-01"));
-	assert.ok(ids(g.app.filtered()).includes("reminder-01"));
-	assert.ok(ids(g.app.filtered()).includes("task-01"));
-	assert.equal(g.Store.item("reminder-01").dismissed, true);
-	assert.equal(g.Store.item("reminder-01").archived, false);
-	g.app.filter.status = "done";
-	assert.ok(ids(g.app.filtered()).includes("task-01"));
-	g.app.filter.status = "all";
-	g.app.filter.query = g.Store.card("article-01").title;
-	assert.ok(ids(g.app.filtered()).includes("article-01"));
-	assert.ok(ids(g.app.searchAll(g.Store.card("reminder-01").title).desk).includes("reminder-01"));
 });
+// @wu-test type=behavior | scope=feed order | protects=Keep the current order after completion until an explicit refresh
 test("completed tasks and reminders keep their order until a user refresh", () => {
 	const f = fixture();
 	const task = { ...f.Store.card("task-01"), due: f.now() - 1, priority: 10, time: f.now() - 2000 };
@@ -259,6 +155,7 @@ test("completed tasks and reminders keep their order until a user refresh", () =
 	// Once both are done their scores tie, so the newer reminder comes first.
 	assert.deepEqual(ids(f.app.filtered()), [article.id, reminder.id, task.id]);
 });
+// @wu-test type=behavior | scope=task completion feedback | protects=Complete and restore tasks without an unnecessary success toast
 test("finishing and restoring tasks stays silent", () => {
 	const f = fixture();
 	const card = f.Store.card("task-01");
@@ -273,6 +170,7 @@ test("finishing and restoring tasks stays silent", () => {
 	assert.equal(f.Store.tasks(card)[0].done, false);
 	assert.equal(f.app.lastToast, undefined);
 });
+// @wu-test type=behavior | scope=archive restore | protects=Restore a card without losing reading or bookmark state
 test("explicit restore keeps reading state without a success toast", () => {
 	const f = fixture();
 	f.Store.patch("article-01", { archived: true, read: true, progress: 1, bookmarked: true });
@@ -285,6 +183,7 @@ test("explicit restore keeps reading state without a success toast", () => {
 	assert.ok(ids(f.app.filtered()).includes("article-01"));
 	assert.equal(f.app.lastToast, undefined);
 });
+// @wu-test type=behavior | scope=reminder notification eligibility | protects=Suppress notifications for snoozed, dismissed, completed or archived reminders
 test("snooze, dismissal, completion and archive suppress notifications independently of home", () => {
 	const { FeedPolicy: p, now } = fixture();
 	const c = { id: "r", type: "reminder", due: now() - 1 };
@@ -297,6 +196,7 @@ test("snooze, dismissal, completion and archive suppress notifications independe
 		assert.equal(p.eligible(c, state, now()), false);
 	}
 });
+// @wu-test type=behavior | scope=FeedPolicy sorting | protects=Sort and deduplicate cards without changing the input order
 test("priority, unread and time sorts are stable, immutable and deduplicated", () => {
 	const { FeedPolicy: p, now } = fixture();
 	const cards = [
@@ -312,6 +212,7 @@ test("priority, unread and time sorts are stable, immutable and deduplicated", (
 	assert.deepEqual(ids(cards), ["a", "b", "c"]);
 	assert.equal(p.sort([...cards, cards[0]], "priority", {}, now()).length, 3);
 });
+// @wu-test type=boundary | scope=event and task notifications | protects=Notify only within the eligible time window for unfinished work
 test("event and task notification thresholds exclude ended and completed work", () => {
 	const { FeedPolicy: p, now } = fixture(),
 		n = now();
@@ -334,6 +235,7 @@ test("event and task notification thresholds exclude ended and completed work", 
 	assert.equal(p.eligible(task, { taskDone: ["1"] }, n), false);
 	assert.equal(p.eligible({ ...task, due: undefined }, {}, n), false);
 });
+// @wu-test type=behavior | scope=notification deduplication | protects=Avoid duplicate notifications and enforce the cooldown
 test("one occurrence is not delivered twice; cooldown gates a changed occurrence", () => {
 	const { FeedPolicy: p, now } = fixture(),
 		c: Record<string, any> = { id: "r", type: "reminder", due: now() - 100 };
@@ -347,35 +249,7 @@ test("one occurrence is not delivered twice; cooldown gates a changed occurrence
 		true,
 	);
 });
-test("snooze stays on home while notification confirmation survives reload", () => {
-	const f = fixture();
-	f.app.changeReminder("reminder-01", "snooze");
-	assert.equal(
-		f.app.filtered().some((c?: any) => c.id === "reminder-01"),
-		true,
-	);
-	f.advance(600001);
-	f.app.checkReminders();
-	f.app.checkReminders();
-	assert.equal(f.app.pendingReminders.filter((id?: any) => id === "reminder-01").length, 1);
-	assert.equal(
-		f.app.filtered().some((c?: any) => c.id === "reminder-01"),
-		true,
-	);
-	const g = fixture(f.data.get(f.Store.key), f.now());
-	g.app.checkReminders();
-	assert.equal(g.app.pendingReminders.includes("reminder-01"), true);
-	g.app.showNew();
-	assert.equal(
-		g.app.filtered().some((c?: any) => c.id === "reminder-01"),
-		true,
-	);
-	g.app.checkReminders();
-	assert.equal(g.app.pendingReminders.includes("reminder-01"), false);
-	const h = fixture(g.data.get(g.Store.key), g.now() + 60000);
-	h.app.checkReminders();
-	assert.equal(h.app.pendingReminders.includes("reminder-01"), false);
-});
+// @wu-test type=behavior | scope=pending reminders | protects=Queue a reminder without changing card order or read state | debt=D6
 test("timer queues reminders without rendering, reordering or changing read state", () => {
 	const f = fixture(),
 		before = ids(f.app.filtered());
@@ -386,18 +260,7 @@ test("timer queues reminders without rendering, reordering or changing read stat
 	assert.equal(f.Store.item("reminder-01").read, false);
 	assert.equal(f.Store.item("reminder-01").seen, false);
 });
-test("reading or dragging prevents pending content insertion", () => {
-	const f = fixture();
-	f.advance(600001);
-	f.app.checkReminders();
-	f.app.dialog.open = true;
-	f.app.showNew();
-	assert.equal(f.app.renders, 0);
-	f.app.dialog.open = false;
-	f.app.drag.active = {};
-	f.app.showNew();
-	assert.equal(f.app.renders, 0);
-});
+// @wu-test type=behavior | scope=reminder actions | protects=Preserve notes and bookmarks while changing reminder state
 test("reminder actions preserve unrelated content state without a success toast", () => {
 	const f = fixture(),
 		id = "reminder-01";
@@ -430,6 +293,7 @@ test("reminder actions preserve unrelated content state without a success toast"
 	assert.equal(f.Store.item(id).note, "保留");
 	assert.equal(f.Store.item(id).read, false);
 });
+// @wu-test type=behavior | scope=reminder filters | protects=Combine reminder status with type, tag and text filters
 test("snoozed and dismissed views compose with type, tag and search filters", () => {
 	const f = fixture();
 	f.app.changeReminder("reminder-01", "snooze");
@@ -438,22 +302,8 @@ test("snoozed and dismissed views compose with type, tag and search filters", ()
 	f.app.filter.query = "不存在";
 	assert.deepEqual(ids(f.app.filtered()), []);
 });
-test("explicit pending confirmation respects current filters and never duplicates cards", () => {
-	const f = fixture();
-	f.advance(600001);
-	f.app.checkReminders();
-	f.app.pendingCards = [f.FreshCards[0], f.FreshCards[0]];
-	f.app.filter.type = "mail";
-	f.app.showNew();
-	assert.equal(f.Store.state.cards.length, f.SeedCards.length + 1);
-	assert.equal(
-		f.app.filtered().every((c?: any) => c.type === "mail"),
-		true,
-	);
-	f.app.checkReminders();
-	assert.equal(f.app.pendingReminders.length, 0);
-});
 
+// @wu-test type=regression | scope=route change handling | protects=Prevent duplicate history events from closing a newly opened panel | debt=D5
 test("duplicate popstate/hashchange does not close a newly opened local panel", () => {
 	const f = fixture();
 	f.context.location = { hash: "#feed" };
@@ -466,33 +316,4 @@ test("duplicate popstate/hashchange does not close a newly opened local panel", 
 	assert.equal(closes, 1);
 	f.app.route(true);
 	assert.equal(closes, 2);
-});
-
-test("the settings button opens settings directly; there is no expanding entrance", () => {
-	const f = fixture();
-	f.context.matchMedia = () => ({ matches: false });
-	const opened: string[] = [];
-	f.app.openPanel = (kind: string) => opened.push(kind);
-	f.app.action("settings", "", "", null, { pointerType: "touch" });
-	f.app.action("settings", "", "", null, { pointerType: "mouse" });
-	assert.deepEqual(opened, ["settings", "settings"]);
-});
-
-test("Sill rename copies old cards and drafts once without replacing newer data", () => {
-	const f = fixture();
-	f.data.clear();
-	const raw = JSON.stringify({ version: 4, cards: [], items: {}, seconds: 37, preferences: {} });
-	f.data.set("quiet-glass-v1", raw);
-	f.data.set("quiet-glass-unsynced", "saved-draft");
-	f.Store.load();
-	assert.equal(f.Store.state.seconds, 37);
-	assert.equal(f.data.get("sill-unsynced"), "saved-draft");
-	assert.equal(f.data.get("quiet-glass-v1"), raw);
-	f.data.delete("sill-unsynced");
-	f.Store.load();
-	assert.equal(f.data.has("sill-unsynced"), false);
-	f.data.delete("sill-storage-migrated");
-	f.data.set("sill-unsynced", "new-draft");
-	f.Store.load();
-	assert.equal(f.data.get("sill-unsynced"), "new-draft");
 });

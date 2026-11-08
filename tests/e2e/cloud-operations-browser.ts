@@ -61,6 +61,7 @@ try {
 	});
 	await page.reload();
 	await page.locator("body.cloud-signed-in").waitFor();
+	// @wu-test type=integration | scope=cloud | protects=Avoid writes for unchanged prefs
 	// A freshly loaded workspace is already saved, even before the first mutation.
 	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
 	const initialWrites = batchRequests.length;
@@ -128,9 +129,11 @@ try {
 	};
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
+	// @wu-test type=integration | scope=cloud | protects=Keep remote updates and selection
 	await verifyStableDetail(page, api, action, saved, note, task);
 	await verifySelectionOperations(page, api, action, saved, note, task, reminder, batchRequests);
 	let state: any;
+	// @wu-test type=integration | scope=cloud | protects=Persist task and reminder state | debt=D9
 	await action("task", task.id, "step1");
 	await saved();
 	assert.deepEqual((await api("/api/v1/workspace")).state.items[task.id].taskDone, ["step1"]);
@@ -148,6 +151,7 @@ try {
 	assert.equal((await api("/api/v1/workspace")).state.items[reminder.id].dismissed, true);
 	await action("restore-reminder", reminder.id);
 	await saved();
+	// @wu-test type=integration | scope=cloud | protects=Persist state and layout resets
 	const readBefore = !!(await api("/api/v1/workspace")).state.items[note.id].read;
 	await action("toggle-read", note.id);
 	await saved();
@@ -163,6 +167,7 @@ try {
 	await action("layout-reset");
 	await saved();
 	assert.equal((await api("/api/v1/workspace")).state.preferences.cardTextSize, "standard");
+	// @wu-test type=integration | scope=cloud | protects=Restore theme/later on reload
 	await action("pref", "theme", "dark");
 	await saved();
 	await action("pref", "density", "compact");
@@ -176,6 +181,7 @@ try {
 		),
 		true,
 	);
+	// @wu-test type=integration | scope=cloud | protects=Show agent edits without editor | debt=D10
 	// AI edits structured content; the original UI has no full-card editor.
 	await action("edit-content", task.id);
 	assert.equal(await page.locator("#cloud-editor,[data-cloud-field]").count(), 0);
@@ -201,6 +207,7 @@ try {
 	assert.equal(edited.summary, "New task summary");
 	assert.equal(edited.tasks.length, 3);
 	assert.equal(edited.tasks[0].id, "step1");
+	// @wu-test type=integration | scope=cloud | protects=Restore remote archives and prefs
 	// The same state written by AI/API is reflected in the page and remains restorable.
 	const current = await api("/api/v1/contents/" + note.id);
 	await api(
@@ -218,6 +225,7 @@ try {
 	await action("less-like", note.id);
 	await saved();
 	assert.equal((await api("/api/v1/workspace")).state.items[note.id].lessLike, true);
+	// @wu-test type=boundary | scope=cloud | protects=Reject link and file drops
 	await page.evaluate(() => {
 		const dt = new DataTransfer();
 		dt.setData("text/plain", "https://example.com/cloud-capture");
@@ -237,6 +245,7 @@ try {
 		);
 	});
 	assert.equal((await api("/api/v1/workspace")).state.cards.length, count);
+	// @wu-test type=integration | scope=cloud | protects=Retry unchanged writes once
 	// Lose the committed response; retry must reuse the exact request.
 	loseNext = true;
 	batchRequests = [];
@@ -246,6 +255,7 @@ try {
 	await saved();
 	assert.equal(batchRequests.length, 2);
 	assert.deepEqual(batchRequests[0], batchRequests[1]);
+	// @wu-test type=integration | scope=cloud | protects=Retain conflicted note drafts
 	// Editing baseline must survive an unrelated successful write while another client edits.
 	await action("edit", note.id);
 	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
@@ -268,6 +278,7 @@ try {
 	await saved();
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-desktop.png" });
+	// @wu-test type=behavior | scope=cloud | protects=Fit phone notes in viewport
 	await page.setViewportSize({ width: 390, height: 844 });
 	await action("edit", note.id);
 	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
@@ -283,6 +294,7 @@ try {
 	);
 	await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-mobile.png" });
+	// @wu-test type=integration | scope=cloud | protects=Keep cleared cards gone on reload
 	await page.keyboard.press("Escape");
 	const exportDownload = page.waitForEvent("download");
 	await action("export-all");
@@ -300,6 +312,7 @@ try {
 		await api("/api/v1/contents", { type: "note", title, body: "Synthetic account fixture" });
 	await page.evaluate(() => __app.refresh());
 	await page.waitForFunction(() => __store.state.cards.length === 2);
+	// @wu-test type=integration | scope=cloud | protects=Coalesce refresh; await result | debt=D9
 	// A foreground pull joins an already-running read; no early success or duplicate request.
 	let releaseRead: () => void;
 	const readGate = new Promise<void>((resolve) => {
@@ -326,6 +339,7 @@ try {
 	assert.deepEqual(await page.evaluate(() => Promise.all(window.__sharedRefresh)), [true, true]);
 	assert.equal(sharedReads, 1);
 	await page.unroute("**/api/v1/workspace");
+	// @wu-test type=behavior | scope=cloud | protects=Recover refresh without notices
 	// Pull refresh owns its icon feedback, including real request failures.
 	await page.evaluate(() => {
 		window.__refreshAlerts = 0;
@@ -354,6 +368,7 @@ try {
 	await page.evaluate(() => {
 		__app.alert = window.__originalAlert;
 	});
+	// @wu-test type=boundary | scope=cloud | protects=Clear cards and selection on exit
 	// Session expiry must dismiss the lifted/menu copy along with the signed-in feed.
 	await page.evaluate(() => {
 		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });
@@ -383,6 +398,7 @@ try {
 		await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
 		[],
 	);
+	// @wu-test type=boundary | scope=cloud | protects=Hide expired account drafts
 	// Retained search snapshots and local AI drafts are account-bound, including hidden menu clones.
 	for (const view of ["preview", "ai"]) {
 		await page.unroute("**/auth/session");

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { analyzeTrace, parseXCTestMetrics } from "../../scripts/performance-report.ts";
 
+// @wu-test type=behavior | scope=XCTest metric parsing | protects=Preserve signed memory values and their units
 test("XCTest extraction preserves signed memory deltas and declared units", () => {
 	const result = parseXCTestMetrics(
 		"Test Case '-[Suite search]' measured [Memory Physical, kB] average: -5.000, values: [-10.000, 0.000], performanceMetricID:com.apple.memory, baselineName: \"\"",
@@ -11,6 +12,7 @@ test("XCTest extraction preserves signed memory deltas and declared units", () =
 	assert.equal(result[0].mean, -5);
 });
 
+// @wu-test type=boundary | scope=Performance trace report | protects=Report incomplete operations and missing or malformed data
 test("report retains unfinished operations, missing metrics and malformed tail", () => {
 	const report = analyzeTrace(
 		[
@@ -26,6 +28,7 @@ test("report retains unfinished operations, missing metrics and malformed tail",
 	assert.equal(report.memory_peak_bytes, null);
 	assert.equal(report.cpu_average_percent, 32.5);
 });
+// @wu-test type=behavior | scope=Performance trace report | protects=Avoid reporting percentiles from insufficient samples
 test("report only calculates percentiles with enough samples and excludes heartbeat from operations", () => {
 	const events = Array.from({ length: 20 }, (_, i) => ({
 		event: "search",

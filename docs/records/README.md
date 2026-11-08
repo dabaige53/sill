@@ -11,6 +11,7 @@
 - [1.2.38 发布](2026-11-08-release-1.2.38/README.md)
 - [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md)
 - [Web 性能排查](2026-11-07-web-markdown-reparse/README.md)
+- [测试代码清剿](2026-11-06-test-purge/README.md)
 - [Mac 详情放大缩小卡顿与关闭后白框](2026-11-05-macos-reader-resize/README.md)
 - [1.2.36 发布](2026-11-05-release-1.2.36/README.md)
 - [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md)

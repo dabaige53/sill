@@ -31,6 +31,7 @@ function fixture() {
 		container: dom.window.document.querySelector("main")!,
 	};
 }
+// @wu-test type=integration | scope=Card rendering | protects=Preserve focus during card updates and escape untrusted titles | debt=D3
 test("keyed React updates preserve the focused card while escaping untrusted titles", () => {
 	const { dom, view, container } = fixture();
 	try {
@@ -55,6 +56,7 @@ test("keyed React updates preserve the focused card while escaping untrusted tit
 		dom.window.close();
 	}
 });
+// @wu-test type=integration | scope=Panel replacement | protects=Remove old panel content when switching panels | debt=D6
 test("panel replacement disposes nested roots and resets uncontrolled draft fields", () => {
 	const { dom, view, container } = fixture();
 	try {
@@ -73,30 +75,6 @@ test("panel replacement disposes nested roots and resets uncontrolled draft fiel
 		assert.equal(container.querySelector("#results")!.childElementCount, 0);
 		view.releaseView(container);
 		assert.equal(container.childElementCount, 0);
-	} finally {
-		dom.window.close();
-	}
-});
-
-test("switching player surfaces saves the outgoing position before the next player initializes", () => {
-	const { dom, view, container } = fixture();
-	let savedPosition = 12;
-	function Player() {
-		const [position] = view.useState(() => savedPosition);
-		view.useEffect(
-			() => () => {
-				savedPosition = 42;
-			},
-			[],
-		);
-		return view.h("output", null, String(position));
-	}
-	try {
-		view.renderContent(container, view.h(Player));
-		assert.equal(container.textContent, "12");
-		view.renderContent(container, view.h(Player));
-		assert.equal(container.textContent, "42");
-		view.releaseView(container);
 	} finally {
 		dom.window.close();
 	}

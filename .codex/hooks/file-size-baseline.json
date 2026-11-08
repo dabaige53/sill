@@ -1,8 +1,11 @@
 {
 	"apps/apple/DesktopTests/WorkspaceTests.swift": 30070,
 	"apps/web/styles/cards.css": 22579,
+	"apps/web/styles/panels.css": 20531,
 	"apps/web/styles/preview-media.css": 22473,
 	"contracts/fixtures.json": 20185,
+	"design-system/boards/expanded-reading/product/panels.css": 20531,
+	"design-system/boards/summary-podcast/project/ds/sill/tokens.json": 60071,
 	"design-system/components/FeedCard/preview.html": 27678,
 	"design-system/handbook/foundation.md": 20046,
 	"design-system/handbook/interaction.md": 20682,
@@ -23,6 +26,7 @@
 	"design-system/tokens/foundation.json": 28423,
 	"docs/product/ui-alignment.md": 32061,
 	"docs/records/2026-10-20-macos-web-alignment/rule-checklist.md": 52644,
+	"server/cloud/http.ts": 20711,
 	"tests/web/gestures.test.ts": 23303,
 	"tests/web/search-state.test.ts": 20626
 }

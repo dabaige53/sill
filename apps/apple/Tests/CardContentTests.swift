@@ -3,6 +3,7 @@ import Testing
 @testable import SillKit
 
 struct CardContentTests {
+  // @wu-test type=behavior | scope=CardRecipes face summary | protects=Limit displayed summary without changing stored text
   @Test func faceSummaryHasATextBoundWithoutChangingStoredText() {
     let text = String(repeating: "结论🙂", count: 60)
     let face = CardRecipes.faceSummary(text)

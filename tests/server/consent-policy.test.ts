@@ -32,6 +32,7 @@ const input = (): Record<string, any> => ({
 		resources: [card],
 	},
 });
+// @wu-test type=boundary | scope=server/cloud/consent-policy reviewConsent | protects=Prevent a card-scoped read grant from listing or creating cards
 test("minimal existing-card read consent stays scoped and cannot list/create", () => {
 	const r = reviewConsent(input());
 	assert.deepEqual(r.resources, [card]);
@@ -40,6 +41,7 @@ test("minimal existing-card read consent stays scoped and cannot list/create", (
 	assert.ok(Object.isFrozen(r.resources));
 	assert.match(consentSummary(r), /不能列出整个工作区/);
 });
+// @wu-test type=boundary | scope=server/cloud/consent-policy reviewConsent | protects=Allow workspace creation only with matching write permission and wildcard resources
 test("workspace writes require an explicit policy and grant on both sides", () => {
 	const a = input();
 	a.policy.contentScopes.push("content:write");
@@ -81,11 +83,13 @@ for (const [name, change] of Object.entries({
 	"grant client mismatch": (a?: any) => (a.grant.clientId = owner),
 	"grant audience mismatch": (a?: any) => (a.grant.audience = "https://elsewhere.example/mcp"),
 }))
+	// @wu-test type=boundary | scope=server/cloud/consent-policy reviewConsent | protects=Reject grants for another audience
 	test("rejects " + name, () => {
 		const a = input();
 		change(a);
 		assert.throws(() => reviewConsent(a), /consent_not_allowed/);
 	});
+// @wu-test type=boundary | scope=server/cloud/consent-policy consentSummary | protects=Prevent client-controlled HTML execution and remote logo tracking
 test("client-controlled presentation is escaped, with no remote logo or active form", () => {
 	const a = input();
 	a.details.client.name = "<img src=x onerror=alert(1)>";
@@ -100,6 +104,7 @@ test("client-controlled presentation is escaped, with no remote logo or active f
 	assert.ok(!html.includes("<form"));
 });
 
+// @wu-test type=behavior | scope=server/cloud/consent-policy consentSummary | protects=Show deletion and event permissions in full-access review
 test("full Sill access requires explicit matching policy and names every permission", () => {
 	const a = input();
 	a.policy.contentScopes = [
@@ -118,6 +123,7 @@ test("full Sill access requires explicit matching policy and names every permiss
 	assert.match(consentSummary(r), /读取事件/);
 });
 
+// @wu-test type=behavior | scope=server/cloud/consent-policy consentSummary | protects=Avoid implying creation or identity permissions in scoped write review
 test("scoped write review cannot imply creation or unrequested identity access", () => {
 	const a = input();
 	a.policy.contentScopes.push("content:write");

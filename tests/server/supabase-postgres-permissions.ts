@@ -25,6 +25,7 @@ export async function runPostgresPermissions({
 	t: any;
 	write: any;
 }) {
+	// @wu-test type=boundary | scope=PostgreSQL draft RPC privileges | protects=Prevent anonymous and authenticated users from directly invoking private draft RPCs
 	await t.test("draft installs without any authenticated or anon execution privilege", async () => {
 		await assert.rejects(
 			sql(`${asUser()}select sill_private.get_content('x');`),
@@ -54,6 +55,7 @@ export async function runPostgresPermissions({
 		),
 	);
 	const id = created.body.id;
+	// @wu-test type=integration | scope=PostgreSQL concurrent card writes | protects=Prevent two writers with the same revision from both committing | debt=D9
 	await t.test(
 		"two same-revision writers serialize; stale writer conflicts after first commit",
 		async () => {
@@ -80,6 +82,7 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL idempotent concurrent create | protects=Return one receipt and create one row for concurrent duplicate requests | debt=D9
 	await t.test("concurrent duplicate create returns same receipt and creates one row", async () => {
 		const request = write("create", null, { title: "Once", type: "note" }, "duplicate1");
 		const first = sql(
@@ -93,6 +96,7 @@ export async function runPostgresPermissions({
 			"1",
 		);
 	});
+	// @wu-test type=integration | scope=PostgreSQL snapshot watermark | protects=Prevent a snapshot from advancing past an uncommitted write | debt=D9
 	await t.test(
 		"snapshot cannot take watermark of uncommitted writer and delta includes later tombstone",
 		async () => {
@@ -116,6 +120,7 @@ export async function runPostgresPermissions({
 			assert.equal(delta.items[0].revision, 4);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL write transaction | protects=Roll back content, watermark and receipt after a transaction failure
 	await t.test(
 		"later transaction failure rolls back content, watermark and receipt together",
 		async () => {
@@ -145,6 +150,7 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
+	// @wu-test type=boundary | scope=PostgreSQL row-level security | protects=Prevent cross-owner row access and self-escalation of grants
 	await t.test("real RLS blocks cross-owner raw rows and grant self-escalation", async () => {
 		assert.equal(await sql(`${asUser(other)}select count(*) from sill_private.contents;`), "0");
 		await assert.rejects(
@@ -170,6 +176,7 @@ export async function runPostgresPermissions({
 			/row-level security/,
 		);
 	});
+	// @wu-test type=boundary | scope=PostgreSQL public RPC privileges | protects=Allow authorized public RPCs while blocking private tables and ungranted clients
 	await t.test(
 		"final boundary: public RPC works but direct tables, raw private RPC and same-owner ungranted client fail",
 		async () => {
@@ -291,6 +298,7 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL hiddenActions migration | protects=Preserve preferences and roll back invalid public RPC batches after migration
 	await t.test(
 		"hiddenActions migration preserves preferences and rejects invalid batches through public RPC",
 		async () => {

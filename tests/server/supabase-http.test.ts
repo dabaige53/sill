@@ -5,6 +5,7 @@ import { A, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=integration | scope=cloud HTTP authentication and card operations | protects=Protect PKCE login, authenticated writes, replay handling and revision conflicts across HTTP and SQL
 test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC SQL", async () => {
 	const f = await cloudFixture();
 	try {

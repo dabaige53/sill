@@ -132,6 +132,7 @@ try {
 			receipts.set(key, response);
 			return route.fulfill({ json: response });
 		});
+		// @wu-test type=behavior | scope=cloud login page | protects=prevent cards from appearing before login or login controls from overflowing on narrow screens | debt=D9
 		await page.goto(base);
 		await page.locator("#password-form").waitFor();
 		assert.deepEqual(
@@ -164,6 +165,7 @@ try {
 			await page.setViewportSize({ width: 390, height: 844 });
 			assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [390, 844]);
 		}
+		// @wu-test type=integration | scope=cloud login | protects=prevent password login from failing to submit or expired links from lacking feedback | debt=D9
 		await page.waitForTimeout(400);
 		await page.screenshot({
 			animations: "disabled",
@@ -185,6 +187,7 @@ try {
 		signedIn = true;
 		await page.goto(base);
 		await waitCloud(page);
+		// @wu-test type=integration | scope=empty cloud workspace and preferences | protects=prevent a capture entry from appearing in an empty workspace or preference writes from being lost
 		assert.equal(await page.locator(".welcome [data-action=capture]").count(), 0);
 		workspace.state.cards = Array.from({ length: 24 }, (_?: any, i?: any) => ({
 			id: "test-" + i,
@@ -209,6 +212,7 @@ try {
 			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
 		);
 		assert.equal(workspace.state.preferences.stack, false);
+		// @wu-test type=behavior | scope=cloud card list | protects=prevent horizontal overflow, blocked scrolling, or details that cannot be closed | debt=D9
 		// The phone home bar floats over the top of main; click the margin just under it.
 		const below = await page.evaluate(() => {
 			const bar = document.querySelector("#home-top");
@@ -238,6 +242,7 @@ try {
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
+		// @wu-test type=behavior | scope=cloud settings | protects=prevent removed controls from returning or data settings from overflowing
 		await page.locator("#account").click();
 		await page.locator(".settings-nav").waitFor();
 		assert.equal(
@@ -268,6 +273,7 @@ try {
 		await page.waitForFunction(
 			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
 		);
+		// @wu-test type=boundary | scope=logout and refresh race | protects=prevent a late refresh response from restoring account content after logout
 		holdWorkspace = true;
 		await cloudTool(page, "refresh");
 		let holdTimer: ReturnType<typeof setTimeout>;
@@ -294,6 +300,7 @@ try {
 			await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
 			[],
 		);
+		// @wu-test type=boundary | scope=cloud session recovery | protects=prevent permission or connection errors from exposing old cards or leaving account data after recovery
 		for (const code of [403, 503]) {
 			sessionStatus = code;
 			await page.goto(base);

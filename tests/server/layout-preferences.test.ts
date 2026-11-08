@@ -6,6 +6,7 @@ import { workspaceBatch } from "../../contracts/cloud.ts";
 import { identity, rpc } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 
+// @wu-test type=integration | scope=database layout preferences | protects=Preserve layout preferences across migration, reject stale writes, and roll back invalid batches
 test("layout preferences survive migration, atomic writes, conflicts and reset", async () => {
 	const fixture = await cloudFixture();
 	const { db } = fixture;

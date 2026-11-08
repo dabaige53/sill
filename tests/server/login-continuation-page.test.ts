@@ -7,6 +7,7 @@ import { loginPage } from "../../server/cloud/login-page.ts";
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+// @wu-test type=integration | scope=login page cross-tab continuation | protects=Prevent a cross-tab message from authenticating a user or replaying the authorization return
 test("the original login tab verifies the session before continuing once, without a refresh", async () => {
 	const target = "https://sill.example/oauth/consent?authorization_id=original-request";
 	const dom = new JSDOM(
@@ -63,6 +64,7 @@ test("the original login tab verifies the session before continuing once, withou
 	}
 });
 
+// @wu-test type=behavior | scope=login page continuation | protects=Resume login when cross-tab messaging is unavailable
 test("returning to the original tab works when cross-tab messaging is unavailable", async () => {
 	const dom = new JSDOM(loginPage({ emailEnabled: true }));
 	const navigations: string[] = [];
@@ -87,6 +89,7 @@ test("returning to the original tab works when cross-tab messaging is unavailabl
 	}
 });
 
+// @wu-test type=behavior | scope=login completion page | protects=Avoid navigating the email tab into the host authorization flow
 test("email completion sends only a session hint and leaves host continuation to the original tab", () => {
 	const messages: unknown[] = [],
 		navigations: string[] = [];

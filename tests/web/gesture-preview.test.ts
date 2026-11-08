@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
+// @wu-test type=behavior | scope=phone preview scrolling | protects=prevents scrolling from losing position or closing the preview during expansion
 test("reading expands during finger scrolling, preserving the scroll offset", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -31,6 +32,7 @@ test("reading expands during finger scrolling, preserving the scroll offset", ()
 	}
 });
 
+// @wu-test type=boundary | scope=phone preview gesture interruption | protects=prevents interrupted or stale touches from expanding a later or closing preview
 test("cancelled, multi-touch, stale and closing previews cannot expand later", () => {
 	for (const interruption of ["cancel", "multi", "replacement", "closing"]) {
 		const f = fixture({ phone: true });
@@ -65,6 +67,7 @@ test("cancelled, multi-touch, stale and closing previews cannot expand later", (
 	}
 });
 
+// @wu-test type=behavior | scope=phone preview scroll delivery | protects=prevents a delayed scroll event from leaving the preview collapsed or losing position
 test("a scroll event delivered after finger release expands without waiting for inertia", () => {
 	const f = fixture({ phone: true });
 	try {

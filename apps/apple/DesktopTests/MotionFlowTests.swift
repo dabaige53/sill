@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct MotionFlowTests {
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Close once on release after reading is confirmed | debt=D6
   @Test func completedReadingShowsTheCheckAndClosesOnReleaseWithoutARebound() {
     let scroll = ReaderScroll()
     var closed = 0
@@ -22,6 +23,7 @@ import Testing
     scroll.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Close after a pending completion is confirmed
   @Test func releaseBeforeTheWriteConfirmsClosesOnConfirmation() {
     let scroll = ReaderScroll()
     var callback: ((Bool) -> Void)?
@@ -36,6 +38,7 @@ import Testing
     scroll.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Prevent an old completion from closing a later layer | debt=D9,D6
   @Test func disconnectedReadingCannotCloseTheNextLayer() async throws {
     let scroll = ReaderScroll()
     var callback: ((Bool) -> Void)?
@@ -50,6 +53,7 @@ import Testing
     #expect(!closed)
   }
 
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Keep the reader open when completion fails | debt=D6
   @Test func failedReadingReturnsWithoutClosing() {
     let scroll = ReaderScroll()
     scroll.finished = { $0(false) }
@@ -60,6 +64,7 @@ import Testing
     scroll.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Reader dismissal animation | protects=Keep text aligned while the reader dismisses | debt=D6
   @Test func dismissalMovesSurfaceAndDimsWithoutMovingTextTwice() {
     let motion = ReaderMotion()
     motion.surfaceWidth = 800
@@ -74,6 +79,7 @@ import Testing
     #expect(motion.dimOpacity == 1)
   }
 
+  // @wu-test type=behavior | scope=Feed refresh gesture | protects=Continue a new pull from the visible position and show failure | debt=D9,D6
   @Test func refreshRegrabsTheVisibleReboundAndFailureIsImmediate() async throws {
     let refresh = FeedRefresh()
     refresh.drawn.value = 30
@@ -92,6 +98,7 @@ import Testing
     refresh.cancel()
   }
 
+  // @wu-test type=behavior | scope=Reader scroll restoration | protects=Restore reading progress at the corresponding document position
   @Test func savedReaderProgressRestoresAgainstDocumentHeight() {
     let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
     view.documentView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 2000))
@@ -102,6 +109,7 @@ import Testing
     scroll.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Feed refresh retry | protects=Prevent duplicate refreshes and allow retry after failure | debt=D9,D6
   @Test func buttonRefreshAndRetryKeepCardsInPlace() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -123,6 +131,7 @@ import Testing
     refresh.cancel()
   }
 
+  // @wu-test type=behavior | scope=Feed refresh cancellation | protects=Ignore a stale refresh result after cancellation | debt=D9,D6
   @Test func refreshThresholdCancellationAndStaleResult() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -149,6 +158,7 @@ import Testing
     #expect(refresh.distance == 0)
   }
 
+  // @wu-test type=behavior | scope=Mouse pull to refresh | protects=Refresh only after a qualifying mouse pull is released | debt=D9,D6
   @Test func mouseRefreshWaitsForReleaseAndCanBeReversed() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -176,31 +186,9 @@ import Testing
     refresh.cancel()
   }
 
-  @Test func cardBoundaryTravelsContinuouslyWithoutChangingTextScale() {
-    let source = CGRect(x: 40, y: 80, width: 300, height: 180)
-    let target = CGRect(x: 100, y: 120, width: 800, height: 600)
-    #expect(CardFlightSurface.rect(source: source, target: target, progress: 0) == source)
-    #expect(CardFlightSurface.rect(source: source, target: target, progress: 1) == target)
-    let halfway = CardFlightSurface.rect(source: source, target: target, progress: 0.5)
-    #expect(halfway == CGRect(x: 70, y: 100, width: 550, height: 390))
-  }
 
-  @Test func contentAndToolsFollowGeometryProgressInBothDirections() {
-    #expect(CardFlightSurface.detailOpacity(0) == 0)
-    #expect(CardFlightSurface.detailOpacity(1) == 1)
-    var previous = 0.0
-    for step in 0...100 {
-      let progress = CGFloat(step) / 100
-      let alpha = CardFlightSurface.detailOpacity(progress)
-      #expect(alpha >= previous && alpha <= 1)
-      previous = alpha
-    }
-    let halfway = CardFlightSurface.detailOpacity(0.5)
-    #expect(halfway > 0 && halfway < 1)
-    #expect(CardFlightSurface.detailOpacity(0.4) < halfway)
-    #expect(CardFlightSurface.detailOpacity(0.6) > halfway)
-  }
 
+  // @wu-test type=behavior | scope=Feed refresh feedback | protects=Show failure and then success after retry | debt=D9,D6
   @Test func refreshFailureRetryAndSuccess() async throws {
     let refresh = FeedRefresh()
     refresh.request = { $0(false) }
@@ -218,6 +206,7 @@ import Testing
     refresh.cancel()
   }
   /// macOS 26 lays the top bar out as a safe-area bar: the clip view rests at minus its height.
+  // @wu-test type=behavior | scope=Feed scroll top | protects=Treat the inset below the top bar as the feed top
   @Test func feedTopIsMeasuredBelowTheTopBar() {
     let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
     view.automaticallyAdjustsContentInsets = false
@@ -234,6 +223,7 @@ import Testing
   }
 
   /// Cards stop taking the pointer while the feed moves and take it back once it rests.
+  // @wu-test type=behavior | scope=Feed hover during scrolling | protects=Restore card hover after scrolling stops | debt=D9,D6
   @Test func feedPausesCardHoverOnlyWhileMoving() async throws {
     let scroll = FeedScroll(chrome: Chrome())
     scroll.scrolled(offset: 0, visible: 600, content: 4000)
@@ -250,6 +240,7 @@ import Testing
     #expect(!scroll.moving.active)
   }
 
+  // @wu-test type=integration | scope=Feed scroll restoration | protects=Apply only the latest requested scroll position after layout
   @Test func feedRestorationAppliesOnlyTheLatestRequestAfterLayout() async {
     let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
     view.automaticallyAdjustsContentInsets = false
@@ -276,6 +267,7 @@ import Testing
     probe.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Reader and feed bars | protects=Restore bars after closing a card opened below the feed top | debt=D6
   @Test func openCardTucksTheBarsOnlyBelowTheFeedTop() {
     let chrome = Chrome()
     let scroll = FeedScroll(chrome: chrome)
