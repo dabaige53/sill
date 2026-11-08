@@ -78,3 +78,4 @@
 - [标签浮层与圆润方形操作图标](0090-tag-layer-and-rounded-action-icons.md)
 - [邮件卡面不显示附件，PR 检查只显示计数](0091-mail-card-without-files.md)
 - [公共 OAuth 应用按账号独立授权](0092-shared-oauth-application-defaults.md)
+- [Web 阅读进度与阅读时长离开时写入](0093-web-reading-writes-on-leave.md)

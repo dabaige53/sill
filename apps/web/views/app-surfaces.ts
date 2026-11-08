@@ -193,6 +193,7 @@ export const appSurfacesMethods = {
 		if (this.modalKind === "search") resetPhoneSearch(this.dialog);
 		// The card on the desk shows the progress reached in the detail that is leaving.
 		flushReadingProgress();
+		if (this.takeReadingTime()) Store.save();
 		// A sheet already dragged off screen closes as it is: no return motion.
 		if (this.skipReturnMotion) {
 			animate = false;

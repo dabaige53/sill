@@ -14,8 +14,12 @@ export function feedView(
 ): ReactNode {
 	if (!Store.state.cards.length && !window.__QG_RUNTIME__) return <WelcomeView />;
 	const previous = app.preserveFeed ? app.feedSnapshot : null;
+	// A card refresh redraws every card of the snapshot: look each up once, not by scanning the store.
+	const live = new Map<string, Card>();
+	if (previous)
+		for (const card of Store.state.cards) if (!live.has(card.id)) live.set(card.id, card);
 	const cards = previous
-		? previous.cards.map((card) => Store.card(card.id)).filter(Boolean)
+		? previous.cards.map((card) => live.get(card.id)).filter(Boolean)
 		: app.filtered();
 	const shelf = (
 		<ShelfView key="shelf" read={app.shelved("read").length} stale={app.shelved("stale").length} />

@@ -213,11 +213,13 @@ export const appLifecycleMethods = {
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden) {
 				flushReadingProgress();
+				this.takeReadingTime();
 				Store.save();
 			} else this.checkReminders();
 		});
 		window.addEventListener("pagehide", () => {
 			flushReadingProgress();
+			this.takeReadingTime();
 			Store.save();
 		});
 		window.addEventListener(
