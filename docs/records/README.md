@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [1.2.36 发布](2026-11-05-release-1.2.36/README.md)
 - [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md)
 - [1.2.34 发布](2026-11-04-release-1.2.34/README.md)
 - [Resend 发信与 Supabase SMTP 配置](2026-11-04-email-setup/README.md)
