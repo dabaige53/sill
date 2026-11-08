@@ -101,12 +101,34 @@ function standaloneScripts(): Plugin {
 	};
 }
 
+/**
+ * The Web reads contract types, exported JSON Schema and zod-free rules only (code standards §4).
+ * One value import from a zod module once inlined all of zod into every page load.
+ */
+function withoutZod(): Plugin {
+	return {
+		name: "sill-without-zod",
+		apply: "build",
+		generateBundle: {
+			order: "pre",
+			handler(_options, bundle) {
+				for (const output of Object.values(bundle))
+					if (
+						output.type === "chunk" &&
+						Object.keys(output.modules).some((id) => /[\\/]node_modules[\\/]zod[\\/]/.test(id))
+					)
+						throw new Error("web_bundle_includes_zod");
+			},
+		},
+	};
+}
+
 export function webConfig({ cloud = false }: { cloud?: boolean } = {}): UserConfig {
 	return {
 		root: webRoot,
 		base: "./",
 		publicDir: false,
-		plugins: [pageMetadata(cloud), react(), viteSingleFile(), standaloneScripts()],
+		plugins: [pageMetadata(cloud), react(), withoutZod(), viteSingleFile(), standaloneScripts()],
 		server: {
 			host: "localhost",
 			port: 5173,

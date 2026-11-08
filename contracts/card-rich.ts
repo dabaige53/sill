@@ -94,30 +94,3 @@ export const richCardFields = {
 			"Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, reviewers, checks and statistics reflect observed evidence. Only completed checks may have conclusion. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
 		),
 };
-
-export function richCardIssues(card: Record<string, any>): string[] {
-	const issues: string[] = [];
-	if (card.audioUrl !== undefined && (card.type !== "media" || card.media !== "podcast"))
-		issues.push("invalid_audioUrl_type");
-	if (card.pullRequest !== undefined && card.type !== "pr") issues.push("invalid_pullRequest_type");
-	if (card.type === "pr" && !card.pullRequest) issues.push("missing_pullRequest");
-	for (const field of ["chapters", "transcript"]) {
-		if (card[field] !== undefined && card.type !== "media") issues.push(`invalid_${field}_type`);
-		const entries = card[field] || [];
-		if (
-			entries.some(
-				(entry: any, index: number) =>
-					(index > 0 && entry.start <= entries[index - 1].start) ||
-					(card.duration !== undefined && entry.start > card.duration),
-			)
-		)
-			issues.push(`invalid_${field}_time`);
-	}
-	if (
-		card.pullRequest?.checks?.some(
-			(check: any) => check.conclusion !== undefined && check.status !== "completed",
-		)
-	)
-		issues.push("invalid_check_conclusion");
-	return issues;
-}

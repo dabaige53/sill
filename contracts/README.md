@@ -54,7 +54,7 @@ Card 的 created_at / updated_at / revision 等仍由服务端控制，不接受
 
 ## 内容排版偏好
 
-`appearance.ts` 定义由 `local.ts` 和 `cloud.ts` 共用的偏好字段。通过 `preferences.patch` 更新，沿用工作区版本、原始值与幂等检查，不改变卡片内容。
+`appearance.ts` 以纯数据定义由 `local.ts` 和 `cloud.ts` 共用的偏好可选值与默认值，`local.ts` 据此生成 schema 字段；Web 直接读取，不打包 zod。通过 `preferences.patch` 更新，沿用工作区版本、原始值与幂等检查，不改变卡片内容。
 
 - `cardTextSize / readerTextSize`：small、standard、large，默认 standard。
 - `cardSpacing / cardPadding / readerSpacing`：compact、standard、roomy，默认 standard。
