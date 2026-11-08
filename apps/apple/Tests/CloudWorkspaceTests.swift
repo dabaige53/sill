@@ -207,6 +207,68 @@ struct CloudWorkspaceTests {
     #expect(writes == 1)
     #expect(await store.pendingWriteKey == nil)
   }
+  private func synthetic(revision: Double) -> JSONValue {
+    .object([
+      "revision": .number(revision),
+      "state": .object([
+        "cards": .array([
+          .object([
+            "id": .string("synthetic-card"), "type": .string("note"),
+            "title": .string("Synthetic card"), "body": .string("Body"),
+          ])
+        ]),
+        "items": .object([:]), "preferences": .object([:]), "seconds": .number(0),
+      ]),
+    ])
+  }
+
+  @Test func periodicReadSendsKnownRevisionAndKeepsWorkspaceWhenUnchanged() async throws {
+    let full = synthetic(revision: 3)
+    var revisions: [String?] = []
+    var answered = 3.0
+    let store = make { request in
+      if let result = auth(request) { return result }
+      let known = request.value(forHTTPHeaderField: "X-Sill-Revision")
+      revisions.append(known)
+      if known == "3" {
+        return (200, [:], .object(["revision": .number(answered), "unchanged": .bool(true)]))
+      }
+      return (200, [:], full)
+    }
+    _ = try await store.login(email: "synthetic@example.com", password: "synthetic")
+    let read = try await store.read()
+    #expect(revisions == [nil, "3"])
+    #expect(read.json == full)
+    #expect(read.snapshot?.revision == 3)
+    #expect(read.snapshot?.cards.map(\.id) == ["synthetic-card"])
+    // "Unchanged" must name the revision this session holds.
+    answered = 9
+    await #expect(throws: CloudWorkspaceError.invalidResponse) { try await store.read() }
+  }
+
+  @Test func writeAtKnownRevisionIsSentWithoutReadingWorkspaceFirst() async throws {
+    var reads = 0
+    var writes = 0
+    let store = make { request in
+      if let result = auth(request) { return result }
+      if request.httpMethod == "POST" {
+        writes += 1
+        return (200, [:], synthetic(revision: Double(3 + writes)))
+      }
+      reads += 1
+      return (200, [:], synthetic(revision: 3))
+    }
+    _ = try await store.login(email: "synthetic@example.com", password: "synthetic")
+    let operations: [JSONValue] = [.object(["op": .string("reading.add"), "seconds": .number(1)])]
+    let written = try await store.apply(operations: operations, expectedRevision: .number(3))
+    #expect(written.revision == .number(4))
+    #expect(written.snapshot?.revision == 4)
+    #expect(reads == 1 && writes == 1)
+    // A write based on another revision still reads the state it would be checked against.
+    _ = try await store.apply(operations: operations, expectedRevision: .number(2))
+    #expect(reads == 2 && writes == 2)
+  }
+
   @Test func createReplaceAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
