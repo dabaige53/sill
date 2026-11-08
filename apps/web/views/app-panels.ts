@@ -50,6 +50,8 @@ export const appPanelsMethods = {
 		}
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
+		// A card view being left writes its progress before the panel draws card faces.
+		flushReadingProgress();
 		const narrow = ["confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =

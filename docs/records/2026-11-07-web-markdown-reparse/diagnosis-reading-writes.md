@@ -24,7 +24,7 @@
 ## 处理情况
 
 - 阅读时长：待写秒数记在 `AppController.readingSeconds`，不进入工作区状态。`takeReadingTime()` 在关闭详情、切到后台、离开页面时把秒数加入工作区，单次最多一天（服务端单次上限），余下的留到下次。退出或会话失效时 `clearCloud()` 清零。删除已无对应元素的 `[data-live-time]` 更新。
-- 阅读进度（用户 2026-11-08 确认对齐 Mac，[ADR 0093](../../adr/0093-web-reading-writes-on-leave.md)）：阅读中只记录最远位置；打开另一张卡片或在预览与放大之间切换（`openCard` 入口）、关闭详情、切到后台、离开页面时保存；读完仍立即保存。`clearCloud()` 丢弃未写入的进度。同步更新[网页阅读手册](../../../design-system/handbook/web-reading.md)。
+- 阅读进度（用户 2026-11-08 确认对齐 Mac，[ADR 0093](../../adr/0093-web-reading-writes-on-leave.md)）：阅读中只记录最远位置；打开另一张卡片或面板、在预览与放大之间切换（`openCard` 与 `openPanel` 入口）、关闭详情、切到后台、离开页面时保存；读完仍立即保存。`clearCloud()` 丢弃未写入的进度。同步更新[网页阅读手册](../../../design-system/handbook/web-reading.md)。
 - 未改：服务端写入回执仍是整个工作区，回执副本仍保留 7 天。
 
 ## 验证与后续

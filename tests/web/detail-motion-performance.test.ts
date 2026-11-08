@@ -303,6 +303,9 @@ test("lifecycle and close paths flush pending reading progress and reading time"
 		panels,
 		/openCard\(this: AppController[^{]*\{\s*(?:\/\/[^\n]*\n\s*)*flushReadingProgress\(\);\s*return openCard\.call/,
 	);
+	const panel = panels.slice(panels.indexOf("openPanel(this: AppController"));
+	const panelFlush = panel.indexOf("flushReadingProgress();");
+	assert.ok(panelFlush > 0 && panelFlush < panel.indexOf("const html"));
 	const close = surfaces.slice(surfaces.indexOf("closeNative(this: AppController"));
 	const written = close.indexOf("if (this.takeReadingTime()) Store.save();");
 	assert.ok(close.indexOf("flushReadingProgress()") < written);

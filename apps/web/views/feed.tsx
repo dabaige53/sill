@@ -15,7 +15,9 @@ export function feedView(
 	if (!Store.state.cards.length && !window.__QG_RUNTIME__) return <WelcomeView />;
 	const previous = app.preserveFeed ? app.feedSnapshot : null;
 	// A card refresh redraws every card of the snapshot: look each up once, not by scanning the store.
-	const live = previous && new Map(Store.state.cards.map((card) => [card.id, card]));
+	const live = new Map<string, Card>();
+	if (previous)
+		for (const card of Store.state.cards) if (!live.has(card.id)) live.set(card.id, card);
 	const cards = previous
 		? previous.cards.map((card) => live.get(card.id)).filter(Boolean)
 		: app.filtered();
