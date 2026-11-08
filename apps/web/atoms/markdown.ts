@@ -74,6 +74,16 @@ export function internalCardRoute(href: string, base: string): string | null {
 
 /** Plain text blocks of a Markdown string, for search, excerpts and the card face fallback. */
 export function markdownBlocks(text: string): string[] {
+	return plain(text).blocks.slice();
+}
+
+/** Each distinct body is parsed once however many surfaces ask for it: feed faces, reading time and search. */
+const plain = textMemo((text: string) => {
+	const blocks = parseBlocks(text);
+	return { blocks, text: blocks.join("\n"), first: blocks[0] || "" };
+});
+
+function parseBlocks(text: string): string[] {
 	return md
 		.parse(text, {})
 		.filter((token) => ["inline", "fence", "code_block"].includes(token.type))
@@ -92,12 +102,6 @@ export function markdownBlocks(text: string): string[] {
 		)
 		.filter((block) => block.trim());
 }
-
-/** Plain text and first block of one body, parsed once however many surfaces ask for it. */
-const plain = textMemo((text: string) => {
-	const blocks = markdownBlocks(text);
-	return { text: blocks.join("\n"), first: blocks[0] || "" };
-});
 
 export function markdownText(text: string): string {
 	return plain(text).text;

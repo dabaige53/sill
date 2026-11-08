@@ -48,8 +48,7 @@ test("one body is parsed once for its text, face excerpt and reading time", () =
 	} finally {
 		MarkdownIt.prototype.parse = parse;
 	}
-	// One parse for the memo; markdownBlocks itself stays uncached and parses on every call.
-	assert.equal(parses, 1 + 6);
+	assert.equal(parses, 1);
 });
 
 test("search text matches the joined card fields and follows note and field changes", () => {

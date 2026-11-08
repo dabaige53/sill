@@ -693,6 +693,14 @@
 .summary-mark {
 	margin-right: calc(-1 * var(--space-8));
 }
+/* The mark and the label switch together; the padding pair keeps the label where it sat. */
+.summary-length {
+	display: flex;
+	width: auto;
+	gap: calc((var(--hit-target) - 20px) / 2 - var(--space-8) + var(--space-2));
+	padding: 0 var(--space-8) 0 calc((var(--hit-target) - 20px) / 2);
+	border-radius: var(--control-radius);
+}
 .summary-fold {
 	flex: 1;
 	width: auto;

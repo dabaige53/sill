@@ -118,6 +118,9 @@ function fixture() {
 		systemReminders: w.SessionViewTest.systemReminders,
 		sync: { pending: [], reset() {} },
 		stashCloudDraft() {},
+		discardReadingProgress() {
+			w.__discardedProgress = (w.__discardedProgress || 0) + 1;
+		},
 		accountView() {},
 		paintCloudDraft() {},
 		copy: (key: string) => key,
@@ -140,8 +143,15 @@ for (const kind of ["search", "preview", "reader", "ai"])
 				}
 				// An already-started exit must not delay the security cleanup.
 				f.app.sheetLeaving = kind === "preview";
+				f.app.readingSeconds = 25;
 				const token = f.app.modalToken;
 				f.clear({ retainDrafts });
+				assert.equal(f.app.readingSeconds, 0, "reading time is not credited to the next account");
+				assert.equal(
+					f.w.__discardedProgress,
+					1,
+					"unsaved progress is not written to the next account",
+				);
 				assert.equal(f.Cloud.user, null);
 				assert.equal(f.Store.state.cards.length, 0);
 				assert.equal(f.app.dialog.open, false);

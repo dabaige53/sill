@@ -11,27 +11,24 @@ import type { ViewDialog } from "./app-types.ts";
 import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
 import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 
-// Progress changes on nearly every scroll event, and each Store write saves the whole workspace
-// (browser storage, or a cloud snapshot and diff). Completion is written at once; progress alone
-// is written at most every PROGRESS_WRITE_MS, and before the page is hidden or left.
-const PROGRESS_WRITE_MS = 500;
+// Progress changes on nearly every scroll event, and every save sends the workspace changes and
+// receives the whole workspace back (ADR 0093). As on Mac, the furthest point waits in memory and
+// is written when its view is left: another card or view opens, the detail closes, or the page is
+// hidden or left. Completion is written at once.
 const pendingProgress = new Map<string, number>();
 const pagedResults = new WeakSet<HTMLElement>();
 const editorLayers = new WeakSet<HTMLElement>();
 let editorToken = 0;
-let progressTimer = 0;
 export function flushReadingProgress() {
-	clearTimeout(progressTimer);
-	progressTimer = 0;
 	const pending = [...pendingProgress];
 	pendingProgress.clear();
 	for (const [id, value] of pending)
 		if (Store.card(id) && value > (Store.item(id).progress || 0))
 			Store.patch(id, { progress: value });
 }
-function queueProgress(id: string, value: number) {
-	pendingProgress.set(id, value);
-	if (!progressTimer) progressTimer = window.setTimeout(flushReadingProgress, PROGRESS_WRITE_MS);
+/** Unsaved progress belongs to the account that is leaving. */
+export function discardReadingProgress() {
+	pendingProgress.clear();
 }
 
 export const appPanelsMethods = {
@@ -53,6 +50,8 @@ export const appPanelsMethods = {
 		}
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
+		// A card view being left writes its progress before the panel draws card faces.
+		flushReadingProgress();
 		const narrow = ["confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
@@ -329,6 +328,8 @@ export const appPanelsMethods = {
 		}
 	},
 	openCard(this: AppController, id?: string, reading = false): undefined {
+		// The view being left keeps its place before the next one reads the stored progress.
+		flushReadingProgress();
 		return openCard.call(this, id, reading);
 	},
 	bindPreview(this: AppController, id?: string): undefined {
@@ -415,7 +416,7 @@ export const appPanelsMethods = {
 		if (read !== before.read) {
 			pendingProgress.delete(id);
 			Store.patch(id, { progress: p, read });
-		} else if (p > (before.progress || 0) && p !== stored) queueProgress(id, p);
+		} else if (p > (before.progress || 0) && p !== stored) pendingProgress.set(id, p);
 		const bar = document.getElementById("reader-progress");
 		if (bar) bar.style.transform = `scaleX(${actual})`;
 		document.getElementById("reader-end")?.classList.toggle("is-done", Store.item(id).read);

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { eventEnded, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
+import { eventEnded, eventRelative, eventTimely } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
@@ -116,12 +116,19 @@ export const appCaptureMethods = {
 			this.dialog.open &&
 			!document.hidden &&
 			Date.now() - this.lastActivity < 60000
-		) {
-			Store.state.seconds++;
-			document.querySelectorAll<HTMLElement>("[data-live-time]").forEach((n?: HTMLElement) => {
-				n.textContent = minutes(Store.state.seconds);
-			});
-			if (Store.state.seconds % 5 === 0) Store.save();
-		}
+		)
+			this.readingSeconds++;
+	},
+	/**
+	 * Reading time is written when the detail closes or the page is hidden or left, as on Mac:
+	 * every save returns the whole workspace. Adds it to the workspace for the caller to save,
+	 * at most one day per write, and returns whether there was any.
+	 */
+	takeReadingTime(this: AppController) {
+		const seconds = Math.min(86400, this.readingSeconds);
+		if (!seconds) return false;
+		this.readingSeconds -= seconds;
+		Store.state.seconds += seconds;
+		return true;
 	},
 };

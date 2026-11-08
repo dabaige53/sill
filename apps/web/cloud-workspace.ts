@@ -8,6 +8,7 @@ import { Store } from "./data/store.ts";
 import { clone } from "./services/cloud-sync.ts";
 import { cloudViewCard } from "./services/cloud-view-state.ts";
 import { systemReminders } from "./services/system-reminders.ts";
+import { discardReadingProgress } from "./views/app-panels.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
 import { previewContent } from "./views/preview-controller.ts";
 import { renderView } from "./views/react-renderer.ts";
@@ -81,6 +82,9 @@ export function clearCloud({ retainDrafts = false }: any = {}) {
 	app.searchSelected.clear();
 	app.aiSelectionIds = [];
 	app.pendingCards = [];
+	// Unsaved reading time and progress belong to the account that is leaving.
+	app.readingSeconds = 0;
+	discardReadingProgress();
 	app.aiDraft = "";
 	app.renderAIDock?.();
 	app.selectAnchor = "";
