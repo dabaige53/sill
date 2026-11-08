@@ -32,6 +32,7 @@ supabase/.temp/
 /.agents/skills/apple-design
 /.agents/skills/ask-sonner
 /.agents/skills/break-ui
+/.agents/skills/choreograph
 /.agents/skills/claude-dashboard
 /.agents/skills/claude-design
 /.agents/skills/claude-design-system
@@ -43,6 +44,7 @@ supabase/.temp/
 /.agents/skills/mobile-native
 /.agents/skills/pick-ui-library
 /.agents/skills/prototype
+/.agents/skills/remove-animations
 /.agents/skills/review-animations
 /.agents/skills/write-swift
 /.claude/skills/animate
@@ -51,11 +53,13 @@ supabase/.temp/
 /.claude/skills/animation-vocabulary
 /.claude/skills/ask-sonner
 /.claude/skills/break-ui
+/.claude/skills/choreograph
 /.claude/skills/emil-design-eng
 /.claude/skills/find-animation-opportunities
 /.claude/skills/improve-animations
 /.claude/skills/pick-ui-library
 /.claude/skills/prototype
+/.claude/skills/remove-animations
 /.claude/skills/review-animations
 /.claude/skills/write-swift
 # <<< magpie <<<

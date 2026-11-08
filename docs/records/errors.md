@@ -7,6 +7,7 @@
 | 2026-11-08 | Web 阅读与保存 | 阅读时频繁保存、每 5 秒、500ms、reading.add、阅读进度、整个工作区回执、receipts、流量大、未保存秒数被覆盖 | [Web 阅读时频繁保存整个工作区](2026-11-07-web-markdown-reparse/diagnosis-reading-writes.md) |
 | 2026-11-08 | Web 信息流 | 点按刷新慢、卡片多时卡顿、Store.card、线性查找、平方增长、refreshCard | [Web 刷新单张卡片时逐张扫描卡片库](2026-11-07-web-markdown-reparse/diagnosis-feed-refresh.md) |
 | 2026-11-07 | Web 搜索与信息流 | 搜索输入卡顿、按键延迟、点按重绘慢、markdown-it、markdownText、readingMinutes、阅读时长、正文反复解析、缓存失效、500 张 | [Web 搜索与信息流反复解析正文](2026-11-07-web-markdown-reparse/diagnosis-markdown-reparse.md) |
+| 2026-11-05 | Mac 卡片详情 | 放大缩小卡顿、空白帧、关闭后白框、白边、回落表面、readCard、CardFlightSurface、geometryReady | [Mac 详情放大缩小卡顿与关闭后白框](2026-11-05-macos-reader-resize/README.md) |
 | 2026-11-05 | Mac 卡片详情 | 打开长文卡片卡顿、主线程延迟、458ms、长正文排版、MarkdownText、LazyVStack、目录高亮 | [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md) |
 | 2026-11-03 | Mac 打包 | 线上 DMG 与本地不一致、顶部玻璃不同、性能差、Liquid Glass、LC_BUILD_VERSION、sdk 14.0、Xcode 26.6、Xcode 27.2 | [Mac 线上包与本地包不一致](2026-11-03-macos-build-parity/diagnosis.md) |
 | 2026-11-03 | Mac 卡片封面 | SVG 封面不显示、只有底色、AsyncImage、LoadingError、CGImageSource、image/svg+xml | [Mac 卡片 SVG 封面不显示](2026-11-03-macos-svg-cover/diagnosis.md) |

@@ -261,14 +261,17 @@ export function DetailSummary({ card }: { card: Card }) {
 						onClick={toggle}
 					>
 						<Icon name="sill-ai" size={20} />
+						<span className="detail-summary-label">{copy("web.card.summary")}</span>
 					</button>
 				)}
 				{!points.length && (
-					<span className="summary-mark" aria-hidden="true">
-						<Icon name="sill-ai" size={20} />
-					</span>
+					<>
+						<span className="summary-mark" aria-hidden="true">
+							<Icon name="sill-ai" size={20} />
+						</span>
+						<span className="detail-summary-label">{copy("web.card.summary")}</span>
+					</>
 				)}
-				<span className="detail-summary-label">{copy("web.card.summary")}</span>
 				<button
 					type="button"
 					className="summary-fold"
