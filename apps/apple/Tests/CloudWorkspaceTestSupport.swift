@@ -75,5 +75,4 @@ extension CloudWorkspaceTests {
     default: return nil
     }
   }
-
 }
