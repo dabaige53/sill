@@ -93,12 +93,15 @@ final class CloudBackend: WorkspaceBackend {
 
   init(cloud: CloudWorkspace) { self.cloud = cloud }
 
-  func read() async throws -> Snapshot { try Snapshot(json: await cloud.read().json) }
+  func read() async throws -> Snapshot {
+    let state = try await cloud.read()
+    return try state.snapshot ?? Snapshot(json: state.json)
+  }
 
   func apply(_ operations: [WorkspaceOperation], expectedRevision: Int) async throws -> Snapshot {
     let state = try await cloud.apply(
       operations: operations.map(\.cloud), expectedRevision: .number(Double(expectedRevision)))
-    return try Snapshot(json: state.json)
+    return try state.snapshot ?? Snapshot(json: state.json)
   }
 }
 

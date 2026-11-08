@@ -196,3 +196,31 @@ test("reordered JSON fields do not produce card writes", () => {
 	next.cards[1] = { revision: 1, title: "B", type: "note", id: "b" };
 	assert.deepEqual(workspaceDiff(before, next), []);
 });
+
+test("the baseline shares unchanged cards and copies the personal state it compares", () => {
+	const state = initial();
+	const sync = new CloudSync({
+		snapshot: () => state,
+		owner: () => "owner-a",
+		canSave: () => false,
+		status: () => {},
+		failure: () => {},
+		adopt: () => {},
+		request: async () => ({}),
+	});
+	sync.rebase(state, 1, "owner-a");
+	assert.equal(sync.baseline.cards[0], state.cards[0]);
+	assert.notEqual(sync.baseline.items, state.items);
+	assert.notEqual(sync.baseline.preferences, state.preferences);
+	state.items.a.read = true;
+	state.preferences.theme = "dark";
+	// A card edit replaces the card object, as Store.setTags does.
+	(state.cards as any[])[1] = { ...state.cards[1], tags: ["Tag"] };
+	sync.collect();
+	assert.deepEqual(
+		sync.pending[0].body.operations.map((o: any) => o.op),
+		["card.upsert", "item.patch", "preferences.patch"],
+	);
+	assert.equal(sync.baseline.cards[1], state.cards[1]);
+	assert.equal(sync.baseline.items.a.read, true);
+});

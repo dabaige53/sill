@@ -142,6 +142,12 @@ import SillKit
         then?()
         return
       }
+      // The cloud raises the revision on every change; a read that found the drawn revision
+      // (the 5s check answered "unchanged") has nothing to diff.
+      if snapshot.revision == self.revision, !self.order.isEmpty, self.backend?.isLocal == false {
+        then?()
+        return
+      }
       let trace = PerformanceTrace.shared.begin(.snapshotDiff, reason: .refresh)
       let baseline = self.baseline
       let diff = await Task.detached(priority: .userInitiated) {

@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { markdownText } from "../atoms/markdown.ts";
 import { sillWordmark } from "../atoms/wordmark.ts";
 import { copy } from "../copy.ts";
-import { cardSource } from "../data/card-source.ts";
+import { cardSearchText } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
@@ -39,11 +38,7 @@ export const appFeedMethods = {
 		);
 	},
 	matches(this: AppController, c?: Card, q?: string) {
-		const s = Store.item(c.id);
-		return [c.title, c.summary, cardSource(c), s.note, markdownText(c.body || ""), ...Store.tags(c)]
-			.join(" ")
-			.toLocaleLowerCase()
-			.includes(q.toLocaleLowerCase());
+		return cardSearchText(c, Store.item(c.id).note).includes(q.toLocaleLowerCase());
 	},
 	/** Text to match, without a trailing # condition that is still being typed. */
 	searchText(this: AppController, q = "") {

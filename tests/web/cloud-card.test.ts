@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
 import { cardHTML } from "../../apps/web/cards/templates.ts";
-import { cloudCard, cloudCardChanges } from "../../apps/web/data/cloud-card.ts";
+import {
+	cloudCard,
+	cloudCardChanges,
+	keepUnchanged,
+	projectedCard,
+	storedCard,
+} from "../../apps/web/data/cloud-card.ts";
 
 const rich = {
 	id: "synthetic-rich",
@@ -111,4 +117,24 @@ test("cloud editor sends only changed fields and preserves structure and unedite
 	assert.deepEqual(cloudCardChanges(rich, { title: rich.title, body: "New\nBody", read: false }), {
 		body: "New\nBody",
 	});
+});
+
+test("an unchanged record keeps its object, its drawn card and its saved copy", () => {
+	const note = { id: "note", type: "note", title: "Note", body: "First block", revision: 2 };
+	const previous = new Map<string, any>([
+		[rich.id, rich],
+		[note.id, note],
+	]);
+	// A later answer parses into new objects; equal data keeps the previous ones.
+	const answer = [structuredClone(rich), { ...structuredClone(note), title: "Renamed" }];
+	const records = keepUnchanged(previous, answer);
+	assert.equal(records[0], rich);
+	assert.equal(records[1], answer[1]);
+	assert.equal(projectedCard(rich), projectedCard(records[0]));
+	assert.notEqual(projectedCard(records[1]), projectedCard(note));
+	assert.equal(projectedCard(records[1]).summary, "First block");
+	// The drawn card saves as its record; a card the page replaced drops only filled fields.
+	assert.equal(storedCard(projectedCard(note), note), note);
+	const tagged = { ...projectedCard(note), tags: ["Tag"] };
+	assert.deepEqual(storedCard(tagged, note), { ...note, tags: ["Tag"] });
 });

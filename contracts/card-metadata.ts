@@ -1,5 +1,4 @@
 import type { Card } from "./card.ts";
-import { richCardIssues } from "./card-rich.ts";
 
 const allowedTypes: Record<string, string[]> = {
 	authors: ["article", "note", "mail", "media", "digest", "suggestion", "file"],
@@ -27,6 +26,34 @@ export function validContentDate(value: unknown, timeRequired = false): boolean 
 	)
 		return false;
 	return Number.isFinite(Date.parse(value));
+}
+
+/** Media and PR field rules; card-rich.ts keeps their zod shapes so the browser need not load zod. */
+function richCardIssues(card: Record<string, any>): string[] {
+	const issues: string[] = [];
+	if (card.audioUrl !== undefined && (card.type !== "media" || card.media !== "podcast"))
+		issues.push("invalid_audioUrl_type");
+	if (card.pullRequest !== undefined && card.type !== "pr") issues.push("invalid_pullRequest_type");
+	if (card.type === "pr" && !card.pullRequest) issues.push("missing_pullRequest");
+	for (const field of ["chapters", "transcript"]) {
+		if (card[field] !== undefined && card.type !== "media") issues.push(`invalid_${field}_type`);
+		const entries = card[field] || [];
+		if (
+			entries.some(
+				(entry: any, index: number) =>
+					(index > 0 && entry.start <= entries[index - 1].start) ||
+					(card.duration !== undefined && entry.start > card.duration),
+			)
+		)
+			issues.push(`invalid_${field}_time`);
+	}
+	if (
+		card.pullRequest?.checks?.some(
+			(check: any) => check.conclusion !== undefined && check.status !== "completed",
+		)
+	)
+		issues.push("invalid_check_conclusion");
+	return issues;
 }
 
 /** Cross-field rules shared by local, HTTP, MCP and the browser write validator. */

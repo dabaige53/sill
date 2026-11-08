@@ -177,7 +177,7 @@ import SillKit
   }
 
   private func accept(_ state: CloudWorkspaceState) throws {
-    let snapshot = try Snapshot(json: state.json)
+    let snapshot = try state.snapshot ?? Snapshot(json: state.json)
     if owner != nil && owner != state.owner { workspace.signOutLocally() }
     owner = state.owner
     displayName = state.displayName

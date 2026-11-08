@@ -1,17 +1,19 @@
-import { z } from "zod/v4";
+/**
+ * Layout preference values shared by local.ts and cloud.ts. Plain data, so the Web can read the
+ * defaults without bundling zod; local.ts builds the schema fields from these choices.
+ */
+const textSize = ["small", "standard", "large"] as const;
+const spacing = ["compact", "standard", "roomy"] as const;
 
-const textSize = z.enum(["small", "standard", "large"]);
-const spacing = z.enum(["compact", "standard", "roomy"]);
-
-export const appearanceShape = {
-	cardTextSize: textSize.optional(),
-	cardSpacing: spacing.optional(),
-	cardPadding: spacing.optional(),
-	readerTextSize: textSize.optional(),
-	readerSpacing: spacing.optional(),
-	readerWidth: z.enum(["narrow", "standard", "full"]).optional(),
-	textWeight: z.enum(["standard", "strong"]).optional(),
-};
+export const appearanceChoices = {
+	cardTextSize: textSize,
+	cardSpacing: spacing,
+	cardPadding: spacing,
+	readerTextSize: textSize,
+	readerSpacing: spacing,
+	readerWidth: ["narrow", "standard", "full"],
+	textWeight: ["standard", "strong"],
+} as const;
 
 export const defaultAppearance = {
 	cardTextSize: "standard",

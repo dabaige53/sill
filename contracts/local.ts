@@ -1,7 +1,17 @@
 import { z } from "zod/v4";
-import { appearanceShape } from "./appearance.ts";
+import { appearanceChoices as choices } from "./appearance.ts";
 import { Card, id, timestamp } from "./card.ts";
 import { CardActions } from "./card-actions.ts";
+
+const appearanceShape = {
+	cardTextSize: z.enum(choices.cardTextSize).optional(),
+	cardSpacing: z.enum(choices.cardSpacing).optional(),
+	cardPadding: z.enum(choices.cardPadding).optional(),
+	readerTextSize: z.enum(choices.readerTextSize).optional(),
+	readerSpacing: z.enum(choices.readerSpacing).optional(),
+	readerWidth: z.enum(choices.readerWidth).optional(),
+	textWeight: z.enum(choices.textWeight).optional(),
+};
 
 export const CardState = z
 	.object({

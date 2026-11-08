@@ -108,26 +108,6 @@ test("searching a large workspace again parses no body twice", () => {
 	assert.equal(calls, bodies.length);
 });
 
-test("bodies unused for ten minutes leave the cache as new bodies arrive", (t) => {
-	t.mock.timers.enable({ apis: ["Date"], now: Date.now() + 3600000 });
-	const stale = "Edited away **long ago**.",
-		recent = "Still on the **desk**.";
-	markdownText(stale);
-	t.mock.timers.tick(11 * 60000);
-	markdownText(recent);
-	parses(() => {
-		for (let i = 0; i < 6000; i++) markdownText(`Arrival ${i}`);
-	});
-	assert.equal(
-		parses(() => markdownText(recent)),
-		0,
-	);
-	assert.equal(
-		parses(() => markdownText(stale)),
-		1,
-	);
-});
-
 test("code blocks remain searchable and available as card text", () => {
 	assert.deepEqual(markdownBlocks("```js\nconst result = 42;\n```\n\n    indented"), [
 		"const result = 42;",

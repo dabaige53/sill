@@ -14,6 +14,8 @@ public struct CloudWorkspaceState: Sendable {
   public let json: JSONValue
   public let needsPasswordSetup: Bool
   public var displayName: String = ""
+  /// `json` already validated, so the app does not parse the same workspace a second time.
+  public var snapshot: Snapshot? = nil
   public var revision: JSONValue? { json["revision"] }
 }
 
@@ -41,6 +43,9 @@ public actor CloudWorkspace {
   private var needsPasswordSetup = false
   private var busy = false
   private var pending: (key: String, body: JSONValue, baseline: JSONValue)?
+  /// The workspace as the server last returned it to this session (a read or a write answer).
+  /// Periodic reads send its revision and receive only "unchanged" until something changes.
+  private var known: CloudWorkspaceState?
   public var pendingWriteKey: String? { pending?.key }
 
   public init(
@@ -214,7 +219,7 @@ public actor CloudWorkspace {
     guard !busy else { throw CloudWorkspaceError.service("busy", 409) }
     busy = true
     defer { busy = false }
-    let value = try await fetchWorkspace()
+    let value = try await fetchWorkspace(conditional: true)
     if let pending,
       CloudWriteReconciliation.matches(pending.body, baseline: pending.baseline, actual: value.json)
     {
@@ -233,7 +238,7 @@ public actor CloudWorkspace {
     }
     busy = true
     defer { busy = false }
-    let baseline = try await fetchWorkspace()
+    let baseline = try await writeBaseline(expectedRevision)
     var body: JSONValue = .object(["operations": .array(operations)])
     body["expectedRevision"] = expectedRevision ?? baseline.revision
     let key = UUID().uuidString
@@ -270,21 +275,44 @@ public actor CloudWorkspace {
     else { throw CloudWorkspaceError.unauthenticated }
     if owner != id {
       pending = nil
+      known = nil
     }
     owner = id
     displayName = identity["name"]?.string ?? identity["email"]?.string ?? ""
     needsPasswordSetup = cookies["__Host-sill-password-setup"] == "1"
   }
-  private func fetchWorkspace() async throws -> CloudWorkspaceState {
-    guard owner != nil else { throw CloudWorkspaceError.unauthenticated }
-    let result = try state(await request("/api/v1/workspace"))
-    return result
+  /// A conditional read sends the known revision; the server then answers "unchanged" without
+  /// the cards, instead of the whole workspace every few seconds.
+  private func fetchWorkspace(conditional: Bool = false) async throws -> CloudWorkspaceState {
+    guard let owner else { throw CloudWorkspaceError.unauthenticated }
+    let held = known?.owner == owner ? known : nil
+    let json = try await request(
+      "/api/v1/workspace", revision: conditional ? held?.snapshot?.revision : nil)
+    guard json["unchanged"]?.bool == true else { return try state(json) }
+    guard let held, let snapshot = held.snapshot, owner == self.owner,
+      json["revision"]?.number == Double(snapshot.revision)
+    else { throw CloudWorkspaceError.invalidResponse }
+    return CloudWorkspaceState(
+      owner: owner, json: held.json, needsPasswordSetup: needsPasswordSetup,
+      displayName: displayName, snapshot: snapshot)
+  }
+  /// The state a write with an unknown result is checked against. The known workspace is what
+  /// the server returned at that revision, and the write succeeds only at that revision, so it is
+  /// not downloaded again before every write.
+  private func writeBaseline(_ expectedRevision: JSONValue?) async throws -> CloudWorkspaceState {
+    if let expectedRevision, let known, known.owner == owner, known.revision == expectedRevision {
+      return known
+    }
+    return try await fetchWorkspace()
   }
   private func state(_ json: JSONValue) throws -> CloudWorkspaceState {
     guard let owner else { throw CloudWorkspaceError.unauthenticated }
-    _ = try Snapshot(json: json)
-    return CloudWorkspaceState(
-      owner: owner, json: json, needsPasswordSetup: needsPasswordSetup, displayName: displayName)
+    let snapshot = try Snapshot(json: json)
+    let result = CloudWorkspaceState(
+      owner: owner, json: json, needsPasswordSetup: needsPasswordSetup, displayName: displayName,
+      snapshot: snapshot)
+    known = result
+    return result
   }
   private func clearSession() throws {
     cookies = [:]
@@ -293,6 +321,7 @@ public actor CloudWorkspace {
     displayName = ""
     needsPasswordSetup = false
     pending = nil
+    known = nil
     try vault.clear()
   }
   private func pruneCookies() {
@@ -319,7 +348,7 @@ public actor CloudWorkspace {
 
   private func request(
     _ path: String, method: String = "GET", body: JSONValue? = nil,
-    key: String? = nil, nativeCallback: Bool = false
+    key: String? = nil, nativeCallback: Bool = false, revision: Int? = nil
   ) async throws -> JSONValue {
     guard let target = URL(string: path, relativeTo: origin)?.absoluteURL,
       target.scheme == origin.scheme, target.host == origin.host, target.port == origin.port,
@@ -333,6 +362,7 @@ public actor CloudWorkspace {
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     if let owner { request.setValue(owner, forHTTPHeaderField: "X-Sill-Owner") }
     if let key { request.setValue(key, forHTTPHeaderField: "Idempotency-Key") }
+    if let revision { request.setValue(String(revision), forHTTPHeaderField: "X-Sill-Revision") }
     pruneCookies()
     if !cookies.isEmpty {
       request.setValue(

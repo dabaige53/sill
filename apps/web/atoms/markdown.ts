@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it";
+import { textMemo } from "./text-memo.ts";
 
 // One renderer for all detail text (ADR 0063): no raw HTML, no image loading, only http(s) and mailto links.
 const md = new MarkdownIt({ html: false, linkify: false, typographer: false });
@@ -71,36 +72,16 @@ export function internalCardRoute(href: string, base: string): string | null {
 	}
 }
 
-// Feed faces, reading time and search read the same bodies on every render and keystroke.
-// Each distinct body is parsed once while it stays in use, so a full scan of an unchanged
-// workspace never parses again, whatever its size. Once the cache has doubled since the last
-// sweep, bodies unused for ten minutes (edited or deleted cards) are dropped.
-type Plain = { blocks: string[]; text?: string; used: number };
-const plainCache = new Map<string, Plain>();
-const plainMinimum = 256;
-const plainIdleMs = 600000;
-let plainKept = 0;
-
-function plain(text: string): Plain {
-	const now = Date.now();
-	let entry = plainCache.get(text);
-	if (!entry) {
-		entry = { blocks: parseBlocks(text), used: now };
-		plainCache.set(text, entry);
-		if (plainCache.size > Math.max(plainMinimum, 2 * plainKept)) {
-			for (const [key, value] of plainCache)
-				if (now - value.used > plainIdleMs) plainCache.delete(key);
-			plainKept = plainCache.size;
-		}
-	}
-	entry.used = now;
-	return entry;
-}
-
 /** Plain text blocks of a Markdown string, for search, excerpts and the card face fallback. */
 export function markdownBlocks(text: string): string[] {
 	return plain(text).blocks.slice();
 }
+
+/** Each distinct body is parsed once however many surfaces ask for it: feed faces, reading time and search. */
+const plain = textMemo((text: string) => {
+	const blocks = parseBlocks(text);
+	return { blocks, text: blocks.join("\n"), first: blocks[0] || "" };
+});
 
 function parseBlocks(text: string): string[] {
 	return md
@@ -123,7 +104,10 @@ function parseBlocks(text: string): string[] {
 }
 
 export function markdownText(text: string): string {
-	const entry = plain(text);
-	entry.text ??= entry.blocks.join("\n");
-	return entry.text;
+	return plain(text).text;
+}
+
+/** The first plain text block: the card face falls back to it when there is no summary. */
+export function markdownExcerpt(text: string): string {
+	return plain(text).first;
 }

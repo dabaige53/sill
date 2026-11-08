@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-08 | Web / Mac 数据与加载 | 操作卡顿、搜索慢、读长文每 5 秒停顿、整库投影、深拷贝基线、Markdown 重复解析、阅读时长、zod 进包、包体、定时整库下载、写入前整库读取、X-Sill-Revision、unchanged | [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md) |
 | 2026-11-08 | Web 阅读与保存 | 阅读时频繁保存、每 5 秒、500ms、reading.add、阅读进度、整个工作区回执、receipts、流量大、未保存秒数被覆盖 | [Web 阅读时频繁保存整个工作区](2026-11-07-web-markdown-reparse/diagnosis-reading-writes.md) |
 | 2026-11-08 | Web 信息流 | 点按刷新慢、卡片多时卡顿、Store.card、线性查找、平方增长、refreshCard | [Web 刷新单张卡片时逐张扫描卡片库](2026-11-07-web-markdown-reparse/diagnosis-feed-refresh.md) |
 | 2026-11-07 | Web 搜索与信息流 | 搜索输入卡顿、按键延迟、点按重绘慢、markdown-it、markdownText、readingMinutes、阅读时长、正文反复解析、缓存失效、500 张 | [Web 搜索与信息流反复解析正文](2026-11-07-web-markdown-reparse/diagnosis-markdown-reparse.md) |
