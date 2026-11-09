@@ -9,7 +9,7 @@
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
 - [本地任务整合与清理](2026-11-08-local-task-consolidation/README.md)
-- [1.2.39 发布准备](2026-11-09-release-1.2.39/README.md)
+- [1.2.39 发布](2026-11-09-release-1.2.39/README.md)
 - [1.2.38 发布](2026-11-08-release-1.2.38/README.md)
 - [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md)
 - [Web 性能排查](2026-11-07-web-markdown-reparse/README.md)
