@@ -2,7 +2,7 @@
 
 ## 状态与范围
 
-2026-11-09，用户要求发布新版本。当前正在准备 1.2.39 候选，尚未打 tag、运行发布检查或部署。
+2026-11-09，用户要求发布新版本，并在明确询问完整发布检查范围后确认继续发布。候选已推送至 PR #130，正在处理 CI 失败；尚未打 tag 或部署。
 
 范围为现有云端 Web/PWA、MCP 页面与正式流程附带的内部 Mac 包。个人插件在此前已单独更新到 1.2.38，本次不另发插件；数据库无迁移改动。
 
@@ -17,7 +17,7 @@
 
 候选位于 `codex/consolidate-local-tasks`，包含到 `1b6ec512` 的本地整合与修复，以及本次版本元数据和发布记录。版本提交的完整提交号由 Git 记录。
 
-与已发布的 `v1.2.38` 比较，`supabase/`、`server/cloud/` 无改动，`contracts/` 只修改 README。当前结论来自源码比较，尚未读取线上迁移和存量卡片兼容性，因此未更新 `production` 环境的 `SILL_DATABASE_VERIFIED_COMMIT`。
+与已发布的 `v1.2.38` 比较，`supabase/`、`server/cloud/` 无改动，`contracts/` 只修改 README。已读取线上 22 项迁移记录；`check_card`、`content_json` 和 `validate_card_changes` 函数正文与仓库对应迁移一致。对 82 张未删除卡片执行只读验证，82 张均通过当前校验，序列化正文均为字符串；没有修改卡片。`production` 环境的 `SILL_DATABASE_VERIFIED_COMMIT` 尚未更新，待最终 tag 提交确定后填写。
 
 ## 发布前线上状态
 
@@ -39,6 +39,6 @@
 
 轻量检查通过：`npm run files:check`、`git diff --check`，以及 `package.json` 与 `package-lock.json` 两处版本值的一致性检查，退出码均为 0。
 
-发布工作流会运行完整集成、Web 浏览器、PostgreSQL 与云端浏览器、授权策略及 Swift 检查。按用户全局约定，发布指令不自动授权全量测试；取得本次 Sill 全量发布检查授权后再创建 PR、推送 main 或 tag。
+发布工作流会运行完整集成、Web 浏览器、PostgreSQL 与云端浏览器、授权策略及 Swift 检查。用户已在明确询问该范围后确认继续发布。PR 检查 `42567327493` 有五项失败，具体原因和处理见[诊断记录](diagnosis.md)。
 
 尚未执行发布构建、部署、Mac 安装、宿主刷新或界面验收。产品变更日志的图片条目保留在 Unreleased，成功部署后再归入正式版本。

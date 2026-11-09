@@ -22,7 +22,6 @@ import Testing
     #expect(selection.contains("c"))
   }
 
-
   // @wu-test type=behavior | scope=Card drag | protects=Transfer selected cards only when dropped on the target
   @Test func dragHandsCardsOnlyWhenDroppedOnTarget() {
     let drag = CardDrag()

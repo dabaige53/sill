@@ -19,7 +19,7 @@ const scope: AgentScope = { kind: "cloud", owner: "owner-a" };
 test("article source links are native links with full query and fragment; missing or unsafe URLs stay disabled", () => {
 	const url = "https://example.com/article?view=full&lang=zh#section";
 	const card = { id: "source-link", type: "article", title: "Article", body: "Body", url };
-	const app = { agentAction: () => "" };
+	const app = {};
 	Store.state = Store.fresh();
 	const document = new JSDOM(Panels.preview(app, card)).window.document;
 	const link = document.querySelector<HTMLAnchorElement>(".float-bar a.is-own");

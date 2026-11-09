@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
-import { textMemo } from "./text-memo.ts";
 import { copy } from "../copy.ts";
+import { textMemo } from "./text-memo.ts";
 
 // Raw HTML stays escaped. Authored images load only from HTTPS destinations.
 const md = new MarkdownIt({ html: false, linkify: false, typographer: false });

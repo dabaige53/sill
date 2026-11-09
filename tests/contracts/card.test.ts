@@ -4,12 +4,12 @@ import test from "node:test";
 import { Card } from "../../contracts/card.ts";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 
+// @wu-test type=behavior | scope=contracts/Card | protects=Preserve all supported card fields when parsing valid shared fixtures
 for (const sample of fixtures.valid)
-	// @wu-test type=behavior | scope=contracts/Card | protects=Preserve all supported card fields when parsing valid shared fixtures
 	test(`accept and preserve ${sample.name}`, () =>
 		assert.deepEqual(Card.parse(sample.card), sample.card));
+// @wu-test type=boundary | scope=contracts/Card | protects=Reject invalid card fields and unsafe values from shared fixtures
 for (const sample of fixtures.invalid)
-	// @wu-test type=boundary | scope=contracts/Card | protects=Reject invalid card fields and unsafe values from shared fixtures
 	test(`reject ${sample.name}`, () => assert.equal(Card.safeParse(sample.card).success, false));
 
 // @wu-test type=boundary | scope=contracts/cloud write schemas | protects=Reject second-based schedule writes and reminders without due while preserving unchanged legacy values

@@ -84,14 +84,14 @@ export async function runCardActions({
 				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
 				"t3",
 			);
-			await tasks.locator('[data-action="task"][data-extra="t7"]').scrollIntoViewIfNeeded();
-			await action(page, "task", "task-01", "t7");
+			const lastTask = tasks.locator('[data-action="task"][data-extra="t7"]');
+			await lastTask.focus();
+			await page.keyboard.press("Space");
+			assert.equal(await lastTask.getAttribute("aria-checked"), "true");
 			assert.equal(
-				await tasks
-					.locator(".card-title-button")
-					.evaluate((n?: any) => n === document.activeElement),
+				await lastTask.evaluate((n?: any) => n === document.activeElement),
 				true,
-				"completed task must return focus to its title",
+				"completed task keeps focus on the mounted checkbox",
 			);
 		},
 	);

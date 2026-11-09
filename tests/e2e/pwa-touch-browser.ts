@@ -121,19 +121,18 @@ try {
 				assert.ok(platform.viewport.includes("interactive-widget=resizes-content"));
 				assert.equal(platform.textAdjust, "100%");
 				assert.equal(platform.touch, "manipulation");
-				// @wu-test type=behavior | scope=PWA browser theme color | protects=prevent browser chrome from retaining the wrong theme color
+				// @wu-test type=behavior | scope=PWA standalone theme | protects=Keep the selected page theme without a separately painted status bar
 				for (const theme of ["dark", "light", "system"]) {
-					const matches = await page.evaluate((theme) => {
+					const actual = await page.evaluate((theme) => {
 						window.__app.setPref("theme", theme);
-						const canvas = getComputedStyle(document.documentElement)
-							.getPropertyValue("--canvas")
-							.trim();
-						const colors = [
-							...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
-						];
-						return colors.length > 0 && colors.every((meta) => meta.content === canvas);
+						return {
+							theme: document.documentElement.dataset.theme,
+							colorScheme: getComputedStyle(document.documentElement).colorScheme,
+							themeColors: document.querySelectorAll('meta[name="theme-color"]').length,
+						};
 					}, theme);
-					assert.ok(matches, "browser chrome follows the selected app theme");
+					const expected = theme === "system" ? colorScheme : theme;
+					assert.deepEqual(actual, { theme: expected, colorScheme: expected, themeColors: 0 });
 				}
 				// @wu-test type=behavior | scope=PWA toolbar hints | protects=prevent long press from triggering an action or showing a hint outside the screen
 				await page.evaluate(() => window.__app.openCard("review-event"));

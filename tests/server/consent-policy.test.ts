@@ -53,6 +53,7 @@ test("workspace writes require an explicit policy and grant on both sides", () =
 	assert.equal(r.canCreate, true);
 	assert.match(consentSummary(r), /含以后新增/);
 });
+// @wu-test type=boundary | scope=server/cloud/consent-policy reviewConsent | protects=Reject grants for another audience
 for (const [name, change] of Object.entries({
 	"different owner": (a?: any) => (a.details.user.id = client),
 	"OAuth identity cannot approve as a web owner": (a?: any) => (a.principal.clientId = client),
@@ -83,7 +84,6 @@ for (const [name, change] of Object.entries({
 	"grant client mismatch": (a?: any) => (a.grant.clientId = owner),
 	"grant audience mismatch": (a?: any) => (a.grant.audience = "https://elsewhere.example/mcp"),
 }))
-	// @wu-test type=boundary | scope=server/cloud/consent-policy reviewConsent | protects=Reject grants for another audience
 	test("rejects " + name, () => {
 		const a = input();
 		change(a);

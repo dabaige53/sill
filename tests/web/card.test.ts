@@ -7,12 +7,12 @@ import { FreshCards, SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 
+// @wu-test type=boundary | scope=Web card parsing | protects=Preserve supported fields when reading valid shared card fixtures
 for (const sample of fixtures.valid)
-	// @wu-test type=boundary | scope=Web card parsing | protects=Preserve supported fields when reading valid shared card fixtures
 	test(`Web accepts and preserves ${sample.name}`, () =>
 		assert.deepEqual(parseCard(sample.card), sample.card));
+// @wu-test type=boundary | scope=Web card parsing | protects=Reject invalid shared card fixtures at the Web input boundary
 for (const sample of fixtures.invalid)
-	// @wu-test type=boundary | scope=Web card parsing | protects=Reject invalid shared card fixtures at the Web input boundary
 	test(`Web rejects ${sample.name}`, () => assert.throws(() => parseCard(sample.card)));
 // @wu-test type=boundary | scope=unknown card rendering | protects=Render an unknown card type without losing its title
 test("demo cards use the shared schema and unknown card types render generically", () => {

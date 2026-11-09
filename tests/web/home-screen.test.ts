@@ -12,9 +12,7 @@ before(async () => {
 	await buildPage({ cloud: true });
 	execFileSync(process.execPath, ["scripts/build-cloud-app.ts"]);
 	[cloud, embedded] = await Promise.all(
-		["dist/cloud/index.html", "dist/cloud/app.html"].map((file) =>
-			readFile(file, "utf8"),
-		),
+		["dist/cloud/index.html", "dist/cloud/app.html"].map((file) => readFile(file, "utf8")),
 	);
 });
 

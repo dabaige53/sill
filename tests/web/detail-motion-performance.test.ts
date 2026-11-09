@@ -1,6 +1,6 @@
 /** Detail open, resize and reading stay smooth: no covering backdrop, no per-tick list renders, no per-scroll saves. */
 import assert from "node:assert/strict";
-
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
