@@ -149,7 +149,7 @@ try {
 							card.authors?.[0]?.name || "",
 						);
 						assert.ok(!(await dialog.innerText()).includes("发给你"));
-					// @wu-test type=behavior | scope=media details | protects=prevent unavailable media from showing usable playback controls or losing body text and notes
+						// @wu-test type=behavior | scope=media details | protects=prevent unavailable media from showing usable playback controls or losing body text and notes
 					} else {
 						assert.equal(
 							await dialog
@@ -176,7 +176,7 @@ try {
 						);
 					}
 					assert.equal(await dialog.locator("aside.preview-note p").innerText(), "Personal note");
-					// @wu-test type=behavior | scope=unavailable video | protects=prevent unavailable video from incorrectly updating read state or playback progress | debt=D9
+					// @wu-test type=behavior | scope=unavailable video | protects=prevent unavailable video from incorrectly updating read state or playback progress | debt=flaky
 					if (card.id === "video-prose") {
 						assert.ok(await dialog.locator(".unavailable-video img").isVisible());
 						assert.ok(await dialog.locator("[data-action='external']").count());

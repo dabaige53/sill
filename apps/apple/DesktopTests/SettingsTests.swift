@@ -15,14 +15,20 @@ import Testing
     #expect(workspace.preferences.feedSort == .time)
   }
 
-  // @wu-test type=integration | scope=Clear all cards | protects=Remove every card from the workspace and backend | debt=D7
-  @Test func clearAllRemovesEveryCard() async {
+  // @wu-test type=integration | scope=Clear all cards | protects=Remove every card from the workspace and backend
+  @Test func clearAllRemovesEveryCard() async throws {
     let (workspace, backend) = await ready()
-    workspace.setRead("a", true)
-    await until { workspace.queue.idle }
-    workspace.clearAll()
-    await until { workspace.cards.isEmpty }
+    let marked = await withCheckedContinuation { continuation in
+      workspace.change("a", ["read": .bool(true)]) { continuation.resume(returning: $0) }
+    }
+    #expect(marked)
+    let cleared = await withCheckedContinuation { continuation in
+      workspace.clearAll { continuation.resume(returning: $0) }
+    }
+    #expect(cleared)
     #expect(workspace.cards.isEmpty)
-    #expect(await backend.writes == 2)
+    let saved = try await backend.read()
+    #expect(saved.cards.isEmpty)
+    #expect(saved.items.isEmpty)
   }
 }

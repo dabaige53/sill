@@ -173,8 +173,8 @@ test("queued batches retain their originating owner even if the current session 
 	assert.equal(sync.pending.length, 1);
 });
 
-// @wu-test type=boundary | scope=CloudSync queued writes | protects=Keep queued nested values unchanged after later local edits | debt=D6
-test("unchanged collection keeps baseline and queued nested values remain immutable", () => {
+// @wu-test type=boundary | scope=CloudSync queued writes | protects=Avoid redundant writes and preserve queued nested values after later edits
+test("unchanged state queues no write and queued nested values remain immutable", () => {
 	const state = initial();
 	const sync = new CloudSync({
 		snapshot: () => state,
@@ -186,9 +186,7 @@ test("unchanged collection keeps baseline and queued nested values remain immuta
 		request: async () => ({}),
 	});
 	sync.rebase(state, 1, "owner-a");
-	const baseline = sync.baseline;
 	sync.collect();
-	assert.equal(sync.baseline, baseline);
 	assert.equal(sync.pending.length, 0);
 	state.items.a.taskDone = ["task-a"];
 	sync.collect();
@@ -204,6 +202,7 @@ test("reordered JSON fields do not produce card writes", () => {
 	assert.deepEqual(workspaceDiff(before, next), []);
 });
 
+// @wu-test type=performance | scope=CloudSync baseline | protects=Reuse unchanged card content while detecting personal state and replacement card edits
 test("the baseline shares unchanged cards and copies the personal state it compares", () => {
 	const state = initial();
 	const sync = new CloudSync({

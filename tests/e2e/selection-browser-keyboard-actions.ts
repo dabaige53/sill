@@ -21,7 +21,7 @@ export async function runSelectionKeyboardActions({
 	snapshot: any;
 	unchanged: any;
 }) {
-	// @wu-test type=behavior | scope=desktop navigation visibility | protects=prevent navigation from staying hidden or hiding while its input has focus | debt=D6
+	// @wu-test type=behavior | scope=desktop navigation visibility | protects=prevent navigation from staying hidden or hiding while its input has focus | debt=impl-detail
 	for (const width of [822, 1512])
 		await scenario(
 			`Desktop ${width}: bars hide down and return up`,
@@ -57,7 +57,7 @@ export async function runSelectionKeyboardActions({
 			},
 			{ viewport: { width, height: 749 } },
 		);
-	// @wu-test type=behavior | scope=single card AI drop | protects=prevent dragging a card into AI context from changing card data or leaving selection active | debt=D9
+	// @wu-test type=behavior | scope=single card AI drop | protects=prevent dragging a card into AI context from changing card data or leaving selection active | debt=flaky
 	for (const hold of [false, true])
 		await scenario(
 			`Desktop: ${hold ? "hold" : "press"} a card and drop it into the AI dock`,
@@ -81,7 +81,7 @@ export async function runSelectionKeyboardActions({
 				assert.deepEqual(await selection(page), []);
 			},
 		);
-	// @wu-test type=behavior | scope=multi-card AI drop | protects=prevent AI context from losing selected cards or changing source content | debt=D9
+	// @wu-test type=behavior | scope=multi-card AI drop | protects=prevent AI context from losing selected cards or changing source content | debt=flaky
 	for (const mobile of [false, true]) {
 		await scenario(
 			`${mobile ? "Phone" : "Desktop"}: AI drop opens a local-only context window`,
@@ -122,7 +122,7 @@ export async function runSelectionKeyboardActions({
 			mobile ? phone : desktop,
 		);
 	}
-	// @wu-test type=behavior | scope=search and home selections | protects=prevent AI handoff from clearing the independent home selection or search query | debt=D9
+	// @wu-test type=behavior | scope=search and home selections | protects=prevent AI handoff from clearing the independent home selection or search query | debt=flaky
 	await scenario(
 		"Search selection and AI preview preserve the independent home selection",
 		async (page) => {

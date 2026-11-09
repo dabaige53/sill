@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { fixture } from "./visibility-motion-fixture.ts";
 
-// @wu-test type=behavior | scope=detail entry | protects=prevents a duplicate source card or a discontinuous detail entry | debt=D5,D6
+// @wu-test type=behavior | scope=detail entry | protects=prevents a duplicate source card or a discontinuous detail entry | debt=over-mock,impl-detail
 test("desktop card entry matches its source rect and phone entry keeps its sheet motion", () => {
 	const f = fixture();
 	try {
@@ -45,7 +45,7 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 	}
 });
 
-// @wu-test type=behavior | scope=detail toolbar entry | protects=prevents the toolbar from remaining inaccessible after an interrupted entry | debt=D5,D6
+// @wu-test type=behavior | scope=detail toolbar entry | protects=prevents the toolbar from remaining inaccessible after an interrupted entry | debt=over-mock,impl-detail
 test("desktop detail tools start with the surface after layout and cancel together", () => {
 	const f = fixture();
 	try {
@@ -87,7 +87,7 @@ test("desktop detail tools start with the surface after layout and cancel togeth
 	}
 });
 
-// @wu-test type=behavior | scope=detail return | protects=prevents duplicate or interactive content during the return to a card | debt=D5,D6
+// @wu-test type=behavior | scope=detail return | protects=prevents duplicate or interactive content during the return to a card | debt=over-mock,impl-detail
 test("return content changes inside the opaque surface while the real card stays hidden", () => {
 	const f = fixture();
 	try {
@@ -127,7 +127,7 @@ test("return content changes inside the opaque surface while the real card stays
 	}
 });
 
-// @wu-test type=behavior | scope=nested detail navigation | protects=prevents stale detail content or lost scroll position after interrupted navigation | debt=D5,D6
+// @wu-test type=behavior | scope=nested detail navigation | protects=prevents stale detail content or lost scroll position after interrupted navigation | debt=over-mock,impl-detail
 test("nested detail exit keeps the frozen parent-size surface until completion and cancellation cleans it", async () => {
 	const f = fixture();
 	try {
@@ -163,7 +163,7 @@ test("nested detail exit keeps the frozen parent-size surface until completion a
 	}
 });
 
-// @wu-test type=behavior | scope=long detail navigation | protects=prevents duplicated interactive controls and missing content during detail navigation | debt=D6
+// @wu-test type=behavior | scope=long detail navigation | protects=prevents duplicated interactive controls and missing content during detail navigation | debt=impl-detail
 test("long detail capture keeps its CSS and isolates controls without sampling paragraph styles", () => {
 	const f = fixture();
 	try {
@@ -199,7 +199,7 @@ test("long detail capture keeps its CSS and isolates controls without sampling p
 	}
 });
 
-// @wu-test type=behavior | scope=interrupted reader transition | protects=prevents the reader from jumping when a transition is interrupted | debt=D6
+// @wu-test type=behavior | scope=interrupted reader transition | protects=prevents the reader from jumping when a transition is interrupted | debt=impl-detail
 test("freezing an interrupted reader preserves its drawn transform without applying it twice", () => {
 	const f = fixture();
 	try {
@@ -224,7 +224,7 @@ test("freezing an interrupted reader preserves its drawn transform without apply
 	}
 });
 
-// @wu-test type=behavior | scope=nested detail reopening | protects=prevents an interrupted detail from jumping or retaining stale content | debt=D5,D6
+// @wu-test type=behavior | scope=nested detail reopening | protects=prevents an interrupted detail from jumping or retaining stale content | debt=over-mock,impl-detail
 test("reopening the exiting child resumes its drawn opacity and position without retaining old faces", () => {
 	const f = fixture();
 	try {
@@ -250,7 +250,7 @@ test("reopening the exiting child resumes its drawn opacity and position without
 	}
 });
 
-// @wu-test type=behavior | scope=reader expansion with media | protects=prevents duplicated media during reader expansion | debt=D5,D6
+// @wu-test type=behavior | scope=reader expansion with media | protects=prevents duplicated media during reader expansion | debt=over-mock,impl-detail
 test("expanded resize uses card geometry and reveals content during travel without cloning media", () => {
 	const f = fixture();
 	try {

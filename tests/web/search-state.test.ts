@@ -228,7 +228,7 @@ test("AI preview returns to the same search through Escape or the search tab", (
 	}
 });
 
-// @wu-test type=behavior | scope=search route exit | protects=Close the AI page and remove retained search when leaving the route | debt=D5
+// @wu-test type=behavior | scope=search route exit | protects=Close the AI page and remove retained search when leaving the route | debt=over-mock
 test("leaving the search route closes an AI preview as well as its retained background", () => {
 	const f = fixture();
 	try {
@@ -389,7 +389,7 @@ test("switching away flushes pending search before retaining results", () => {
 	}
 });
 
-// @wu-test type=regression | scope=stacked card close | protects=Prevent repeated close requests from skipping a history entry | debt=D5
+// @wu-test type=regression | scope=stacked card close | protects=Prevent repeated close requests from skipping a history entry | debt=over-mock
 test("repeated close requests on a stacked card only move back one history entry", () => {
 	const f = fixture();
 	try {
@@ -484,7 +484,7 @@ test("phone search retains its field on filter updates, suggests the cards it fi
 	}
 });
 
-// @wu-test type=behavior | scope=favorite removal from detail | protects=Keep the source card visible until detail closes and then update favorites | debt=D9
+// @wu-test type=behavior | scope=favorite removal from detail | protects=Keep the source card visible until detail closes and then update favorites | debt=flaky
 test("unbookmarking an open favorite retains its source until the detail closes", async () => {
 	const f = fixture();
 	try {

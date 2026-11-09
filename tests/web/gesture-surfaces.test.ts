@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-// @wu-test type=behavior | scope=phone detail drag cancellation | protects=prevents the backdrop from jumping or remaining dimmed after a cancelled drag | debt=D5,D6
+// @wu-test type=behavior | scope=phone detail drag cancellation | protects=prevents the backdrop from jumping or remaining dimmed after a cancelled drag | debt=over-mock,impl-detail
 test("cancelling a phone drag fades its backdrop back from the drawn opacity", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -79,7 +79,7 @@ test("podcast reader stays fixed during a horizontal swipe", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=phone detail exit cancellation | protects=prevents the current detail from remaining inaccessible after exit cancellation | debt=D6
+// @wu-test type=behavior | scope=phone detail exit cancellation | protects=prevents the current detail from remaining inaccessible after exit cancellation | debt=impl-detail
 test("cancelled phone exit unlocks the current detail instead of leaving it inert", async () => {
 	const f = fixture({ phone: true });
 	try {

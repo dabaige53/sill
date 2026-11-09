@@ -83,7 +83,7 @@ test("desktop fill uses the whole width without changing the column-count rule",
 	}
 });
 
-// @wu-test type=behavior | scope=Feed card resizing | protects=Release stale card height when column width changes | debt=D6
+// @wu-test type=behavior | scope=Feed card resizing | protects=Release stale card height when column width changes | debt=impl-detail
 test("resizing cards releases the height held for content updates", async () => {
 	const { JSDOM } = await import("jsdom");
 	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");
@@ -123,7 +123,7 @@ test("resizing cards releases the height held for content updates", async () => 
 	}
 });
 
-// @wu-test type=behavior | scope=Phone feed reflow | protects=Keep phone cards positioned correctly after interrupting desktop animation | debt=D6
+// @wu-test type=behavior | scope=Phone feed reflow | protects=Keep phone cards positioned correctly after interrupting desktop animation | debt=impl-detail
 test("phone reflow lays out immediately and cancels a running desktop FLIP", async () => {
 	const { JSDOM } = await import("jsdom");
 	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");

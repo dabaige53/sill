@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-// @wu-test type=behavior | scope=refresh feedback | protects=prevents refresh feedback from delaying results or disappearing before it can be read | debt=D5,D6
+// @wu-test type=behavior | scope=refresh feedback | protects=prevents refresh feedback from delaying results or disappearing before it can be read | debt=over-mock,impl-detail
 test("a fast refresh applies its result immediately while loading and the completed check stay readable", async () => {
 	const f = fixture({ kind: "desk" });
 	try {

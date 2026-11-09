@@ -39,7 +39,7 @@ export async function runRecoveryLayout({
 			assert.equal(await removed.count(), 0);
 		},
 	);
-	// @wu-test type=behavior | scope=archive recovery from empty feed | protects=prevent an empty feed from making archived cards inaccessible | debt=D9
+	// @wu-test type=behavior | scope=archive recovery from empty feed | protects=prevent an empty feed from making archived cards inaccessible | debt=flaky
 	await scenario(
 		"Empty desk retains an actionable archive",
 		async (page?: any, apply?: any, origin?: any) => {
@@ -64,7 +64,7 @@ export async function runRecoveryLayout({
 			await page.locator("[data-card=article-01]").waitFor();
 		},
 	);
-	// @wu-test type=behavior | scope=responsive search and panels | protects=Keep search and settings reachable without page overflow | debt=D9
+	// @wu-test type=behavior | scope=responsive search and panels | protects=Keep search and settings reachable without page overflow | debt=flaky
 	for (const width of [320, 390, 768, 1440])
 		await scenario(
 			`${width}px keyboard search, panel reachability, light/dark layout`,

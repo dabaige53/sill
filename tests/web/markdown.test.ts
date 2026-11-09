@@ -166,7 +166,7 @@ test("code blocks remain searchable and available as card text", () => {
 	]);
 });
 
-// @wu-test type=performance | scope=Markdown parsing | protects=Prevent malformed references from stalling text parsing | debt=D9
+// @wu-test type=performance | scope=Markdown parsing | protects=Prevent malformed references from stalling text parsing | debt=flaky
 test("an unclosed multiline reference does not stall card text parsing", () => {
 	const source = '[a]: https://example.com "' + "x\n".repeat(240000);
 	const start = process.cpuUsage();

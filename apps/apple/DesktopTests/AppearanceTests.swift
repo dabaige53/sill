@@ -4,7 +4,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct AppearanceTests {
-  // @wu-test type=behavior | scope=Feed stack layout | protects=Release expanded stack height without shrinking existing cards | debt=D6
+  // @wu-test type=behavior | scope=Feed stack layout | protects=Release expanded stack height without shrinking existing cards | debt=impl-detail
   @Test func collapsingAnExpandedStackReleasesItsHeightWithoutShrinkingReadCards() {
     let closed = FeedEntry.stack(key: "source", cards: ["a", "b", "c"])
     let opened = FeedEntry.openStack(key: "source", cards: ["a", "b", "c"])
@@ -18,7 +18,7 @@ import Testing
     #expect(cache.height(260, for: card.measurementID) == 300)
   }
 
-  // @wu-test type=behavior | scope=Feed appearance preferences | protects=Apply default and changed appearance settings to card layout | debt=D6
+  // @wu-test type=behavior | scope=Feed appearance preferences | protects=Apply default and changed appearance settings to card layout | debt=impl-detail
   @Test func missingFieldsKeepExistingLayoutAndTypeChangesInvalidateMeasurement() {
     let defaults = Preferences([:])
     #expect(defaults.cardTextSize == .standard)
@@ -32,7 +32,7 @@ import Testing
     #expect(original != ColumnGeometry(width: 1200, preferences: padded))
   }
 
-  // @wu-test type=behavior | scope=Feed and reader appearance | protects=Apply spacing and reader width independently | debt=D3,D6
+  // @wu-test type=behavior | scope=Feed and reader appearance | protects=Apply spacing and reader width independently | debt=wrong-layer,impl-detail
   @Test func spacingAndWidthRemainIndependentFromType() {
     let preferences = Preferences([
       "cardSpacing": .string("roomy"), "readerWidth": .string("narrow"),

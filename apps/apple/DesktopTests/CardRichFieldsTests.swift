@@ -23,7 +23,7 @@ import Testing
     #expect(Format.publication(timestamp, includeTime: true, now: now) == "今天 09:30")
   }
 
-  // @wu-test type=behavior | scope=Publication date display | protects=Show the same publication day on card and detail | debt=D9
+  // @wu-test type=behavior | scope=Publication date display | protects=Show the same publication day on card and detail | debt=flaky
   @Test func cardAndDetailUseTheSameCurrentPublicationDay() throws {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"

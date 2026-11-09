@@ -25,18 +25,22 @@ struct CardTests {
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
   }
 
-  // @wu-test type=behavior | scope=Draft submission | protects=Preserve unrelated fields and detect changed drafts | debt=D7
+  // @wu-test type=behavior | scope=Draft submission | protects=Preserve unrelated fields and detect changed drafts
   @Test func editingDraftReplacesBody() throws {
     let original: JSONValue = .object([
       "id": .string("draft"), "type": .string("note"), "title": .string("Draft"),
       "body": .string("Old text"), "tags": .array([.string("kept")]),
     ])
-    let draft = Draft(
+    var draft = Draft(
+      id: "draft", title: "Draft", body: "Old text",
+      revision: 1, original: try original.encoded())
+    #expect(!draft.isDirty)
+    draft = Draft(
       id: "draft", title: "Draft", body: "## Replacement",
       revision: 1, original: try original.encoded())
     #expect(try draft.submittedCard().body == "## Replacement")
     #expect(try draft.submittedCard().raw["tags"] == original["tags"])
-    #expect(!draft.isDirty || draft.body != "Old text")
+    #expect(draft.isDirty)
   }
 
   private func fixtureCases(_ kind: String) throws -> [JSONValue] {

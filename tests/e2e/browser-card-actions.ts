@@ -22,7 +22,7 @@ export async function runCardActions({
 	scenario: any;
 	state: any;
 }) {
-	// @wu-test type=behavior | scope=card details and actions | protects=prevent bookmark, note, or task actions from losing state or focus | debt=D7
+	// @wu-test type=behavior | scope=card details and actions | protects=prevent bookmark, note, or task actions from losing state or focus
 	await scenario(
 		"Preview, reader, bookmark undo, tags and task controls remain independent",
 		async (page?: any) => {
@@ -84,12 +84,8 @@ export async function runCardActions({
 				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
 				"t3",
 			);
-			await tasks
-				.locator('[data-action="task"][data-extra="t7"]')
-				.scrollIntoViewIfNeeded()
-				.catch(() => {});
+			await tasks.locator('[data-action="task"][data-extra="t7"]').scrollIntoViewIfNeeded();
 			await action(page, "task", "task-01", "t7");
-			await tasks.locator(".card-title-button").focus();
 			assert.equal(
 				await tasks
 					.locator(".card-title-button")

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function runGestureInterruption({ phone, scenario }: { phone: any; scenario: any }) {
-	// @wu-test type=behavior | scope=reader progress | protects=prevent reading progress from displaying an incorrect position | debt=D6,D9
+	// @wu-test type=behavior | scope=reader progress | protects=prevent reading progress from displaying an incorrect position | debt=impl-detail,flaky
 	await scenario(
 		"Reader progress scales from the left without changing layout width",
 		async (page) => {
@@ -31,7 +31,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 		},
 	);
 
-	// @wu-test type=behavior | scope=interrupted notices and detail | protects=prevent stale transitions from replacing the latest notice or card | debt=D9
+	// @wu-test type=behavior | scope=interrupted notices and detail | protects=prevent stale transitions from replacing the latest notice or card | debt=flaky
 	await scenario(
 		"Rapid toast replacement and panel reversal keep the latest content",
 		async (page) => {
@@ -58,7 +58,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 		},
 	);
 
-	// @wu-test type=behavior | scope=search after interrupted dismissal | protects=prevent a delayed dismissal from closing a newly opened search | debt=D6,D9
+	// @wu-test type=behavior | scope=search after interrupted dismissal | protects=prevent a delayed dismissal from closing a newly opened search | debt=impl-detail,flaky
 	await scenario(
 		"A delayed gesture dismissal leaves a newly opened search usable",
 		async (page) => {
@@ -78,7 +78,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 			);
 		},
 	);
-	// @wu-test type=behavior | scope=phone drawer interruption | protects=prevent an interrupted transition from hiding the newly opened card | debt=D9
+	// @wu-test type=behavior | scope=phone drawer interruption | protects=prevent an interrupted transition from hiding the newly opened card | debt=flaky
 	for (const close of [false, true]) {
 		await scenario(
 			`Phone drawer remains usable after ${close ? "closing" : "opening"} is interrupted`,

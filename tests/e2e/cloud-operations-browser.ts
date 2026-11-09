@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "../server/helpers/cloud-fixture.ts";
+import { verifyAgentTaskEdit } from "./helpers/cloud-agent-task.ts";
 import { verifySelectionOperations } from "./helpers/cloud-selection-operations.ts";
 import { verifyStableDetail } from "./helpers/cloud-stable-detail.ts";
 
@@ -133,7 +134,7 @@ try {
 	await verifyStableDetail(page, api, action, saved, note, task);
 	await verifySelectionOperations(page, api, action, saved, note, task, reminder, batchRequests);
 	let state: any;
-	// @wu-test type=integration | scope=cloud | protects=Persist task and reminder state | debt=D9
+	// @wu-test type=integration | scope=cloud | protects=Persist task and reminder state | debt=flaky
 	await action("task", task.id, "step1");
 	await saved();
 	assert.deepEqual((await api("/api/v1/workspace")).state.items[task.id].taskDone, ["step1"]);
@@ -181,32 +182,7 @@ try {
 		),
 		true,
 	);
-	// @wu-test type=integration | scope=cloud | protects=Show agent edits without editor | debt=D10
-	// AI edits structured content; the original UI has no full-card editor.
-	await action("edit-content", task.id);
-	assert.equal(await page.locator("#cloud-editor,[data-cloud-field]").count(), 0);
-	const taskBefore = await api("/api/v1/contents/" + task.id);
-	await api(
-		"/api/v1/contents/" + task.id,
-		{
-			expectedRevision: taskBefore.revision,
-			changes: {
-				summary: "New task summary",
-				tasks: [
-					{ ...taskBefore.tasks[0], text: "One changed" },
-					taskBefore.tasks[1],
-					{ id: "step3", text: "Three" },
-				],
-			},
-		},
-		"PATCH",
-	);
-	await page.evaluate(() => __app.refresh());
-	state = await api("/api/v1/workspace");
-	const edited = state.state.cards.find((c) => c.id === task.id);
-	assert.equal(edited.summary, "New task summary");
-	assert.equal(edited.tasks.length, 3);
-	assert.equal(edited.tasks[0].id, "step1");
+	await verifyAgentTaskEdit(page, api, task);
 	// @wu-test type=integration | scope=cloud | protects=Restore remote archives and prefs
 	// The same state written by AI/API is reflected in the page and remains restorable.
 	const current = await api("/api/v1/contents/" + note.id);
@@ -312,7 +288,7 @@ try {
 		await api("/api/v1/contents", { type: "note", title, body: "Synthetic account fixture" });
 	await page.evaluate(() => __app.refresh());
 	await page.waitForFunction(() => __store.state.cards.length === 2);
-	// @wu-test type=integration | scope=cloud | protects=Coalesce refresh; await result | debt=D9
+	// @wu-test type=integration | scope=cloud | protects=Coalesce refresh; await result | debt=flaky
 	// A foreground pull joins an already-running read; no early success or duplicate request.
 	let releaseRead: () => void;
 	const readGate = new Promise<void>((resolve) => {

@@ -140,7 +140,7 @@ try {
 		}
 	}
 
-	// @wu-test type=behavior | scope=search navigation and scroll | protects=prevent search, detail navigation or browser history from losing query and scroll position | debt=D9
+	// @wu-test type=behavior | scope=search navigation and scroll | protects=prevent search, detail navigation or browser history from losing query and scroll position | debt=flaky
 	for (const width of [390, 1280]) {
 		await scenario(
 			`search and home remain independent at ${width}px`,

@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
-import { byteLimit } from "../../.codex/hooks/file-token-policy.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 
@@ -116,10 +115,13 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		assert.equal(check(["--local"]).status, 0);
 		git("commit", "--quiet", "-m", "Allowed staged files");
 	});
-	// @wu-test type=boundary | scope=.codex/hooks baseline limits | protects=Prevent existing exceptions from allowing larger files or new oversized paths | debt=D11
+	// @wu-test type=boundary | scope=.codex/hooks baseline limits | protects=Enforce the approved size from configuration without extending it to new paths
 	await t.test("approved baseline caps existing paths without allowing new large files", () => {
 		const path = "apps/web/styles/cards.css";
-		const limit = byteLimit(path);
+		const baseline = JSON.parse(
+			readFileSync(join(root, ".codex/hooks/file-size-baseline.json"), "utf8"),
+		);
+		const limit = baseline[path];
 		assert.ok(limit > 20_000);
 		write(path, "x".repeat(limit));
 		git("add", "--", path);

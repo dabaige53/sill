@@ -24,7 +24,7 @@ function sourceFiles(directory: string): string[] {
 	);
 }
 
-// @wu-test type=boundary | scope=shared copy references | protects=Prevent missing shared copy keys from reaching the interface | debt=D6
+// @wu-test type=boundary | scope=shared copy references | protects=Prevent missing shared copy keys from reaching the interface | debt=impl-detail
 test("active copy references and shell markers use existing shared keys", () => {
 	for (const file of ["apps/web", "server", "scripts", "contracts"]
 		.flatMap((directory) => sourceFiles(resolve(root, directory)))

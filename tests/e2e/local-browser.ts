@@ -149,22 +149,42 @@ try {
 	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
-	// @wu-test type=behavior | scope=local refresh and card layout | protects=prevent refresh from breaking the feed or cards from overflowing their grid | debt=D6,D11
+	// @wu-test type=behavior | scope=local refresh and card layout | protects=prevent refresh from breaking the feed or cards from overflowing or overlapping
 	// Refresh has no button on the rail: the R key (or a pull at the top) runs it.
 	await page.keyboard.press("r");
 	await page.waitForFunction(() => document.querySelector("#announcer").textContent === "刷新完成");
+	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.cards.length, 31);
-	const box = await page.locator('[data-card="agent-test"]').boundingBox();
-	// Desktop columns share the spare width with no col-max cap, so check the card against the grid.
+	assert.ok(value.state.cards.some((card: any) => card.id === "agent-test"));
+	await page.locator("#feed-grid").evaluate(async (grid: HTMLElement) => {
+		await Promise.all(grid.getAnimations({ subtree: true }).map((animation) => animation.finished));
+	});
 	const grid = await page.locator("#feed-grid").evaluate((el: HTMLElement) => ({
-		width: el.clientWidth,
-		columns: Number(el.dataset.columns),
+		left: el.getBoundingClientRect().left,
+		right: el.getBoundingClientRect().right,
 	}));
-	const share = (grid.width - (grid.columns - 1) * 24) / grid.columns;
-	assert.ok(
-		box.width >= 280 && Math.abs(box.width - share) < 1,
-		`card width ${box.width}, share ${share}`,
+	const boxes = await page.locator("#feed-grid > .feed-card").evaluateAll((cards: HTMLElement[]) =>
+		cards.map((card) => {
+			const { left, right, top, bottom, width } = card.getBoundingClientRect();
+			return { id: card.dataset.card, left, right, top, bottom, width };
+		}),
 	);
+	assert.ok(
+		boxes.some((box) => box.id === "agent-test"),
+		"refreshed content is rendered",
+	);
+	for (const [index, box] of boxes.entries()) {
+		assert.ok(box.width >= 280, `card ${box.id} retains a readable width`);
+		assert.ok(box.left >= grid.left - 1 && box.right <= grid.right + 1);
+		for (const other of boxes.slice(index + 1))
+			assert.ok(
+				box.right <= other.left + 1 ||
+					other.right <= box.left + 1 ||
+					box.bottom <= other.top + 1 ||
+					other.bottom <= box.top + 1,
+				`cards ${box.id} and ${other.id} do not overlap`,
+			);
+	}
 	await page.screenshot({ path: join(artifacts, "local-cards.png"), animations: "disabled" });
 	// @wu-test type=integration | scope=local workspace persistence | protects=prevent deleted cards from returning after another page refreshes or the server restarts
 	// A second page sees the same data; a restart reloads the persisted repository.

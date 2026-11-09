@@ -13,9 +13,7 @@ import { token } from "../server/helpers/signed-auth.ts";
 // Real browser -> HTTP runtime -> official SDK -> synthetic auth transport -> actual SQL.
 // No email, production credentials, cloud database, or deployment is involved.
 const fixture = await cloudFixture();
-let runtime: any,
-	browser: any,
-	mcpClient: any;
+let runtime: any, browser: any, mcpClient: any;
 const server = createServer(async (req?: any, res?: any) => {
 	try {
 		const chunks = [];
@@ -70,7 +68,7 @@ try {
 		"implicit invitation fragment is removed, never treated as a login",
 	);
 	assert.equal(await page.locator("[data-card]").count(), 0);
-	// @wu-test type=integration | scope=cloud login session | protects=prevent an expired session from failing to recover through refresh credentials | debt=D9
+	// @wu-test type=integration | scope=cloud login session | protects=prevent an expired session from failing to recover through refresh credentials | debt=flaky
 	await page.locator("#email").fill("synthetic@example.com");
 	await page.locator("#email-login").click();
 	await page.locator("#email-submit").click();
@@ -113,34 +111,22 @@ try {
 		const response = await fetch("/api/v1/contents", {
 			method: "POST",
 			headers: { "Content-Type": "application/json", "Idempotency-Key": "browser_fixture_card" },
-			body: JSON.stringify({ type: "note", title: "Browser persisted note", body: "Synthetic browser data" }),
+			body: JSON.stringify({
+				type: "note",
+				title: "Browser persisted note",
+				body: "Synthetic browser data",
+			}),
 		});
 		if (!response.ok) throw new Error("Unable to seed browser fixture card");
 	});
 	await page.reload();
 	await waitCloud(page);
-	const records = await page.evaluate(() => window.__store.state.cards);
-	const id = records[0].id;
-	// @wu-test type=boundary | scope=content editing entry | protects=prevent an unsupported manual content editor from appearing | debt=D10
-	await page.evaluate((id: any) => window.__app.action("edit-content", id), id);
+	// @wu-test type=boundary | scope=content editing entry | protects=prevent an unsupported manual content editor from appearing
 	assert.equal(
-		await page.locator("#cloud-editor").count(),
+		await page.locator('#cloud-editor,[data-action="edit-content"]').count(),
 		0,
 		"existing content has no human editor",
 	);
-	const external = await page.evaluate(async (id: any) => {
-		const current = await (await fetch("/api/v1/contents/" + id)).json();
-		const r = await fetch("/api/v1/contents/" + id, {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json", "Idempotency-Key": "external_editor1" },
-			body: JSON.stringify({
-				expectedRevision: current.revision,
-				changes: { title: "Agent updated note" },
-			}),
-		});
-		return r.status;
-	}, id);
-	assert.equal(external, 200);
 	// @wu-test type=integration | scope=MCP and Web workspace | protects=prevent the Web workspace from showing stale content after agent writes
 	mcpClient = new Client({ name: "synthetic-agent", version: "1.0.0" });
 	await mcpClient.connect(
@@ -192,7 +178,7 @@ try {
 			),
 		mcpCreated.structuredContent.id,
 	);
-	// @wu-test type=boundary | scope=cloud privacy and logout | protects=prevent account content from being stored in the browser or cards from remaining visible after logout | debt=D7
+	// @wu-test type=boundary | scope=cloud privacy and logout | protects=prevent account content from being stored in the browser or cards from remaining visible after logout
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-desktop.png", animations: "disabled" });
 	await page.setViewportSize({ width: 390, height: 844 });
@@ -209,11 +195,11 @@ try {
 		[],
 		"no token or private data persisted",
 	);
-	assert.ok(
-		(await context.cookies())
-			.filter((c?: any) => c.name === "__Host-sill-access")
-			.every((c?: any) => c.httpOnly && c.secure),
+	const accessCookies = (await context.cookies()).filter(
+		(c?: any) => c.name === "__Host-sill-access",
 	);
+	assert.equal(accessCookies.length, 1, "the signed-in session has an access cookie");
+	assert.ok(accessCookies[0].httpOnly && accessCookies[0].secure);
 	await cloudLogout(page);
 	await page.locator("#password-form").waitFor();
 	assert.equal(await page.locator("[data-card]").count(), 0);

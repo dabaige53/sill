@@ -58,7 +58,7 @@ export async function runDialogNavigation({
 			assert.ok(await page.locator("[data-action=sync-export]").count());
 		},
 	);
-	// @wu-test type=integration | scope=detail dismissal during update | protects=prevent a delayed update from reopening a dismissed detail | debt=D9
+	// @wu-test type=integration | scope=detail dismissal during update | protects=prevent a delayed update from reopening a dismissed detail | debt=flaky
 	await scenario(
 		"Update arriving during phone dismissal cannot revive the sheet",
 		async (page?: any, apply?: any) => {
@@ -91,7 +91,7 @@ export async function runDialogNavigation({
 		},
 		{ viewport: { width: 390, height: 844 } },
 	);
-	// @wu-test type=integration | scope=detail state during remote update | protects=prevent remote updates from losing detail scroll or keyboard focus | debt=D6,D9
+	// @wu-test type=integration | scope=detail state during remote update | protects=prevent remote updates from losing detail scroll or keyboard focus | debt=impl-detail,flaky
 	await scenario(
 		"Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior",
 		async (page?: any, apply?: any) => {
@@ -134,7 +134,7 @@ export async function runDialogNavigation({
 		},
 		{ viewport: { width: 390, height: 844 } },
 	);
-	// @wu-test type=behavior | scope=keyboard task and preferences | protects=prevent keyboard actions from losing focus or changing the wrong preference | debt=D9
+	// @wu-test type=behavior | scope=keyboard task and preferences | protects=prevent keyboard actions from losing focus or changing the wrong preference | debt=flaky
 	await scenario(
 		"Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work",
 		async (page?: any) => {

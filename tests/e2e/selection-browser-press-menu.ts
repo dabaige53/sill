@@ -28,7 +28,7 @@ export async function runSelectionPressMenu({
 	touch: any;
 	unchanged: any;
 }) {
-	// @wu-test type=behavior | scope=bulk action controls | protects=prevent bulk actions from losing accessible names or exposing removed menu controls | debt=D6
+	// @wu-test type=behavior | scope=bulk action controls | protects=prevent bulk actions from losing accessible names or exposing removed menu controls | debt=impl-detail
 	for (const options of [desktop, phone]) {
 		await scenario(
 			`${options === phone ? "Phone" : "Desktop"}: direct icon actions replace ellipsis, select-all, and menu buttons`,
@@ -123,7 +123,7 @@ export async function runSelectionPressMenu({
 		);
 	}
 
-	// @wu-test type=behavior | scope=phone long-press selection | protects=prevent a stationary long press from opening a menu or changing card data | debt=D9
+	// @wu-test type=behavior | scope=phone long-press selection | protects=prevent a stationary long press from opening a menu or changing card data | debt=flaky
 	await scenario(
 		"Phone stationary long press selects; tapping a second card adds it",
 		async (page) => {
@@ -146,7 +146,7 @@ export async function runSelectionPressMenu({
 		},
 		phone,
 	);
-	// @wu-test type=behavior | scope=held card selection | protects=prevent repeated holds from losing selection or leaving controls active | debt=D9,D6
+	// @wu-test type=behavior | scope=held card selection | protects=prevent repeated holds from losing selection or leaving controls active | debt=flaky,impl-detail
 	for (const mobile of [false, true]) {
 		await scenario(
 			`${mobile ? "Phone" : "Desktop"}: held selection stays in place`,
@@ -186,7 +186,7 @@ export async function runSelectionPressMenu({
 			mobile ? phone : desktop,
 		);
 	}
-	// @wu-test type=behavior | scope=interrupted selection drag | protects=prevent cancellation or window changes from leaving a stuck drag or changing cards | debt=D9
+	// @wu-test type=behavior | scope=interrupted selection drag | protects=prevent cancellation or window changes from leaving a stuck drag or changing cards | debt=flaky
 	for (const dismissal of ["Escape", "touchcancel", "blur", "resize"]) {
 		await scenario(
 			`Active phone lift ${dismissal} leaves no menu or stuck visual`,
@@ -220,7 +220,7 @@ export async function runSelectionPressMenu({
 			assert.deepEqual(await snapshot(page), before, "typing a tag must not write");
 		},
 	);
-	// @wu-test type=behavior | scope=scrolling with active selection | protects=prevent normal scrolling from failing or pull refresh from firing during selection | debt=D9
+	// @wu-test type=behavior | scope=scrolling with active selection | protects=prevent normal scrolling from failing or pull refresh from firing during selection | debt=flaky
 	await scenario(
 		"Selected cards allow short touch scrolling and suppress pull refresh",
 		async (page) => {
@@ -257,7 +257,7 @@ export async function runSelectionPressMenu({
 		},
 		phone,
 	);
-	// @wu-test type=boundary | scope=selection refresh and native drag | protects=prevent selected cards from triggering refresh or exposing a native drag payload | debt=D9
+	// @wu-test type=boundary | scope=selection refresh and native drag | protects=prevent selected cards from triggering refresh or exposing a native drag payload | debt=flaky
 	await scenario(
 		"Selected cards suppress wheel refresh and card native drag payloads",
 		async (page) => {

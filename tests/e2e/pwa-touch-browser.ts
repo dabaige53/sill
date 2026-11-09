@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { chromium, type Locator } from "playwright";
+import { type CDPSession, chromium, type Locator } from "playwright";
 import { materialDensityCards, reviewTime } from "./material-density-fixture.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -33,31 +33,32 @@ async function settleTooltip(button: Locator) {
 	});
 }
 
-async function tooltip(button: Locator) {
-	return button.evaluate((node: HTMLElement) => {
+async function tooltip(button: Locator, session: CDPSession) {
+	const state = await button.evaluate((node: HTMLElement) => {
 		const style = getComputedStyle(node, "::after");
-		const rect = node.getBoundingClientRect();
-		const width =
-			parseFloat(style.width) +
-			(style.boxSizing === "border-box"
-				? 0
-				: parseFloat(style.paddingLeft) + parseFloat(style.paddingRight));
-		const x = style.translate.split(" ")[0];
-		const translateX = x.endsWith("%") ? (parseFloat(x) * width) / 100 : parseFloat(x) || 0;
-		const left =
-			style.left === "auto"
-				? rect.right - parseFloat(style.right) - width + translateX
-				: rect.left + parseFloat(style.left) + translateX;
+		node.setAttribute("data-measure-tooltip", "");
 		return {
 			label: node.getAttribute("aria-label"),
-			left,
-			right: left + width,
 			opacity: Number(style.opacity),
-			translate: style.translate,
 			focus: node.matches(":focus-visible"),
 			selection: getComputedStyle(node).userSelect,
 		};
 	});
+	try {
+		const { root } = await session.send("DOM.getDocument");
+		const { nodeId } = await session.send("DOM.querySelector", {
+			nodeId: root.nodeId,
+			selector: "[data-measure-tooltip]",
+		});
+		const { node } = await session.send("DOM.describeNode", { nodeId });
+		const after = node.pseudoElements?.find((pseudo) => pseudo.pseudoType === "after");
+		assert.ok(after, "the toolbar control renders its tooltip");
+		const { model } = await session.send("DOM.getBoxModel", { backendNodeId: after.backendNodeId });
+		const xs = model.border.filter((_, index) => index % 2 === 0);
+		return { ...state, left: Math.min(...xs), right: Math.max(...xs) };
+	} finally {
+		await button.evaluate((node) => node.removeAttribute("data-measure-tooltip"));
+	}
 }
 
 try {
@@ -111,7 +112,7 @@ try {
 					);
 				});
 				await screenshot("home");
-				// @wu-test type=behavior | scope=PWA input and viewport | protects=prevent keyboard resizing or touch interaction from obscuring controls | debt=D6
+				// @wu-test type=behavior | scope=PWA input and viewport | protects=prevent keyboard resizing or touch interaction from obscuring controls | debt=impl-detail
 				const platform = await page.evaluate(() => ({
 					viewport: document.querySelector<HTMLMetaElement>('meta[name="viewport"]').content,
 					textAdjust: getComputedStyle(document.documentElement).webkitTextSizeAdjust,
@@ -120,22 +121,28 @@ try {
 				assert.ok(platform.viewport.includes("interactive-widget=resizes-content"));
 				assert.equal(platform.textAdjust, "100%");
 				assert.equal(platform.touch, "manipulation");
-				// @wu-test type=behavior | scope=PWA browser theme color | protects=prevent browser chrome from retaining the wrong theme color | debt=D7
+				// @wu-test type=behavior | scope=PWA browser theme color | protects=prevent browser chrome from retaining the wrong theme color
 				for (const theme of ["dark", "light", "system"]) {
 					const matches = await page.evaluate((theme) => {
 						window.__app.setPref("theme", theme);
 						const canvas = getComputedStyle(document.documentElement)
 							.getPropertyValue("--canvas")
 							.trim();
-						return [
+						const colors = [
 							...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
-						].every((meta) => meta.content === canvas);
+						];
+						return colors.length > 0 && colors.every((meta) => meta.content === canvas);
 					}, theme);
 					assert.ok(matches, "browser chrome follows the selected app theme");
 				}
-				// @wu-test type=behavior | scope=PWA toolbar hints | protects=prevent long press from triggering an action or showing a hint outside the screen | debt=D9,D11
+				// @wu-test type=behavior | scope=PWA toolbar hints | protects=prevent long press from triggering an action or showing a hint outside the screen
 				await page.evaluate(() => window.__app.openCard("review-event"));
-				await page.waitForTimeout(500);
+				await page.locator("#modal #modal-title").waitFor();
+				await page.locator("#modal").evaluate(async (dialog) => {
+					await Promise.all(
+						dialog.getAnimations({ subtree: true }).map((animation) => animation.finished),
+					);
+				});
 				await screenshot("detail");
 				const buttons = page.locator("#modal .float-bar .icon-button");
 				// Reading progress is written when the view is left; card actions change the rest.
@@ -159,7 +166,7 @@ try {
 					await button.waitFor({ state: "visible" });
 					await page.waitForFunction(() => !!document.querySelector(".float-bar .is-tipping"));
 					await settleTooltip(button);
-					tips.push(await tooltip(button));
+					tips.push(await tooltip(button, session));
 					await screenshot(`tip-${edge}`);
 					await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 				}
@@ -167,7 +174,7 @@ try {
 				await buttons.first().focus();
 				await page.keyboard.press("Tab");
 				await settleTooltip(buttons.nth(1));
-				const keyboard = await tooltip(buttons.nth(1));
+				const keyboard = await tooltip(buttons.nth(1), session);
 				await screenshot("keyboard");
 				fs.writeFileSync(
 					path.join(artifacts, `${name}-metrics.json`),

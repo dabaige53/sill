@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-// @wu-test type=behavior | scope=desktop refresh return | protects=prevents cards from remaining displaced after a wheel refresh | debt=D5,D6
+// @wu-test type=behavior | scope=desktop refresh return | protects=prevents cards from remaining displaced after a wheel refresh | debt=over-mock,impl-detail
 test("desktop wheel refresh keeps cards following and owns the edge until their return finishes", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -34,7 +34,7 @@ test("desktop wheel refresh keeps cards following and owns the edge until their 
 	}
 });
 
-// @wu-test type=behavior | scope=refresh gesture interruption | protects=prevents cards from jumping or an old return from overriding a new pull | debt=D5,D6
+// @wu-test type=behavior | scope=refresh gesture interruption | protects=prevents cards from jumping or an old return from overriding a new pull | debt=over-mock,impl-detail
 test("regrabbing preserves the drawn offset while the indicator retains its original heading anchor", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -81,7 +81,7 @@ test("regrabbing preserves the drawn offset while the indicator retains its orig
 	}
 });
 
-// @wu-test type=behavior | scope=refresh request feedback | protects=prevents cards from remaining displaced or loading feedback ending before the request | debt=D5,D6
+// @wu-test type=behavior | scope=refresh request feedback | protects=prevents cards from remaining displaced or loading feedback ending before the request | debt=over-mock,impl-detail
 test("release preserves velocity and restores content while the real request controls only the indicator", async () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {

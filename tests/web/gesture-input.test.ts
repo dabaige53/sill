@@ -20,7 +20,7 @@ test("coasting into an edge cannot arm a refresh, but renewed effort can", () =>
 	assert.equal(input.feed(60), true, "a new deliberate sequence need not grow four times");
 });
 
-// @wu-test type=behavior | scope=wheel gesture direction | protects=prevents a decaying wheel tail from continuing a pull | debt=D6
+// @wu-test type=behavior | scope=wheel gesture direction | protects=prevents a decaying wheel tail from continuing a pull | debt=impl-detail
 test("a declining tail stops increasing a pull and a reversal starts a new sequence", () => {
 	const input = wheelIntent(() => 0);
 	assert.equal(input.feed(30), true);

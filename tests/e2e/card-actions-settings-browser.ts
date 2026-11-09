@@ -109,7 +109,7 @@ try {
 				["bookmark", "edit", "later", "external"],
 			);
 			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);
-			// @wu-test type=behavior | scope=preview and reader | protects=prevent incorrect note content, body order, or platform action controls | debt=D6
+			// @wu-test type=behavior | scope=preview and reader | protects=prevent incorrect note content, body order, or platform action controls | debt=impl-detail
 			const blocks = async (selector: string) =>
 				page.locator(selector).evaluate((body) =>
 					Array.from(body.children)

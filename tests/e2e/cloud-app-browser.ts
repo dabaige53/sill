@@ -296,7 +296,7 @@ try {
 		mail.id,
 		{ polling: 100 },
 	);
-	// @wu-test type=behavior | scope=photo details and recovery notices | protects=prevent photo navigation from hiding an error notice or sending content unexpectedly | debt=D6
+	// @wu-test type=behavior | scope=photo details and recovery notices | protects=prevent photo navigation from hiding an error notice or sending content unexpectedly | debt=impl-detail
 	// Recovery must survive photo navigation, which replaces the lightbox's content.
 	const photo = (
 		await client.callTool({

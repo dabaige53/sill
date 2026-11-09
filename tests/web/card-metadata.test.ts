@@ -101,7 +101,7 @@ test("reading time counts Chinese characters and English words from the Markdown
 		assert.equal(cardReadingTime({ type, body: "字".repeat(4000) }), "");
 });
 
-// @wu-test type=behavior | scope=cardDate time zones | protects=Preserve date-only values and display timestamps in the device time zone | debt=D6
+// @wu-test type=behavior | scope=cardDate time zones | protects=Preserve date-only values and display timestamps in the device time zone
 test("date-only precision stays unchanged across device zones", () => {
 	const original = process.env.TZ;
 	try {
@@ -110,6 +110,7 @@ test("date-only precision stays unchanged across device zones", () => {
 		assert.equal(cardDate("2026-10-13")?.text, "2026-10-13");
 		process.env.TZ = "America/Los_Angeles";
 		assert.equal(cardDate("2026-10-13T01:30:00Z")?.text, "2026-10-12 18:30 UTC-07:00");
+		assert.equal(cardDate("2026-10-13")?.text, "2026-10-13");
 	} finally {
 		if (original === undefined) delete process.env.TZ;
 		else process.env.TZ = original;

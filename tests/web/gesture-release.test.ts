@@ -104,7 +104,7 @@ test("read-end cancels below threshold and completes at threshold without releas
 	}
 });
 
-// @wu-test type=behavior | scope=gesture flick release | protects=prevents a held gesture from being mistaken for a flick while preserving a fresh flick | debt=D6
+// @wu-test type=behavior | scope=gesture flick release | protects=prevents a held gesture from being mistaken for a flick while preserving a fresh flick | debt=impl-detail
 test("holding before a flick does not dilute release speed; holding after it cancels the flick", () => {
 	const f = fixture();
 	try {
@@ -121,7 +121,7 @@ test("holding before a flick does not dilute release speed; holding after it can
 	}
 });
 
-// @wu-test type=behavior | scope=repeated content transition | protects=prevents content from flashing when an update interrupts its fade | debt=D5,D6
+// @wu-test type=behavior | scope=repeated content transition | protects=prevents content from flashing when an update interrupts its fade | debt=over-mock,impl-detail
 test("a repeated content update starts at the currently visible opacity", () => {
 	const f = fixture();
 	try {

@@ -44,7 +44,7 @@ try {
 		await page.goto(
 			`http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}`,
 		);
-		// @wu-test type=behavior | scope=pull refresh cancellation | protects=prevent a cancelled pull from dispatching a refresh or leaving content displaced | debt=D9,D6
+		// @wu-test type=behavior | scope=pull refresh cancellation | protects=prevent a cancelled pull from dispatching a refresh or leaving content displaced | debt=flaky,impl-detail
 		await page.evaluate(() => {
 			window.__pullCalls = 0;
 			window.__app.refresh = () => {
@@ -86,7 +86,7 @@ try {
 		await page.waitForFunction(
 			() => (document.querySelector("main") as HTMLElement).style.translate === "",
 		);
-		// @wu-test type=behavior | scope=pull refresh request lock | protects=prevent repeated pulls from starting concurrent refreshes or hiding feedback | debt=D9
+		// @wu-test type=behavior | scope=pull refresh request lock | protects=prevent repeated pulls from starting concurrent refreshes or hiding feedback | debt=flaky
 		await pull();
 		await page.waitForFunction(
 			() => (document.querySelector("main") as HTMLElement).style.translate === "",
@@ -123,7 +123,7 @@ try {
 			await page.locator(".home-mark").evaluate((node) => getComputedStyle(node).visibility),
 			"visible",
 		);
-		// @wu-test type=behavior | scope=pull refresh retry | protects=prevent failed refresh from blocking retry or ordinary scrolling | debt=D9,D6
+		// @wu-test type=behavior | scope=pull refresh retry | protects=prevent failed refresh from blocking retry or ordinary scrolling | debt=flaky,impl-detail
 		await page.evaluate(() => {
 			window.__app.refresh = async () => false;
 		});

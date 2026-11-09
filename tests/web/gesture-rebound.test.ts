@@ -32,7 +32,7 @@ test("desktop preview edges leave wheel input to native scrolling without a cust
 	}
 });
 
-// @wu-test type=behavior | scope=wheel input after closing | protects=prevents old momentum from affecting the next surface without blocking new input | debt=D6
+// @wu-test type=behavior | scope=wheel input after closing | protects=prevents old momentum from affecting the next surface without blocking new input | debt=impl-detail
 test("a closing operation shields only the old declining tail and immediately yields to new input", () => {
 	const f = fixture();
 	try {
@@ -56,7 +56,7 @@ test("a closing operation shields only the old declining tail and immediately yi
 	}
 });
 
-// @wu-test type=behavior | scope=phone content rebound | protects=prevents content from remaining displaced after a touch ends | debt=D5,D6
+// @wu-test type=behavior | scope=phone content rebound | protects=prevents content from remaining displaced after a touch ends | debt=over-mock,impl-detail
 test("phone content follows a real touch and releases immediately at touchend", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -78,7 +78,7 @@ test("phone content follows a real touch and releases immediately at touchend", 
 	}
 });
 
-// @wu-test type=behavior | scope=content rebound release | protects=prevents a stationary release from pushing content outward again | debt=D5,D6
+// @wu-test type=behavior | scope=content rebound release | protects=prevents a stationary release from pushing content outward again | debt=over-mock,impl-detail
 test("holding still at the content edge expires release velocity instead of replaying the last movement", () => {
 	const f = fixture();
 	try {

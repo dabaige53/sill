@@ -188,7 +188,7 @@ try {
 			await context.close();
 		}
 	}
-	// @wu-test type=integration | scope=generated photo component styling | protects=prevent embedded photo controls from inheriting an unreadable host color | debt=D6
+	// @wu-test type=integration | scope=generated photo component styling | protects=prevent embedded photo controls from inheriting an unreadable host color | debt=impl-detail
 	const page = await browser.newPage();
 	await page.setContent(
 		`<style>:root{--ink:#1d1d1f;--card:#fff}${fs.readFileSync(path.join(root, "design-system/components/bundle.css"), "utf8")}</style><div class="lightbox"><div class="float-bar glass"><button class="icon-button">x</button></div></div>`,

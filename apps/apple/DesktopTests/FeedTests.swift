@@ -31,7 +31,7 @@ import Testing
     #expect(!feed.entries.contains(.card("a")))
   }
 
-  // @wu-test type=behavior | scope=Feed ordering | protects=Keep completed cards in place until explicit refresh | debt=D9
+  // @wu-test type=behavior | scope=Feed ordering | protects=Keep completed cards in place until explicit refresh | debt=flaky
   @Test func completionKeepsOrderUntilExplicitRefresh() async throws {
     var task = try #require(syntheticTask.object)
     task["due"] = .number(2)
@@ -81,7 +81,7 @@ import Testing
     #expect(!feed.hasMore)
   }
 
-  // @wu-test type=behavior | scope=Feed scope restoration | protects=Restore each scope's loaded cards and scroll position | debt=D6
+  // @wu-test type=behavior | scope=Feed scope restoration | protects=Restore each scope's loaded cards and scroll position | debt=impl-detail
   @Test func scopesRestoreTheirOwnPageAndScrollPosition() async throws {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -110,7 +110,7 @@ import Testing
     #expect(feed.entries.count == 40)
   }
 
-  // @wu-test type=behavior | scope=Feed filter changes | protects=Return filtered results to the top and first page | debt=D6
+  // @wu-test type=behavior | scope=Feed filter changes | protects=Return filtered results to the top and first page | debt=impl-detail
   @Test func filterChangesResetThePageAndRequestItsTop() async throws {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -139,7 +139,7 @@ import Testing
     #expect(feed.entries.count == 40)
   }
 
-  // @wu-test type=behavior | scope=Feed return to top | protects=Keep active filters and loaded cards when returning to the top | debt=D6
+  // @wu-test type=behavior | scope=Feed return to top | protects=Keep active filters and loaded cards when returning to the top | debt=impl-detail
   @Test func returningToTopKeepsAllSearchConditionsAndLoadedCards() async throws {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)

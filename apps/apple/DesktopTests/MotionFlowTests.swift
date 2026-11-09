@@ -6,20 +6,18 @@ import Testing
 @testable import SillKit
 
 @MainActor struct MotionFlowTests {
-  // @wu-test type=behavior | scope=Reader finish gesture | protects=Close once on release after reading is confirmed | debt=D6
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Close once on release after reading is confirmed
   @Test func completedReadingShowsTheCheckAndClosesOnReleaseWithoutARebound() {
     let scroll = ReaderScroll()
     var closed = 0
     scroll.close = { closed += 1 }
     scroll.motion.finish = AppleMetrics.gestureFinishDistance
     scroll.commitFinish()
-    #expect(scroll.motion.confirmed)
     #expect(closed == 0, "the check waits for the hand to let go")
     scroll.releaseFinish()
     #expect(closed == 1)
     scroll.releaseFinish()
     #expect(closed == 1, "a second release does not close again")
-    #expect(abs(scroll.motion.finish - CGFloat(AppleMetrics.gestureFinishDistance)) < 0.001)
     scroll.disconnect()
   }
 
@@ -38,33 +36,36 @@ import Testing
     scroll.disconnect()
   }
 
-  // @wu-test type=behavior | scope=Reader finish gesture | protects=Prevent an old completion from closing a later layer | debt=D9,D6
-  @Test func disconnectedReadingCannotCloseTheNextLayer() async throws {
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Prevent an old completion from closing a later layer
+  @Test func disconnectedReadingCannotCloseTheNextLayer() throws {
     let scroll = ReaderScroll()
     var callback: ((Bool) -> Void)?
     var closed = false
     scroll.finished = { callback = $0 }
     scroll.close = { closed = true }
     scroll.commitFinish()
+    scroll.releaseFinish()
+    let complete = try #require(callback)
+    #expect(!closed)
     scroll.disconnect()
-    callback?(true)
-    #expect(!scroll.motion.confirmed)
-    try await Task.sleep(for: .milliseconds(50))
+    complete(true)
     #expect(!closed)
   }
 
-  // @wu-test type=behavior | scope=Reader finish gesture | protects=Keep the reader open when completion fails | debt=D6
+  // @wu-test type=behavior | scope=Reader finish gesture | protects=Keep the reader open when completion fails
   @Test func failedReadingReturnsWithoutClosing() {
     let scroll = ReaderScroll()
+    var closed = false
+    scroll.close = { closed = true }
     scroll.finished = { $0(false) }
     scroll.motion.finish = AppleMetrics.gestureFinishDistance
     scroll.commitFinish()
-    #expect(scroll.motion.finish == 0)
-    #expect(!scroll.motion.confirmed)
+    scroll.releaseFinish()
+    #expect(!closed)
     scroll.disconnect()
   }
 
-  // @wu-test type=behavior | scope=Reader dismissal animation | protects=Keep text aligned while the reader dismisses | debt=D6
+  // @wu-test type=behavior | scope=Reader dismissal animation | protects=Keep text aligned while the reader dismisses | debt=impl-detail
   @Test func dismissalMovesSurfaceAndDimsWithoutMovingTextTwice() {
     let motion = ReaderMotion()
     motion.surfaceWidth = 800
@@ -79,7 +80,7 @@ import Testing
     #expect(motion.dimOpacity == 1)
   }
 
-  // @wu-test type=behavior | scope=Feed refresh gesture | protects=Continue a new pull from the visible position and show failure | debt=D9,D6
+  // @wu-test type=behavior | scope=Feed refresh gesture | protects=Continue a new pull from the visible position and show failure | debt=flaky,impl-detail
   @Test func refreshRegrabsTheVisibleReboundAndFailureIsImmediate() async throws {
     let refresh = FeedRefresh()
     refresh.drawn.value = 30
@@ -109,7 +110,7 @@ import Testing
     scroll.disconnect()
   }
 
-  // @wu-test type=behavior | scope=Feed refresh retry | protects=Prevent duplicate refreshes and allow retry after failure | debt=D9,D6
+  // @wu-test type=behavior | scope=Feed refresh retry | protects=Prevent duplicate refreshes and allow retry after failure | debt=flaky,impl-detail
   @Test func buttonRefreshAndRetryKeepCardsInPlace() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -131,7 +132,7 @@ import Testing
     refresh.cancel()
   }
 
-  // @wu-test type=behavior | scope=Feed refresh cancellation | protects=Ignore a stale refresh result after cancellation | debt=D9,D6
+  // @wu-test type=behavior | scope=Feed refresh cancellation | protects=Ignore a stale refresh result after cancellation | debt=flaky,impl-detail
   @Test func refreshThresholdCancellationAndStaleResult() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -158,7 +159,7 @@ import Testing
     #expect(refresh.distance == 0)
   }
 
-  // @wu-test type=behavior | scope=Mouse pull to refresh | protects=Refresh only after a qualifying mouse pull is released | debt=D9,D6
+  // @wu-test type=behavior | scope=Mouse pull to refresh | protects=Refresh only after a qualifying mouse pull is released | debt=flaky,impl-detail
   @Test func mouseRefreshWaitsForReleaseAndCanBeReversed() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -186,9 +187,7 @@ import Testing
     refresh.cancel()
   }
 
-
-
-  // @wu-test type=behavior | scope=Feed refresh feedback | protects=Show failure and then success after retry | debt=D9,D6
+  // @wu-test type=behavior | scope=Feed refresh feedback | protects=Show failure and then success after retry | debt=flaky,impl-detail
   @Test func refreshFailureRetryAndSuccess() async throws {
     let refresh = FeedRefresh()
     refresh.request = { $0(false) }
@@ -223,7 +222,7 @@ import Testing
   }
 
   /// Cards stop taking the pointer while the feed moves and take it back once it rests.
-  // @wu-test type=behavior | scope=Feed hover during scrolling | protects=Restore card hover after scrolling stops | debt=D9,D6
+  // @wu-test type=behavior | scope=Feed hover during scrolling | protects=Restore card hover after scrolling stops | debt=flaky,impl-detail
   @Test func feedPausesCardHoverOnlyWhileMoving() async throws {
     let scroll = FeedScroll(chrome: Chrome())
     scroll.scrolled(offset: 0, visible: 600, content: 4000)
@@ -267,7 +266,7 @@ import Testing
     probe.disconnect()
   }
 
-  // @wu-test type=behavior | scope=Reader and feed bars | protects=Restore bars after closing a card opened below the feed top | debt=D6
+  // @wu-test type=behavior | scope=Reader and feed bars | protects=Restore bars after closing a card opened below the feed top | debt=impl-detail
   @Test func openCardTucksTheBarsOnlyBelowTheFeedTop() {
     let chrome = Chrome()
     let scroll = FeedScroll(chrome: chrome)

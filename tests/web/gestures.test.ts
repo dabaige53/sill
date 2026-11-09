@@ -68,7 +68,7 @@ test("a preview pulled down from its top closes once on release, even full scree
 	}
 });
 
-// @wu-test type=behavior | scope=full preview short pull | protects=prevents a short pull from closing or collapsing a full preview | debt=D9
+// @wu-test type=behavior | scope=full preview short pull | protects=prevents a short pull from closing or collapsing a full preview | debt=flaky
 test("a short pull on a full preview glides back and keeps it full", () => {
 	const f = fixture({ phone: true });
 	try {
@@ -136,7 +136,7 @@ test("read-end success badge disappears even when navigation changes before clos
 	}
 });
 
-// @wu-test type=behavior | scope=detail replacement during dismissal | protects=prevents a delayed close from closing a replacement panel | debt=D6
+// @wu-test type=behavior | scope=detail replacement during dismissal | protects=prevents a delayed close from closing a replacement panel | debt=impl-detail
 test("a delayed gesture close cannot close a later panel or alter its return motion", async () => {
 	const f = fixture();
 	try {
@@ -233,7 +233,7 @@ test("a toast swipe completion cannot hide a newer result", async () => {
 	}
 });
 
-// @wu-test type=behavior | scope=read-end completion handoff | protects=Delay closing and feed refresh until read completion is confirmed | debt=D6
+// @wu-test type=behavior | scope=read-end completion handoff | protects=Delay closing and feed refresh until read completion is confirmed | debt=impl-detail
 test("read-end touch progress coalesces frames and commits once before release", () => {
 	const f = fixture({ end: true });
 	try {
@@ -343,7 +343,7 @@ test("read-end wheel push returns once the hand stops; arriving momentum cannot 
 	}
 });
 
-// @wu-test type=behavior | scope=detail dismissal continuity | protects=prevents a detail from jumping or accepting another dismissal during exit | debt=D5,D6
+// @wu-test type=behavior | scope=detail dismissal continuity | protects=prevents a detail from jumping or accepting another dismissal during exit | debt=over-mock,impl-detail
 test("desktop pull fades from the release position; phone keeps its downward slide", async () => {
 	for (const phone of [false, true]) {
 		const f = fixture({ phone });
@@ -378,7 +378,7 @@ test("desktop pull fades from the release position; phone keeps its downward sli
 	}
 });
 
-// @wu-test type=behavior | scope=fast phone detail dismissal | protects=prevents a fast release from making the detail jump back before closing | debt=D5,D6
+// @wu-test type=behavior | scope=fast phone detail dismissal | protects=prevents a fast release from making the detail jump back before closing | debt=over-mock,impl-detail
 test("a fast phone release hands its last touch position to the exit before a drawing frame", async () => {
 	const f = fixture({ phone: true });
 	try {
@@ -427,7 +427,7 @@ test("desktop downward wheel and touch never close previews or readers", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=read completion detail handoff | protects=prevents detail tools from reappearing before a completed reading view closes | debt=D6
+// @wu-test type=behavior | scope=read completion detail handoff | protects=prevents detail tools from reappearing before a completed reading view closes | debt=impl-detail
 test("completed reading keeps tools hidden through the close handoff on phone and desktop", () => {
 	for (const kind of ["preview", "reader"])
 		for (const phone of [false, true]) {

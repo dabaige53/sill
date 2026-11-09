@@ -54,6 +54,7 @@ export async function oauthFixture({
 		});
 		if (state.fail) throw Error("synthetic provider unavailable");
 		if (u.pathname.endsWith("/consent")) {
+			state.decisionStarted?.();
 			if (state.failDecision) throw Error("synthetic response loss after provider action");
 			if (state.hold) await state.hold;
 			const action = JSON.parse(init.body).action;

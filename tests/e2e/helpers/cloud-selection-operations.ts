@@ -10,7 +10,7 @@ export async function verifySelectionOperations(
 	reminder: any,
 	batchRequests: any[],
 ) {
-	// @wu-test type=integration | scope=cloud selection | protects=prevent selection and cancellation from writing workspace data | debt=D9
+	// @wu-test type=integration | scope=cloud selection | protects=prevent selection and cancellation from writing workspace data | debt=flaky
 	const selectCards = async () => {
 		await page.evaluate(
 			(ids) => {

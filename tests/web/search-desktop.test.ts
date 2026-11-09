@@ -14,7 +14,7 @@ function desktopFixture() {
 			body: "Mail",
 			tags: ["Work"],
 			// Written after the shared cards, so newest-first places it on top.
-			time: Date.now() + 1000,
+			time: f.w.Date.now() + 1000,
 		},
 		{
 			id: "n",
@@ -22,7 +22,7 @@ function desktopFixture() {
 			title: "Gamma",
 			body: "Note",
 			tags: ["Work"],
-			time: Date.now() + 1000,
+			time: f.w.Date.now() + 1000,
 		},
 	);
 	f.Store.state.items = { ...f.Store.state.items, m: { bookmarked: true } };
@@ -54,7 +54,7 @@ function desktopFixture() {
 	return { ...f, input, type, key };
 }
 
-// @wu-test type=behavior | scope=desktop search conditions | protects=Apply a selected status token without searching the hash fragment | debt=D9
+// @wu-test type=behavior | scope=desktop search conditions | protects=Apply a selected status token without searching the hash fragment
 test("desktop search: text ending in # lists statuses and tags, and picking one becomes a token", () => {
 	const f = desktopFixture();
 	try {
@@ -174,7 +174,7 @@ test("nested card return keeps retained search nodes, position and focus through
 	}
 });
 
-// @wu-test type=behavior | scope=desktop search suggestions | protects=Preserve the query and show matching suggestions when search reopens | debt=D9
+// @wu-test type=behavior | scope=desktop search suggestions | protects=Preserve the query and show matching suggestions when search reopens
 test("desktop search suggests the cards it finds, keeps the query on reopen, and closes on blur", () => {
 	const f = desktopFixture();
 	try {

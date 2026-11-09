@@ -23,11 +23,13 @@ struct CloudWorkspaceTests {
     #expect(restored?.owner == result.owner)
   }
 
-  // @wu-test type=integration | scope=CloudWorkspace | protects=Return conflict without retry | debt=D7
+  // @wu-test type=integration | scope=CloudWorkspace | protects=Return conflict without retry
   @Test func conflictIsReturnedWithoutRetry() async throws {
+    var posts = 0
     let store = make { request in
       if let result = auth(request) { return result }
       if request.httpMethod == "POST" {
+        posts += 1
         #expect(request.value(forHTTPHeaderField: "Idempotency-Key") != nil)
         return (409, [:], .object(["error": .object(["code": .string("revision_conflict")])]))
       }
@@ -40,6 +42,7 @@ struct CloudWorkspaceTests {
       ])
     }
     #expect(await store.pendingWriteKey == nil)
+    #expect(posts == 1)
   }
 
   // @wu-test type=integration | scope=CloudWorkspace | protects=Block duplicate timeout writes

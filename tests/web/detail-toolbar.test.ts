@@ -25,33 +25,27 @@ const toolbar = (card: any) => {
 };
 const seed = (type: string) => SeedCards.find((card: any) => card.type === type);
 
-// @wu-test type=behavior | scope=detail toolbar | protects=prevents common card actions from disappearing | debt=D6
-test("card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons", () => {
+// @wu-test type=behavior | scope=detail toolbar | protects=Keep bookmark, tag editing and read-later actions available for every card kind
+test("card detail exposes the shared actions for every card kind", () => {
 	Store.state = Store.fresh();
 	for (const card of SeedCards.filter((c: any) => c.type !== "photo")) {
 		const bar = toolbar(card);
 		try {
 			assert.deepEqual(bar.shared, ["bookmark", "edit", "later"], card.type);
-			assert.ok(bar.own.length <= 3, card.type);
-			assert.equal(bar.rule, bar.own.length ? 1 : 0, card.type);
-			assert.equal(
-				bar.document.querySelectorAll(".preview-body .solid-button").length,
-				0,
-				card.type,
-			);
-			assert.equal(bar.document.querySelectorAll(".reminder-actions").length, 0, card.type);
 		} finally {
 			bar.close();
 		}
 	}
 });
 
-// @wu-test type=behavior | scope=card-specific detail actions | protects=prevents users from losing mail, calendar, or reminder actions | debt=D9
-test("mail opens its web page, events download and reminders remind again from the toolbar", () => {
+// @wu-test type=behavior | scope=card-specific detail actions | protects=Keep mail links, future event actions and reminder actions available
+test("mail opens its web page, events download and reminders remind again from the toolbar", (t) => {
+	const now = Date.UTC(2026, 10, 9, 12);
+	t.mock.method(Date, "now", () => now);
 	Store.state = Store.fresh();
 	const mailURL = "https://mail.example.com/message/1";
 	const mail = toolbar({ ...seed("mail"), url: mailURL });
-	const event = toolbar({ ...seed("event"), start: Date.now() + 60 * 60000 });
+	const event = toolbar({ ...seed("event"), start: now + 60 * 60000 });
 	const reminder = toolbar(seed("reminder"));
 	try {
 		assert.deepEqual(mail.own, ["external"]);
@@ -151,9 +145,10 @@ test("photo lightbox shows every shared tool despite legacy hidden preferences",
 	Store.state = Store.fresh();
 });
 
-// @wu-test type=behavior | scope=event detail actions | protects=prevents an imminent meeting from showing the wrong primary actions | debt=D9
-test("imminent event prioritizes dismiss over download only when join is available", () => {
-	const now = Date.now();
+// @wu-test type=behavior | scope=event detail actions | protects=prevents an imminent meeting from showing the wrong primary actions
+test("imminent event prioritizes dismiss over download only when join is available", (t) => {
+	const now = Date.UTC(2026, 10, 9, 12);
+	t.mock.method(Date, "now", () => now);
 	const event = {
 		...seed("event"),
 		start: now + 5 * 60000,

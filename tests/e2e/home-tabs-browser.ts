@@ -126,7 +126,7 @@ try {
 			assert.equal(geometry.position, "fixed");
 			assert.notEqual(geometry.mark, "none");
 		}
-		// @wu-test type=behavior | scope=home navigation after scrolling | protects=prevent home filters from remaining hidden after scrolling stops | debt=D9
+		// @wu-test type=behavior | scope=home navigation after scrolling | protects=prevent home filters from remaining hidden after scrolling stops | debt=flaky
 		await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
 		await page.waitForTimeout(1000);
 		assert.ok(
@@ -194,7 +194,7 @@ try {
 		await page.waitForFunction(() => !document.getElementById("modal").hasAttribute("open"));
 		await assertTab("all");
 
-		// @wu-test type=behavior | scope=home filter stability | protects=prevent completion from moving cards until the filter is explicitly changed | debt=D9
+		// @wu-test type=behavior | scope=home filter stability | protects=prevent completion from moving cards until the filter is explicitly changed | debt=flaky
 		await page.evaluate(() => {
 			window.__app.sort = "priority";
 		});
@@ -241,7 +241,7 @@ try {
 			"explicit tab change applies latest filter",
 		);
 		await pickTab("all");
-		// @wu-test type=behavior | scope=home filter scroll restoration | protects=prevent switching filters from losing the prior reading position | debt=D9,D6
+		// @wu-test type=behavior | scope=home filter scroll restoration | protects=prevent switching filters from losing the prior reading position | debt=flaky,impl-detail
 		{
 			await page.evaluate(() => {
 				const seed = window.__store.state.cards.find((card) => card.type === "article");
@@ -293,7 +293,7 @@ try {
 			);
 			await pickTab("all");
 			assert.equal(await page.evaluate(() => scrollY), 500);
-			// @wu-test type=behavior | scope=home panel navigation | protects=prevent panel navigation from losing scroll position or keyboard focus | debt=D6
+			// @wu-test type=behavior | scope=home panel navigation | protects=prevent panel navigation from losing scroll position or keyboard focus | debt=impl-detail
 			if (width > 650) await page.evaluate(() => window.__app.action("search"));
 			else await page.locator('#nav [data-extra="search"]').click();
 			assert.equal(
@@ -353,7 +353,7 @@ try {
 				assert.equal(await head.evaluate((node) => getComputedStyle(node).opacity), "1");
 			}
 		}
-		// @wu-test type=behavior | scope=desktop search and notice timing | protects=prevent search shortcut failure or a hovered notice disappearing too soon | debt=D6
+		// @wu-test type=behavior | scope=desktop search and notice timing | protects=prevent search shortcut failure or a hovered notice disappearing too soon | debt=impl-detail
 		if (width === 1920) {
 			await page.keyboard.press("ControlOrMeta+k");
 			assert.equal(

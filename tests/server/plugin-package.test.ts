@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { access, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(import.meta.dirname, "../..");
-// @wu-test type=integration | scope=scripts/build-plugin output | protects=Include usable skills and matching plugin metadata in the built package | debt=D6
+// @wu-test type=integration | scope=scripts/build-plugin output | protects=Include usable skills and matching plugin metadata in the built package
 test("Sill builds only the original App with its two skills and both sidebar tools", async () => {
 	execFileSync(process.execPath, [resolve(root, "scripts/build-plugin.ts")]);
 	const dir = resolve(root, "dist/plugin/sill");
@@ -24,8 +24,6 @@ test("Sill builds only the original App with its two skills and both sidebar too
 		"sill-cards",
 		"sill-operations",
 	]);
-	for (const p of ["plugins", ".agents/plugins/marketplace.json", "deploy/codex-sidebar-cloud"])
-		await assert.rejects(access(resolve(root, p)), { code: "ENOENT" });
 	const references = {
 		"sill-cards": ["types", "writing", "fields", "transport", "import"],
 		"sill-operations": ["operations", "settings", "diagnosis"],

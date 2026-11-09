@@ -20,7 +20,7 @@ import Testing
     #expect(MarkdownText.cardRoute(URL(string: "https://example.com/#card/b")!) == nil)
   }
 
-  // @wu-test type=behavior | scope=Reader resizing | protects=Keep content and scroll position through an interrupted resize | debt=D6
+  // @wu-test type=behavior | scope=Reader resizing | protects=Keep content and scroll position through an interrupted resize | debt=impl-detail
   @Test func resizingKeepsTheLayerAndStartsAtItsDrawnSurface() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -51,7 +51,7 @@ import Testing
     #expect(Reader.canExpand(card))
   }
 
-  // @wu-test type=behavior | scope=Reader opening | protects=Prevent cancelled opening from revealing reader content | debt=D9,D6
+  // @wu-test type=behavior | scope=Reader opening | protects=Prevent cancelled opening from revealing reader content | debt=flaky,impl-detail
   @Test func measuredEntryAndCancelledReveal() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -68,7 +68,7 @@ import Testing
     #expect(!reader.toolsShown && !reader.contentShown)
   }
 
-  // @wu-test type=behavior | scope=Reader reopening | protects=Show content and tools after reopening the reader | debt=D9,D6
+  // @wu-test type=behavior | scope=Reader reopening | protects=Show content and tools after reopening the reader | debt=flaky,impl-detail
   @Test func measuredEntryRevealsToolsWithSurfaceAndSurvivesReopening() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -87,7 +87,7 @@ import Testing
     #expect(reader.presented && reader.toolsShown)
   }
 
-  // @wu-test type=behavior | scope=Reader interrupted close | protects=Open the newly selected card while the previous card closes | debt=D9,D6
+  // @wu-test type=behavior | scope=Reader interrupted close | protects=Open the newly selected card while the previous card closes | debt=flaky,impl-detail
   @Test func anotherCardOpensWhileThePreviousOneIsReturning() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -109,7 +109,7 @@ import Testing
 
   /// A related card stacks over the open one: the overlay stays shown, so the desktop bars stay
   /// where they are, and the card below stays open under the new one.
-  // @wu-test type=behavior | scope=Related card navigation | protects=Return to the previous card without showing desktop bars | debt=D9,D6
+  // @wu-test type=behavior | scope=Related card navigation | protects=Return to the previous card without showing desktop bars | debt=flaky,impl-detail
   @Test func relatedCardStacksWithoutReturningTheBars() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -199,7 +199,7 @@ import Testing
     #expect(shell.searchFocused)
   }
 
-  // @wu-test type=behavior | scope=Card write isolation | protects=Keep other cards unchanged while one card is written | debt=D6
+  // @wu-test type=behavior | scope=Card write isolation | protects=Keep other cards unchanged while one card is written | debt=impl-detail
   @Test func writeOnOneCardDoesNotTouchOthers() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")
@@ -221,7 +221,7 @@ import Testing
     #expect(workspace.catalogVersion == version)
   }
 
-  // @wu-test type=integration | scope=Card write isolation | protects=Block a second write to the same card while allowing another card | debt=D9,D6
+  // @wu-test type=integration | scope=Card write isolation | protects=Block a second write to the same card while allowing another card | debt=flaky,impl-detail
   @Test func cardLocksOnlyItself() async {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(80))
@@ -277,7 +277,7 @@ import Testing
     #expect(await backend.writes == 1)
   }
 
-  // @wu-test type=behavior | scope=Background reading records | protects=Preserve reading records without disturbing visible cards | debt=D6
+  // @wu-test type=behavior | scope=Background reading records | protects=Preserve reading records without disturbing visible cards | debt=impl-detail
   @Test func backgroundRecordsDoNotRedraw() async {
     let (workspace, backend) = await ready()
     let a = workspace.state("a")
@@ -324,7 +324,7 @@ import Testing
     }
   }
 
-  // @wu-test type=integration | scope=Reading progress queue | protects=Save progress recorded while an earlier save is pending | debt=D9
+  // @wu-test type=integration | scope=Reading progress queue | protects=Save progress recorded while an earlier save is pending | debt=flaky
   @Test func progressRecordedDuringItsOwnSaveStillFlushes() async throws {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(20))
@@ -337,7 +337,7 @@ import Testing
     #expect(await backend.writes == 2)
   }
 
-  // @wu-test type=integration | scope=Reading progress queue | protects=Prevent queued progress from undoing an explicit read decision | debt=D9
+  // @wu-test type=integration | scope=Reading progress queue | protects=Prevent queued progress from undoing an explicit read decision | debt=flaky
   @Test func queuedProgressCannotReplaceAForegroundReadDecision() async throws {
     let (workspace, backend) = await ready()
     await backend.slowWrites(.milliseconds(20))
@@ -399,7 +399,7 @@ import Testing
     #expect(workspace.notice?.text == Copy.appleConflict)
   }
 
-  // @wu-test type=behavior | scope=Read appearance | protects=Keep the visible read appearance stable until the transition ends | debt=D6
+  // @wu-test type=behavior | scope=Read appearance | protects=Keep the visible read appearance stable until the transition ends | debt=impl-detail
   @Test func readStaysHeldUntilReleased() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")

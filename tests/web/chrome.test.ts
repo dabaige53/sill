@@ -160,7 +160,7 @@ test("a modal keeps hidden background bars tucked after the rest timer and Tab",
 	}
 });
 
-// @wu-test type=behavior | scope=on-screen keyboard layout | protects=Keep dialog controls clear of the keyboard until it closes | debt=D6
+// @wu-test type=behavior | scope=on-screen keyboard layout | protects=Keep dialog controls clear of the keyboard until it closes | debt=impl-detail
 test("keyboard bounds use the next frame and update on a window resize", () => {
 	const f = fixture();
 	try {
@@ -328,7 +328,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 	}
 });
 
-// @wu-test type=behavior | scope=navigation destinations | protects=Keep navigation destinations and settings reachable without enabling unavailable AI actions | debt=D6
+// @wu-test type=behavior | scope=navigation destinations | protects=Keep navigation destinations and settings reachable without enabling unavailable AI actions | debt=impl-detail
 test("three destinations share the capsule; the home avatar opens settings", () => {
 	const dom = new JSDOM(`<!doctype html><body></body>`, {
 		url: "http://chrome.test/",

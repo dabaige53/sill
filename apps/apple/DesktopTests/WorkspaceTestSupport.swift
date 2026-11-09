@@ -98,6 +98,22 @@ actor FakeBackend: WorkspaceBackend {
   for _ in 0..<400 where !condition() { try? await Task.sleep(for: .milliseconds(5)) }
 }
 
+/// Wait for the connection result, without guessing how long snapshot application takes.
+@MainActor func waitForWorkspace(_ workspace: Workspace) async {
+  await withCheckedContinuation { continuation in
+    guard workspace.phase == .connecting else {
+      continuation.resume()
+      return
+    }
+    withObservationTracking {
+      _ = workspace.phase
+    } onChange: {
+      continuation.resume()
+    }
+  }
+  #expect(workspace.phase == .ready)
+}
+
 /// True when reading `read` inside `track` registers a change after `act`.
 final class Flag: @unchecked Sendable { var value = false }
 
@@ -139,7 +155,7 @@ let syntheticReminder: JSONValue = .object([
   let backend = FakeBackend(ids: ids, extra: extra)
   let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
   workspace.connect(backend)
-  await until { workspace.phase == .ready }
+  await waitForWorkspace(workspace)
   return (workspace, backend)
 }
 

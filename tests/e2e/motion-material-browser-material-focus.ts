@@ -13,7 +13,7 @@ export async function runMaterialFocus({
 	scenario: any;
 	touch: any;
 }) {
-	// @wu-test type=behavior | scope=keyboard access to hidden navigation | protects=prevent hidden navigation from becoming unreachable by keyboard | debt=D6
+	// @wu-test type=behavior | scope=keyboard access to hidden navigation | protects=prevent hidden navigation from becoming unreachable by keyboard | debt=impl-detail
 	await scenario("Real Tab reaches a completely hidden rail from the feed", async (page) => {
 		const middle = await page.evaluate(async () => {
 			const buttons = document
@@ -79,7 +79,7 @@ export async function runMaterialFocus({
 		);
 	});
 
-	// @wu-test type=behavior | scope=unsupported blur fallback | protects=prevent controls from becoming unreadable when backdrop blur is unavailable | debt=D6
+	// @wu-test type=behavior | scope=unsupported blur fallback | protects=prevent controls from becoming unreadable when backdrop blur is unavailable | debt=impl-detail
 	await scenario(
 		"Forced no-blur fallback uses solid surfaces and a one-pixel outline",
 		async (page) => {
@@ -109,7 +109,7 @@ export async function runMaterialFocus({
 		},
 	);
 
-	// @wu-test type=behavior | scope=detail toolbar keyboard access | protects=prevent hidden detail tools from remaining inaccessible to keyboard users | debt=D6,D9
+	// @wu-test type=behavior | scope=detail toolbar keyboard access | protects=prevent hidden detail tools from remaining inaccessible to keyboard users | debt=impl-detail,flaky
 	await scenario("Head tools preserve immediate keyboard visibility", async (page) => {
 		await page.locator('[data-card="motion-0"] .card-title-button').focus();
 		await page.keyboard.press("Enter");
@@ -128,7 +128,7 @@ export async function runMaterialFocus({
 		);
 	});
 
-	// @wu-test type=behavior | scope=phone page navigation | protects=prevent navigation pages from being dismissed as draggable drawers | debt=D6
+	// @wu-test type=behavior | scope=phone page navigation | protects=prevent navigation pages from being dismissed as draggable drawers | debt=impl-detail
 	await scenario(
 		"Phone navigation keeps its lens and does not become a draggable sheet",
 		async (page, context) => {
@@ -211,22 +211,48 @@ export async function runMaterialFocus({
 		phone,
 	);
 
-	// @wu-test type=behavior | scope=phone drawer touch cancellation | protects=Restore the drawer position after a canceled touch | debt=D9
+	// @wu-test type=behavior | scope=phone drawer touch cancellation | protects=Restore the open drawer after a canceled drag without changing saved content
 	await scenario(
-		"Real touchCancel keeps the drawer open without writing",
+		"Real touchCancel restores the open drawer without changing saved content",
 		async (page, context) => {
 			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.waitForTimeout(600);
+			await page.waitForFunction(() => {
+				const drawer = document.querySelector<HTMLElement>(".phone-drawer");
+				if (!drawer || !(document.querySelector("#modal") as HTMLDialogElement).open) return false;
+				const bounds = drawer.getBoundingClientRect();
+				return (
+					bounds.height > 0 &&
+					bounds.bottom <= innerHeight + 1 &&
+					drawer
+						.getAnimations()
+						.every((animation) => !animation.pending && animation.playState !== "running")
+				);
+			});
 			const handle = await page.locator("[data-vaul-handle]").boundingBox();
 			const initial = await page.locator(".phone-drawer").boundingBox();
+			const saved = await page.evaluate(() => localStorage.getItem("sill-v1"));
 			const session = await context.newCDPSession(page);
 			await touch(session, "touchStart", 195, handle.y + 2);
 			await touch(session, "touchMove", 195, handle.y + 65);
+			await page.waitForFunction(
+				(top) => document.querySelector(".phone-drawer").getBoundingClientRect().y > top + 1,
+				initial.y,
+			);
 			await touch(session, "touchCancel");
-			await page.waitForTimeout(600);
+			await page.waitForFunction((top) => {
+				const drawer = document.querySelector<HTMLElement>(".phone-drawer");
+				return (
+					(document.querySelector("#modal") as HTMLDialogElement).open &&
+					Math.abs(drawer.getBoundingClientRect().y - top) < 2 &&
+					drawer
+						.getAnimations()
+						.every((animation) => !animation.pending && animation.playState !== "running")
+				);
+			}, initial.y);
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
 			const final = await page.locator(".phone-drawer").boundingBox();
 			assert.ok(Math.abs(final.y - initial.y) < 2, "cancel restores the drawer position");
+			assert.equal(await page.evaluate(() => localStorage.getItem("sill-v1")), saved);
 		},
 		phone,
 	);

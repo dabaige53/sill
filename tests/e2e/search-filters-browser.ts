@@ -108,7 +108,7 @@ try {
 			false,
 		);
 		await page.locator('[data-action="search-reset"]').click();
-		// @wu-test type=behavior | scope=search keyboard viewport | protects=prevent the keyboard from covering the search field or leaving results unusable | debt=D6
+		// @wu-test type=behavior | scope=search keyboard viewport | protects=prevent the keyboard from covering the search field or leaving results unusable | debt=impl-detail
 		if (width < 650 && height === 844) {
 			await page.locator("#filter-search").fill("jje");
 			await page.waitForFunction(
@@ -194,7 +194,7 @@ try {
 		assert.equal(await page.locator('.search-token[data-extra="status"]').innerText(), "#收藏");
 		await page.locator("#filter-search").press("Backspace");
 		assert.equal(await page.locator('.search-token[data-extra="status"]').count(), 0);
-		// @wu-test type=behavior | scope=search tag suggestions | protects=prevent a focused tag suggestion from disappearing or selecting the wrong cards | debt=D9
+		// @wu-test type=behavior | scope=search tag suggestions | protects=prevent a focused tag suggestion from disappearing or selecting the wrong cards | debt=flaky
 		await page.locator("#filter-search").fill("#交互");
 		await page.locator('[data-action="search-hash"][data-extra="tag:交互"]').focus();
 		// A keyboard user can pause on a suggestion after leaving the input.

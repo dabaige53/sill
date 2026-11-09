@@ -2,7 +2,7 @@
 
 ## 范围
 
-发布云端 Web/PWA 与 MCP 页面，附内部 Mac 包。插件包未随本次发布，PR [#114](https://github.com/dabaige53/sill/pull/114) 修改的 `skills/sill-cards` 文档要单独发布插件包才会生效。
+2026-11-08 发布云端 Web/PWA 与 MCP 页面，附内部 Mac 包。插件包当时未随本次发布；2026-11-09 已单独更新个人插件到 1.2.38，包含 PR [#114](https://github.com/dabaige53/sill/pull/114) 及后续技能文档，见下方补充记录。
 
 1.2.37 没有上线，它的改动随本次一起发布：
 
@@ -50,3 +50,12 @@ PR [#127](https://github.com/dabaige53/sill/pull/127) 合并后打 tag `v1.2.38`
 未安装新 Mac 包，未做界面和实机验收，未在宿主内刷新工具。
 
 状态：已部署，未验收。
+
+## 个人插件补充更新 · 2026-11-09
+
+- 现有个人插件从 1.2.21 更新到 1.2.38，保留插件 ID、App ID、连接、展示配置与私人可见范围。
+- 更新 21 份技能文件，补齐摘要例外、长摘要与各类卡片示例、字段和传输说明；两份 manifest 只更新版本。
+- 旧 release：`pluginrel_6ae570f34fe48191a9ed2d1bc9ed3a78`；新 release：`pluginrel_6af11ecde3f08191a663f8a5bdc6da2f`。使用旧 release 条件更新成功，随后回读确认当前 release。
+- 完整包回读：25 份技能及支持文件逐文件与仓库一致；文件清单、App 绑定和原有展示配置保持一致。JSON/YAML、技能相对引用与 ZIP 完整性检查通过。
+- [现有个人插件](https://chatgpt.com/plugins/plugin_asdk_app_6ad0d805d3e88191a1c8902cf66af046)已保存新技能。当前聊天的技能目录可能仍显示旧缓存，尚未完成宿主刷新与实际写卡验收。
+- Web、MCP 服务和 Mac 包未因这次技能更新重新部署；上述真机与界面验收仍待执行。

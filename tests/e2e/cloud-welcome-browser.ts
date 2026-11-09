@@ -132,7 +132,7 @@ try {
 			receipts.set(key, response);
 			return route.fulfill({ json: response });
 		});
-		// @wu-test type=behavior | scope=cloud login page | protects=prevent cards from appearing before login or login controls from overflowing on narrow screens | debt=D9
+		// @wu-test type=behavior | scope=cloud login page | protects=prevent cards from appearing before login or login controls from overflowing on narrow screens | debt=flaky
 		await page.goto(base);
 		await page.locator("#password-form").waitFor();
 		assert.deepEqual(
@@ -165,7 +165,7 @@ try {
 			await page.setViewportSize({ width: 390, height: 844 });
 			assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [390, 844]);
 		}
-		// @wu-test type=integration | scope=cloud login | protects=prevent password login from failing to submit or expired links from lacking feedback | debt=D9
+		// @wu-test type=integration | scope=cloud login | protects=prevent password login from failing to submit or expired links from lacking feedback | debt=flaky
 		await page.waitForTimeout(400);
 		await page.screenshot({
 			animations: "disabled",
@@ -212,7 +212,7 @@ try {
 			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
 		);
 		assert.equal(workspace.state.preferences.stack, false);
-		// @wu-test type=behavior | scope=cloud card list | protects=prevent horizontal overflow, blocked scrolling, or details that cannot be closed | debt=D9
+		// @wu-test type=behavior | scope=cloud card list | protects=prevent horizontal overflow, blocked scrolling, or details that cannot be closed | debt=flaky
 		// The phone home bar floats over the top of main; click the margin just under it.
 		const below = await page.evaluate(() => {
 			const bar = document.querySelector("#home-top");

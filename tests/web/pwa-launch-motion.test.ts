@@ -16,7 +16,7 @@ function phoneSheet(f: ReturnType<typeof fixture>) {
 	return dialog;
 }
 
-// @wu-test type=behavior | scope=Phone sheet opening | protects=Keep the sheet opaque while its backdrop appears | debt=D6
+// @wu-test type=behavior | scope=Phone sheet opening | protects=Keep the sheet opaque while its backdrop appears | debt=impl-detail
 test("phone sheet rises opaque while its backdrop fades in over the same duration", () => {
 	const f = fixture();
 	try {
@@ -40,7 +40,7 @@ test("phone sheet rises opaque while its backdrop fades in over the same duratio
 	}
 });
 
-// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Restore the backdrop after a queued sheet is cancelled | debt=D6
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Restore the backdrop after a queued sheet is cancelled | debt=impl-detail
 test("queued phone sheet holds its dim for the waiting frame and releases it when cancelled", () => {
 	const f = fixture();
 	try {
@@ -62,7 +62,7 @@ test("queued phone sheet holds its dim for the waiting frame and releases it whe
 	}
 });
 
-// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Make the backdrop follow an interrupted drag | debt=D6
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Make the backdrop follow an interrupted drag | debt=impl-detail
 test("a drag scrub replaces a timed backdrop fade instead of seeking it", () => {
 	const f = fixture();
 	try {
@@ -85,7 +85,7 @@ test("a drag scrub replaces a timed backdrop fade instead of seeking it", () => 
 	}
 });
 
-// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Continue closing from the currently visible backdrop opacity | debt=D6
+// @wu-test type=behavior | scope=Phone sheet backdrop | protects=Continue closing from the currently visible backdrop opacity | debt=impl-detail
 test("a closing fade starts from the backdrop opacity drawn mid-entry", () => {
 	const f = fixture();
 	try {

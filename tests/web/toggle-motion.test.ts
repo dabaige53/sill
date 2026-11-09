@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./app-fixture.ts";
 
-// @wu-test type=behavior | scope=settings toggle redraw | protects=Keep the switch's visible progress when settings redraw | debt=D6
+// @wu-test type=behavior | scope=settings toggle redraw | protects=Keep the switch's visible progress when settings redraw | debt=impl-detail
 test("settings redraw preserves the running switch progress", () => {
 	const f = fixture();
 	try {
@@ -24,7 +24,7 @@ test("settings redraw preserves the running switch progress", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=settings toggle reversal | protects=Reverse the switch from its current visible position | debt=D5,D6
+// @wu-test type=behavior | scope=settings toggle reversal | protects=Reverse the switch from its current visible position | debt=over-mock,impl-detail
 test("reversing a switch retargets its current progress", () => {
 	const f = fixture();
 	try {

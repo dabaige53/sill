@@ -66,7 +66,7 @@ function fixture() {
 		refreshes: () => refreshes,
 	};
 }
-// @wu-test type=behavior | scope=reading completion | protects=Mark content read at the end and preserve the open detail | debt=D6
+// @wu-test type=behavior | scope=reading completion | protects=Mark content read at the end and preserve the open detail | debt=impl-detail
 test("reaching bottom updates immediately and does not repeatedly patch or redraw", () => {
 	const f = fixture();
 	try {

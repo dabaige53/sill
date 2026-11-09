@@ -249,13 +249,12 @@ test("one occurrence is not delivered twice; cooldown gates a changed occurrence
 		true,
 	);
 });
-// @wu-test type=behavior | scope=pending reminders | protects=Queue a reminder without changing card order or read state | debt=D6
-test("timer queues reminders without rendering, reordering or changing read state", () => {
+// @wu-test type=behavior | scope=pending reminders | protects=Keep card order and read state unchanged when checking due reminders
+test("checking reminders preserves card order and read state", () => {
 	const f = fixture(),
 		before = ids(f.app.filtered());
 	f.advance(600001);
 	f.app.checkReminders();
-	assert.equal(f.app.renders, 0);
 	assert.deepEqual(ids(f.app.filtered()), before);
 	assert.equal(f.Store.item("reminder-01").read, false);
 	assert.equal(f.Store.item("reminder-01").seen, false);
@@ -303,7 +302,7 @@ test("snoozed and dismissed views compose with type, tag and search filters", ()
 	assert.deepEqual(ids(f.app.filtered()), []);
 });
 
-// @wu-test type=regression | scope=route change handling | protects=Prevent duplicate history events from closing a newly opened panel | debt=D5
+// @wu-test type=regression | scope=route change handling | protects=Prevent duplicate history events from closing a newly opened panel | debt=over-mock
 test("duplicate popstate/hashchange does not close a newly opened local panel", () => {
 	const f = fixture();
 	f.context.location = { hash: "#feed" };

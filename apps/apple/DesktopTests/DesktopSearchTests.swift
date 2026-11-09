@@ -36,18 +36,24 @@ import Testing
     #expect(feed.tag == nil && feed.mark == nil && feed.scope == .all)
   }
 
-  // @wu-test type=behavior | scope=Feed scope and search filters | protects=Avoid retaining a duplicate status when selecting its matching scope | debt=D6
-  @Test func scopeAbsorbsMatchingStatusAndFiltersAnimate() async {
-    let (workspace, _) = await ready(["a"])
+  // @wu-test type=behavior | scope=Feed scope and search filters | protects=Avoid retaining a duplicate status when selecting its matching scope
+  @Test func scopeAbsorbsMatchingStatusWithoutRestrictingAllCards() async {
+    let (workspace, _) = await ready(["a", "b"])
+    let marked = await withCheckedContinuation { continuation in
+      workspace.change("b", ["read": .bool(true)]) { continuation.resume(returning: $0) }
+    }
+    #expect(marked)
     let feed = Feed(workspace: workspace)
-    feed.entered = true
     feed.pick(HashOption(value: .mark(.unread)), in: "")
+    #expect(feed.entries == [.card("a")])
     feed.select(.unread)
     #expect(feed.mark == nil)
+    #expect(feed.entries == [.card("a")])
     feed.select(.all)
     #expect(feed.scope == .all && feed.mark == nil)
+    #expect(feed.entries == [.card("a"), .card("b")])
     feed.search("Synthetic")
-    #expect(feed.animateChanges)
+    #expect(feed.entries == [.card("a"), .card("b")])
   }
 
   // @wu-test type=behavior | scope=Feed search type filters | protects=Show available types and clear the selected type with search

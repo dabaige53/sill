@@ -58,7 +58,7 @@ function sheetFixture() {
 	return { ...f, dialog, sheet, scroll, controls, body };
 }
 
-// @wu-test type=behavior | scope=Phone sheet expansion | protects=Preserve text scale and scroll position while expanding | debt=D6
+// @wu-test type=behavior | scope=Phone sheet expansion | protects=Preserve text scale and scroll position while expanding | debt=impl-detail
 test("phone expansion animates the visible frame and safe-area controls without scaling text", async () => {
 	const f = sheetFixture();
 	try {
@@ -94,7 +94,7 @@ test("phone expansion animates the visible frame and safe-area controls without 
 	}
 });
 
-// @wu-test type=behavior | scope=Phone sheet reversal | protects=Continue from the visible sheet position and ignore old completion | debt=D6
+// @wu-test type=behavior | scope=Phone sheet reversal | protects=Continue from the visible sheet position and ignore old completion | debt=impl-detail
 test("reversing a phone expansion starts at its drawn edges and cancellation restores layout", async () => {
 	const f = sheetFixture();
 	try {

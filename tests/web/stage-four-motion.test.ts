@@ -46,7 +46,7 @@ const rect = (left: number, top: number, width: number, height: number) => ({
 	bottom: top + height,
 });
 
-// @wu-test type=behavior | scope=AI dock collapse | protects=Preserve the draft and visible position when collapse is interrupted | debt=D6
+// @wu-test type=behavior | scope=AI dock collapse | protects=Preserve the draft and visible position when collapse is interrupted | debt=impl-detail
 test("AI collapse clips towards the clicked button and preserves unscaled content and draft", () => {
 	const f = fixture(
 		'<div id="ai-dock" style="border-radius:30px"><div class="ai-dock-surface"></div><div class="ai-dock-row"><input value="Keep draft"><span data-ai-context="one">Reference</span></div><button class="ai-dock-restore">AI</button></div>',
@@ -92,7 +92,7 @@ test("AI collapse clips towards the clicked button and preserves unscaled conten
 	}
 });
 
-// @wu-test type=behavior | scope=phone search transition | protects=Preserve focus and navigation ownership when search transition reverses | debt=D6
+// @wu-test type=behavior | scope=phone search transition | protects=Preserve focus and navigation ownership when search transition reverses | debt=impl-detail
 test("phone search follows the supplied choreography and reverses from the drawn header", () => {
 	const f = fixture(
 		'<div id="dock"><nav><button>Home</button><button>AI</button><button>Search</button></nav></div><dialog class="search"><div class="search-page-heading">Search</div><div class="search-header"><div class="search-pill"><input id="filter-search"><button class="search-clear"></button><button class="search-dictate"></button></div><button class="search-cancel">取消</button></div><div class="search-results-region"><section class="search-suggest"></section><div id="search-results"><div class="search-browse">Categories</div></div></div></dialog>',

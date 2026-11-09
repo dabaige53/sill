@@ -5,7 +5,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct DesktopInteractionTests {
-  // @wu-test type=behavior | scope=Search focus interaction | protects=Reopen suggestions without disturbing existing text focus | debt=D6
+  // @wu-test type=behavior | scope=Search focus interaction | protects=Reopen suggestions without disturbing existing text focus | debt=impl-detail
   @Test func clickingFocusedSearchReopensDismissedSuggestionsWithoutRefocusingText() {
     let shell = Shell()
     shell.focusSearch()
@@ -17,7 +17,7 @@ import Testing
     #expect(shell.searchRequest == request)
   }
 
-  // @wu-test type=behavior | scope=Desktop interaction | protects=Close the menu for search and block search behind settings | debt=D6
+  // @wu-test type=behavior | scope=Desktop interaction | protects=Close the menu for search and block search behind settings | debt=impl-detail
   @Test func ownershipAndSearchAreMutuallyExclusive() {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let shell = Shell()
@@ -44,20 +44,18 @@ import Testing
     #expect(panels.kind == nil)
   }
 
-  // @wu-test type=behavior | scope=Feed pull to refresh | protects=Start one refresh when a trackpad pull ends with zero delta | debt=D9,D6
-  @Test func zeroDeltaEndingReleasesTrackpadPull() async throws {
+  // @wu-test type=behavior | scope=Feed pull to refresh | protects=Start one refresh when a trackpad pull ends with zero delta
+  @Test func zeroDeltaEndingReleasesTrackpadPull() {
     let refresh = FeedRefresh()
     var calls = 0
     refresh.request = { _ in calls += 1 }
     #expect(refresh.receive(delta: 300, input: .began, atTop: true))
-    #expect(refresh.distance == 0, "the first edge event establishes the input origin")
     #expect(refresh.receive(delta: 300, input: .changed, atTop: true))
-    try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.05))
-    #expect(refresh.phase == .pulling)
     #expect(calls == 0)
     #expect(refresh.receive(delta: 0, input: .ended, atTop: true))
     #expect(calls == 1)
     #expect(!refresh.receive(delta: 0, input: .ended, atTop: true))
+    #expect(calls == 1)
     refresh.cancel()
   }
 
@@ -72,7 +70,6 @@ import Testing
     #expect(calls == 0)
     #expect(refresh.phase == .idle)
   }
-
 
   // @wu-test type=behavior | scope=Reader dismissal | protects=Keep a covered reader open when an old completion arrives
   @Test func coveredReaderIgnoresLateSuccess() {

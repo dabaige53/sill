@@ -193,7 +193,7 @@ try {
 		});
 		await shot(page, "desktop-dark");
 	});
-	// @wu-test type=behavior | scope=keyboard task preview | protects=prevent task completion from moving focus or changing stored task order | debt=D6
+	// @wu-test type=behavior | scope=keyboard task preview | protects=prevent task completion from moving focus or changing stored task order | debt=impl-detail
 	await run("keyboard-task-preview", { width: 1320, height: 900 }, async (page) => {
 		await page.evaluate(() => {
 			window.__app.sort = "priority";
@@ -298,7 +298,7 @@ try {
 			"the detail must retain the complete stored task order",
 		);
 	});
-	// @wu-test type=behavior | scope=pagination card focus | protects=prevent loading more cards from losing focus or jumping to the focused card | debt=D6
+	// @wu-test type=behavior | scope=pagination card focus | protects=prevent loading more cards from losing focus or jumping to the focused card | debt=impl-detail
 	await run("pagination-keeps-card-focus", { width: 1320, height: 720 }, async (page) => {
 		await preparePagination(page);
 		const title = page.locator('[data-card="review-note"] .card-title-button');
@@ -314,7 +314,7 @@ try {
 		);
 		assert.ok(await page.evaluate(() => scrollY > 0), "restoring focus jumped back to the card");
 	});
-	// @wu-test type=behavior | scope=pagination task focus | protects=prevent pagination from losing the active task or its visible state | debt=D6
+	// @wu-test type=behavior | scope=pagination task focus | protects=prevent pagination from losing the active task or its visible state | debt=impl-detail
 	await run("pagination-keeps-task-focus", { width: 1320, height: 720 }, async (page) => {
 		await preparePagination(page);
 		const title = page.locator('[data-card="review-note"] .card-title-button');
@@ -357,7 +357,7 @@ try {
 					.join() === "next-a,next-b,done-a,done-b,done-c",
 		);
 	});
-	// @wu-test type=behavior | scope=compact card density | protects=prevent compact cards from overlapping or hiding summary content | debt=D6
+	// @wu-test type=behavior | scope=compact card density | protects=prevent compact cards from overlapping or hiding summary content | debt=impl-detail
 	await run("compact-density", { width: 1720, height: 900 }, async (page) => {
 		await page.evaluate(() => {
 			window.__store.state.preferences.density = "compact";

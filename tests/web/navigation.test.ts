@@ -87,7 +87,7 @@ test("double tapping while already at the top refreshes without a fake scrolling
 	}
 });
 
-// @wu-test type=behavior | scope=Home return motion | protects=Keep long return journeys within the intended duration | debt=D6
+// @wu-test type=behavior | scope=Home return motion | protects=Keep long return journeys within the intended duration | debt=impl-detail
 test("long returns have a bounded duration instead of extending with the feed", () => {
 	const f = homeFixture(120000);
 	try {

@@ -51,7 +51,7 @@ async function scenario(name?: any, run?: any, options: any = {}) {
 		await rm(dir, { recursive: true, force: true });
 	}
 }
-// @wu-test type=behavior | scope=navigation recovery synchronization | protects=prevent navigation checks from depending on fixed animation delays | debt=D9
+// @wu-test type=behavior | scope=navigation recovery synchronization | protects=prevent navigation checks from depending on fixed animation delays | debt=flaky
 const settle = (page?: any) => page.waitForTimeout(600);
 const close = async (page?: any) => {
 	await page.keyboard.press("Escape");

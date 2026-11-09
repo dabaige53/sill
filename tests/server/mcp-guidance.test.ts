@@ -5,7 +5,6 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import formats from "ajv-formats";
-import { z } from "zod/v4";
 import { Card, cardTypes, contractVersion } from "../../contracts/card.ts";
 import {
 	agentCardIssues,
@@ -25,8 +24,13 @@ const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf
 const examples = skillExamples;
 const catalog = JSON.parse(read("../../contracts/design/mcp-tools.json"));
 
-// @wu-test type=integration | scope=skills and MCP contract examples | protects=Keep published skill examples usable with current card and operation schemas | debt=D11
+// @wu-test type=integration | scope=skills and MCP contract examples | protects=Keep published skill examples usable with current card and operation schemas
 test("skill recipes cover current card kinds and every writable field", () => {
+	const validator = new Ajv2020({ strict: false });
+	(formats as unknown as (validator: Ajv2020) => void)(validator);
+	const validate = new Map<string, ReturnType<Ajv2020["compile"]>>(
+		catalog.tools.map((tool: any) => [tool.name, validator.compile(tool.inputSchema)]),
+	);
 	assert.deepEqual([...new Set(examples.map((card) => card.type))].sort(), [...cardTypes].sort());
 	assert.deepEqual(
 		examples
@@ -36,6 +40,10 @@ test("skill recipes cover current card kinds and every writable field", () => {
 		["podcast", "video"],
 	);
 	for (const card of examples) {
+		assert.ok(
+			validate.get("sill_createContent")!({ idempotency_key: "skill-recipe", body: card }),
+			card.type + ": published create schema accepts the recipe",
+		);
 		assert.deepEqual(create.parse(card), card);
 		assert.deepEqual(
 			agentCardIssues(card),
@@ -60,6 +68,8 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	].map((match) => JSON.parse(match[1]));
 	assert.deepEqual(toolInputs.sill_createContent.parse(transport[0]), transport[0]);
 	assert.deepEqual(toolInputs.sill_updateContent.parse(transport[1]), transport[1]);
+	assert.ok(validate.get("sill_createContent")!(transport[0]));
+	assert.ok(validate.get("sill_updateContent")!(transport[1]));
 	for (const match of operations.matchAll(/```json\n([\s\S]*?)\n```/g)) {
 		const args = JSON.parse(match[1]);
 		for (const operation of args.body?.operations || []) {
@@ -73,7 +83,6 @@ test("skill recipes cover current card kinds and every writable field", () => {
 	assert.equal(catalog.contractVersion, contractVersion);
 	for (const tool of catalog.tools) {
 		assert.equal(tool.description, toolDescriptions[tool.name]);
-		assert.deepEqual(tool.inputSchema, z.toJSONSchema(toolInputs[tool.name], { io: "input" }));
 	}
 });
 

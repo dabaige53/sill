@@ -21,15 +21,15 @@ test("refresh readiness measures visible travel and the curve has no resistance 
 	assert.equal(refreshBand(refreshUnband(caught)), caught, "regrab starts at the drawn position");
 });
 
-// @wu-test type=behavior | scope=refreshWheel | protects=Keep accepted pull distance independent of wheel event batching | debt=D9
+// @wu-test type=behavior | scope=refreshWheel | protects=Keep accepted pull distance independent of wheel event batching
 test("one wheel event only establishes intent and accepted distance is independent of event caps", () => {
-	const single = refreshWheel();
+	const single = refreshWheel(() => 0);
 	assert.deepEqual(single.feed(240, true), { phase: "start", distance: 0 });
 	for (const batches of [
 		[30, 30, 30, 30],
 		[60, 60],
 	]) {
-		const wheel = refreshWheel();
+		const wheel = refreshWheel(() => 0);
 		wheel.feed(20, true);
 		let distance = 0;
 		for (const delta of batches) distance = wheel.feed(delta, true).distance;
@@ -37,9 +37,9 @@ test("one wheel event only establishes intent and accepted distance is independe
 	}
 });
 
-// @wu-test type=behavior | scope=refreshWheel release | protects=Release only after sustained wheel decay and ignore the remaining tail | debt=D9
+// @wu-test type=behavior | scope=refreshWheel release | protects=Release only after sustained wheel decay and ignore the remaining tail
 test("a single smaller wheel event cannot release, renewed effort resets decay, and tail cannot rearm", () => {
-	const wheel = refreshWheel();
+	const wheel = refreshWheel(() => 0);
 	wheel.feed(100, true);
 	assert.equal(wheel.feed(80, true).phase, "pull");
 	assert.equal(wheel.feed(110, true).phase, "pull", "renewed effort takes ownership");
@@ -50,9 +50,9 @@ test("a single smaller wheel event cannot release, renewed effort resets decay, 
 	assert.equal(wheel.feed(10, true).phase, "ignore");
 });
 
-// @wu-test type=behavior | scope=refreshWheel intent | protects=Avoid starting refresh from scrolling inertia at the top | debt=D9
+// @wu-test type=behavior | scope=refreshWheel intent | protects=Avoid starting refresh from scrolling inertia at the top
 test("ordinary scrolling coasting into the top cannot start refresh", () => {
-	const wheel = refreshWheel();
+	const wheel = refreshWheel(() => 0);
 	wheel.feed(100, false);
 	assert.equal(wheel.feed(80, true).phase, "ignore");
 	assert.equal(wheel.feed(60, true).phase, "ignore");

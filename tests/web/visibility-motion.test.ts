@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { fixture } from "./visibility-motion-fixture.ts";
 
-// @wu-test type=behavior | scope=task press feedback | protects=Cancel pointer feedback without triggering a task click | debt=D6
+// @wu-test type=behavior | scope=task press feedback | protects=Cancel pointer feedback without triggering a task click | debt=impl-detail
 test("task press moves only its mark, resumes from the drawn scale, and cancels without a click", () => {
 	const f = fixture();
 	try {
@@ -46,7 +46,7 @@ test("task press moves only its mark, resumes from the drawn scale, and cancels 
 		f.dom.window.close();
 	}
 });
-// @wu-test type=behavior | scope=sliding chrome visibility | protects=Restore the correct visible state after chrome moves | debt=D6
+// @wu-test type=behavior | scope=sliding chrome visibility | protects=Restore the correct visible state after chrome moves | debt=impl-detail
 test("sliding glass chrome does not start an opacity animation and restores visibility", async () => {
 	const f = fixture();
 	try {
@@ -69,7 +69,7 @@ test("sliding glass chrome does not start an opacity animation and restores visi
 		f.dom.window.close();
 	}
 });
-// @wu-test type=behavior | scope=desktop header reversal | protects=Keep the header visible after a rapid hide and show | debt=D6
+// @wu-test type=behavior | scope=desktop header reversal | protects=Keep the header visible after a rapid hide and show | debt=impl-detail
 test("desktop header restores and retargets after scrolling without opacity tracks", async () => {
 	const f = fixture();
 	try {
@@ -194,7 +194,7 @@ test("menu reversal keeps the latest state and keyboard closing is immediate", a
 	}
 });
 
-// @wu-test type=behavior | scope=host and pseudo-element motion | protects=Keep host press feedback independent of pseudo-element motion | debt=D6
+// @wu-test type=behavior | scope=host and pseudo-element motion | protects=Keep host press feedback independent of pseudo-element motion | debt=impl-detail
 test("pseudo-element animation neither cancels nor writes the host transform", async () => {
 	const f = fixture();
 	try {
@@ -215,7 +215,7 @@ test("pseudo-element animation neither cancels nor writes the host transform", a
 	}
 });
 
-// @wu-test type=behavior | scope=card entry cancellation | protects=Prevent a canceled card entry from reappearing | debt=D6
+// @wu-test type=behavior | scope=card entry cancellation | protects=Prevent a canceled card entry from reappearing | debt=impl-detail
 test("queued card entry waits for layout and canceled entry never revives", () => {
 	const f = fixture();
 	try {

@@ -12,7 +12,7 @@ export async function runRailMaterial({
 	scenario: any;
 	touch: any;
 }) {
-	// @wu-test type=behavior | scope=rail notices | protects=prevent interrupted notice dismissal from hiding active feedback | debt=D6,D9
+	// @wu-test type=behavior | scope=rail notices | protects=prevent interrupted notice dismissal from hiding active feedback | debt=impl-detail,flaky
 	await scenario(
 		"rail notices fade and survive interrupted dismissal",
 		async (page) => {
@@ -73,7 +73,7 @@ export async function runRailMaterial({
 		phone,
 	);
 
-	// @wu-test type=behavior | scope=phone navigation visibility | protects=prevent scrolling or interruption from leaving navigation inaccessible | debt=D6,D9
+	// @wu-test type=behavior | scope=phone navigation visibility | protects=prevent scrolling or interruption from leaving navigation inaccessible | debt=impl-detail,flaky
 	await scenario(
 		"capsule fades during scrolling, pause and interruption",
 		async (page) => {
@@ -169,7 +169,7 @@ export async function runRailMaterial({
 		);
 	}
 
-	// @wu-test type=behavior | scope=detail layout | protects=prevent long card metadata from overflowing or overlapping content | debt=D9
+	// @wu-test type=behavior | scope=detail layout | protects=prevent long card metadata from overflowing or overlapping content | debt=flaky
 	for (const width of [320, 390, 1280]) {
 		await scenario(
 			`Layout stays inside ${width}px with long titles, tags and dates`,
@@ -228,7 +228,7 @@ export async function runRailMaterial({
 		},
 		phone,
 	);
-	// @wu-test type=behavior | scope=phone drawer drag dismissal | protects=prevent short pulls from closing the drawer or long pulls from snapping back | debt=D9,D6
+	// @wu-test type=behavior | scope=phone drawer drag dismissal | protects=prevent short pulls from closing the drawer or long pulls from snapping back | debt=flaky,impl-detail
 	await scenario(
 		"Preview pulled down from its text closes on release, and a short pull glides back",
 		async (page, context) => {
@@ -291,7 +291,7 @@ export async function runRailMaterial({
 		},
 		phone,
 	);
-	// @wu-test type=behavior | scope=feed position through drawer | protects=prevent opening and closing a drawer from moving the reading position | debt=D6
+	// @wu-test type=behavior | scope=feed position through drawer | protects=prevent opening and closing a drawer from moving the reading position | debt=impl-detail
 	await scenario(
 		"Scrolled phone feed keeps its viewport and card position through a drawer",
 		async (page) => {
@@ -374,7 +374,7 @@ export async function runRailMaterial({
 		},
 		phone,
 	);
-	// @wu-test type=behavior | scope=phone drawer cancellation | protects=Restore page scrolling after canceling and closing the drawer | debt=D9
+	// @wu-test type=behavior | scope=phone drawer cancellation | protects=Restore page scrolling after canceling and closing the drawer | debt=flaky
 	await scenario(
 		"Drawer cancellation preserves data and restores the page scroll",
 		async (page, context) => {

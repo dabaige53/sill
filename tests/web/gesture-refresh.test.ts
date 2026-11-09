@@ -10,7 +10,7 @@ async function finishFeedback(f: ReturnType<typeof fixture>) {
 	for (let i = 0; i < 8; i++) await Promise.resolve();
 }
 
-// @wu-test type=behavior | scope=refresh indicator visibility | protects=prevents the refresh indicator from appearing before a pull | debt=D6
+// @wu-test type=behavior | scope=refresh indicator visibility | protects=prevents the refresh indicator from appearing before a pull | debt=impl-detail
 test("page startup keeps the disabled refresh ring invisible until a pull begins", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -288,7 +288,7 @@ test("a phone pull may start on a card's button", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=touch refresh threshold | protects=prevents short pulls or threshold crossing before release from refreshing | debt=D6
+// @wu-test type=behavior | scope=touch refresh threshold | protects=prevents short pulls or threshold crossing before release from refreshing | debt=impl-detail
 test("a 64px visible threshold commits on release and long travel keeps yielding smoothly", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -344,7 +344,7 @@ test("a 64px visible threshold commits on release and long travel keeps yielding
 	}
 });
 
-// @wu-test type=behavior | scope=direct refresh while busy | protects=prevents repeated activation from issuing concurrent refreshes | debt=D6
+// @wu-test type=behavior | scope=direct refresh while busy | protects=prevents repeated activation from issuing concurrent refreshes | debt=impl-detail
 test("direct refresh leaves cards in place and ignores repeat activation while busy", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -454,7 +454,7 @@ test("armed wheel refresh uses the short release fallback and cancels on reversa
 	}
 });
 
-// @wu-test type=behavior | scope=refresh indicator interruption | protects=prevents an old success fade from hiding a new pull indicator | debt=D5,D6
+// @wu-test type=behavior | scope=refresh indicator interruption | protects=prevents an old success fade from hiding a new pull indicator | debt=over-mock,impl-detail
 test("a new touch takes the ring over from an unfinished success fade", async () => {
 	const f = fixture({ kind: "desk", phone: true });
 	try {

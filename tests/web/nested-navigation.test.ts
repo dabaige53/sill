@@ -117,26 +117,26 @@ test("nested navigation restores exact positions, focus and reader mode through 
 	}
 });
 
-// @wu-test type=behavior | scope=Nested reader resizing | protects=Resize the child without adding a navigation layer | debt=D6
-test("resizing a child preserves the root card match and does not add a layer", () => {
+// @wu-test type=behavior | scope=Nested reader resizing | protects=Resize the child without adding a navigation layer
+test("resizing a child returns directly to its parent", async () => {
 	const f = nestedFixture();
 	try {
-		const calls: string[] = [];
-		f.motion.matchSource = (_dialog: HTMLElement, source: HTMLElement) =>
-			calls.push(source?.dataset.card || "none");
 		f.app.grid.innerHTML = '<article data-card="a"></article><article data-card="b"></article>';
 		f.app.navigate("#read/a");
 		f.app.navigate("#card/b");
 		f.app.navigate("#read/b");
 		f.app.navigate("#card/b");
-		assert.deepEqual(calls, ["a"]);
-		assert.deepEqual([...f.app.previewTrail], ["a"]);
+		assert.equal(f.app.dialog.querySelector("#modal-title").textContent, "B");
+		await f.back();
+		assert.equal(f.w.location.hash, "#read/a");
+		assert.equal(f.app.dialog.querySelector("#modal-title").textContent, "A");
+		assert.ok(f.app.dialog.querySelector("#reader-scroll"));
 	} finally {
 		f.dom.window.close();
 	}
 });
 
-// @wu-test type=behavior | scope=Nested card transition | protects=Keep the new card when an earlier exit completes | debt=D6
+// @wu-test type=behavior | scope=Nested card transition | protects=Keep the new card when an earlier exit completes | debt=impl-detail
 test("returning starts an exit over the restored parent and canceled completion cannot change a new layer", async () => {
 	const f = nestedFixture(false);
 	try {
@@ -202,7 +202,7 @@ test("returning starts an exit over the restored parent and canceled completion 
 	}
 });
 
-// @wu-test type=boundary | scope=Nested navigation account isolation | protects=Prevent reading position and parent history from crossing accounts | debt=D6
+// @wu-test type=boundary | scope=Nested navigation account isolation | protects=Prevent reading position and parent history from crossing accounts | debt=impl-detail
 test("a new account cannot recover another scope's parent or reading position", () => {
 	const f = nestedFixture();
 	try {
@@ -262,7 +262,7 @@ test("closing an expanded child returns straight to its parent without a second 
 	}
 });
 
-// @wu-test type=behavior | scope=Nested reader reopening | protects=Restore the child scroll position when reopening during exit | debt=D6
+// @wu-test type=behavior | scope=Nested reader reopening | protects=Restore the child scroll position when reopening during exit | debt=impl-detail
 test("reopening the exiting child restores its exact content position before motion resumes", async () => {
 	const f = nestedFixture(false);
 	try {
@@ -323,7 +323,7 @@ test("phone AI and search refocus without scrolling and retain native caret sele
 	}
 });
 
-// @wu-test type=behavior | scope=Phone page scroll restoration | protects=Restore the feed position after closing a phone page | debt=D6
+// @wu-test type=behavior | scope=Phone page scroll restoration | protects=Restore the feed position after closing a phone page | debt=impl-detail
 test("phone pages freeze the feed even at the top and restore its reading position", () => {
 	const f = nestedFixture();
 	try {
@@ -357,22 +357,23 @@ test("phone pages freeze the feed even at the top and restore its reading positi
 	}
 });
 
-// @wu-test type=behavior | scope=Phone reader navigation | protects=Keep linked cards in full-page reader mode | debt=D6
-test("reader cards use a modal dialog and keep full-page mode for phone links", () => {
+// @wu-test type=behavior | scope=Phone reader navigation | protects=Keep linked cards in full-page reader mode
+test("phone links preserve the reader and return to the parent content", async () => {
 	const f = nestedFixture();
 	try {
 		f.app.desktop = () => false;
 		f.app.dialog.close();
-		let modalOpens = 0;
-		f.app.dialog.showModal = function () {
-			this.open = true;
-			modalOpens++;
-		};
 		f.app.navigate("#read/a");
-		assert.equal(modalOpens, 1);
+		assert.equal(f.app.dialog.open, true);
+		assert.ok(f.app.dialog.querySelector("#reader-scroll"));
+		assert.equal(f.app.dialog.querySelector("#modal-title").textContent, "A");
 		f.app.navigate("#card/b");
-		assert.equal(f.app.modalKind, "reader");
-		assert.equal(modalOpens, 1);
+		assert.equal(f.app.dialog.open, true);
+		assert.ok(f.app.dialog.querySelector("#reader-scroll"));
+		assert.equal(f.app.dialog.querySelector("#modal-title").textContent, "B");
+		await f.back();
+		assert.equal(f.w.location.hash, "#read/a");
+		assert.equal(f.app.dialog.querySelector("#modal-title").textContent, "A");
 	} finally {
 		f.dom.window.close();
 	}

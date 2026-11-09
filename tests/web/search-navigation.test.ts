@@ -74,7 +74,7 @@ test("an empty editing search keeps its suggestions without the keyboard and und
 	}
 });
 
-// @wu-test type=behavior | scope=phone category transition | protects=Keep category content visible and noninteractive during the transition | debt=D6
+// @wu-test type=behavior | scope=phone category transition | protects=Keep category content visible and noninteractive during the transition | debt=impl-detail
 test("a phone category leaves its grid as an inert copy instead of a blank page", () => {
 	const f = fixture();
 	try {
@@ -94,7 +94,7 @@ test("a phone category leaves its grid as an inert copy instead of a blank page"
 	}
 });
 
-// @wu-test type=behavior | scope=phone search keyboard layout | protects=Restore search without a stale keyboard offset | debt=D6
+// @wu-test type=behavior | scope=phone search keyboard layout | protects=Restore search without a stale keyboard offset | debt=impl-detail
 test("search returning from a card reads the keyboard height again", () => {
 	const f = fixture();
 	try {

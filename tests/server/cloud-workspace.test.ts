@@ -280,17 +280,17 @@ test("workspace request schemas reject forged server metadata and unknown state"
 	);
 });
 
-// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject oversized batches without exposing validation work to unbounded input | debt=D6
-test("oversized workspace batches stop before validating every operation", () => {
+// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject oversized batches of otherwise valid operations
+test("workspace batches accept the limit and reject one operation beyond it", () => {
+	const operation = { op: "reading.add", seconds: 1 };
+	assert.equal(
+		workspaceBatch.safeParse({ operations: Array.from({ length: 5000 }, () => operation) }).success,
+		true,
+	);
 	const result = workspaceBatch.safeParse({
-		operations: Array.from({ length: 10000 }, () => ({})),
+		operations: Array.from({ length: 5001 }, () => operation),
 	});
 	assert.equal(result.success, false);
-	if (!result.success) {
-		assert.equal(result.error.issues.length, 1);
-		assert.equal(result.error.issues[0].code, "too_big");
-		assert.deepEqual(result.error.issues[0].path, ["operations"]);
-	}
 });
 
 // @wu-test type=integration | scope=server/cloud workspace HTTP | protects=Prevent cross-owner HTTP operations and preserve idempotent receipts

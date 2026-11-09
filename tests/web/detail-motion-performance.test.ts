@@ -37,7 +37,7 @@ function readerDialog(f: ReturnType<typeof fixture>, kind: "reader" | "preview")
 	return { dialog, frame: () => frame() };
 }
 
-// @wu-test type=behavior | scope=reader expansion | protects=prevents a visible backdrop flash during expansion | debt=D6
+// @wu-test type=behavior | scope=reader expansion | protects=prevents a visible backdrop flash during expansion | debt=impl-detail
 test("a reader growing from its preview keeps the preview dim until its surface covers the screen", async () => {
 	const f = fixture();
 	try {
@@ -60,7 +60,7 @@ test("a reader growing from its preview keeps the preview dim until its surface 
 	}
 });
 
-// @wu-test type=behavior | scope=reader expansion cancellation | protects=prevents a stale backdrop after cancellation | debt=D6
+// @wu-test type=behavior | scope=reader expansion cancellation | protects=prevents a stale backdrop after cancellation | debt=impl-detail
 test("cancelling a reader growth restores the page backdrop", () => {
 	const f = fixture();
 	try {
@@ -137,7 +137,7 @@ function readingFixture() {
 	};
 }
 
-// @wu-test type=behavior | scope=reading progress | protects=preserves the furthest reading position without writing on every scroll | debt=D6
+// @wu-test type=behavior | scope=reading progress | protects=preserves the furthest reading position without writing on every scroll | debt=impl-detail
 test("scrolling a long read writes no progress until its view is left, keeping the furthest point", () => {
 	const f = readingFixture();
 	try {
@@ -183,7 +183,7 @@ test("reaching the end saves completion at once and leaving flushes pending prog
 	}
 });
 
-// @wu-test type=behavior | scope=phone reading completion | protects=prevents completion from being lost or a stale feed from appearing after closing | debt=D5,D6
+// @wu-test type=behavior | scope=phone reading completion | protects=prevents completion from being lost or a stale feed from appearing after closing | debt=over-mock,impl-detail
 test("phone completion saves immediately and redraws the background only after its exit finishes", async () => {
 	const f = readingFixture();
 	try {
@@ -323,7 +323,7 @@ function mediaWindow() {
 	return { dom, w };
 }
 
-// @wu-test type=behavior | scope=video embed activation | protects=prevents a video embed from blocking indefinitely or starting during detail entry | debt=D6
+// @wu-test type=behavior | scope=video embed activation | protects=prevents a video embed from blocking indefinitely or starting during detail entry | debt=impl-detail
 test("the video embed waits for running detail motion, ignores loops and starts at once outside a detail", async () => {
 	const { dom, w } = mediaWindow();
 	try {

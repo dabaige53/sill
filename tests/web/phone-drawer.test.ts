@@ -95,22 +95,17 @@ function fixture(scroll = 180) {
 	};
 }
 
-// @wu-test type=behavior | scope=Phone card drawer | protects=Preserve card focus and scroll when the drawer rerenders | debt=D6
-test("Vaul opens without snap points and retains card DOM, scroll and focus", async () => {
+// @wu-test type=behavior | scope=Phone card drawer | protects=Preserve card focus and scroll when the drawer rerenders
+test("drawer rerender preserves card content, focus and scroll", () => {
 	const f = fixture();
 	try {
-		const drawer = f.dialog.querySelector("[data-vaul-drawer]");
-		assert.equal(drawer.style.animationPlayState, "");
-		assert.ok(drawer.querySelector("[data-vaul-handle]"));
 		const task = f.dialog.querySelector("#task");
 		const scroll = f.dialog.querySelector(".sheet-scroll");
-		assert.ok(f.dialog.hasAttribute("data-phone-drawer"));
-		assert.equal(f.dialog.querySelector("[data-vaul-drawer]").dataset.vaulSnapPoints, "false");
-		assert.equal(f.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
 		scroll.scrollTop = 80;
 		task.focus();
 		f.api.renderView(f.dialog, f.api.createElement("div", null, f.body));
-		assert.equal(f.dialog.querySelector("#task"), task);
+		assert.equal(f.dialog.querySelector("#modal-title").textContent, "Synthetic card");
+		assert.equal(f.dialog.querySelectorAll("#task").length, 1);
 		assert.equal(f.w.document.activeElement, task);
 		assert.equal(scroll.scrollTop, 80);
 	} finally {
@@ -140,27 +135,15 @@ test("unmount cancels a pending close so it cannot close the next card", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=Phone drawer closing | protects=Close once after the drawer finishes closing | debt=D6
-test("native close waits for Vaul and old pull gestures do not bind", () => {
+// @wu-test type=behavior | scope=Phone drawer closing | protects=Close once after the drawer finishes closing
+test("native close waits for the drawer and calls its completion once", () => {
 	const f = fixture();
 	try {
-		let bound = 0;
-		f.api.Gestures.prototype.bindPullDown.call({
-			app: f.app,
-			bindPreviewResistance() {
-				bound++;
-			},
-			bindPreviewHandle() {
-				bound++;
-			},
-			bindPreviewExpansion() {
-				bound++;
-			},
-		});
-		assert.equal(bound, 0);
 		let closed = 0;
 		f.api.flushSync(() => f.api.closePhoneDrawer(f.dialog, () => closed++));
 		assert.equal(closed, 0);
+		f.api.flushSync(() => f.clock.advance(550));
+		assert.equal(closed, 1);
 		f.api.flushSync(() => f.clock.advance(550));
 		assert.equal(closed, 1);
 	} finally {
@@ -168,7 +151,7 @@ test("native close waits for Vaul and old pull gestures do not bind", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=Phone drawer background | protects=Restore feed position and content after closing the drawer | debt=D6
+// @wu-test type=behavior | scope=Phone drawer background | protects=Restore feed position and content after closing the drawer | debt=impl-detail
 test("the scale target includes the page chrome and restores page geometry on unmount", async () => {
 	const f = fixture();
 	try {
@@ -258,7 +241,7 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 	}
 });
 
-// @wu-test type=behavior | scope=Phone drawer gesture | protects=Close a drawer with a downward drag over a scrolled feed | debt=D9,D6
+// @wu-test type=behavior | scope=Phone drawer gesture | protects=Close a drawer with a downward drag over a scrolled feed | debt=flaky,impl-detail
 test("a drawer above a scrolled feed accepts a downward drag and closes", async () => {
 	const f = fixture();
 	try {
