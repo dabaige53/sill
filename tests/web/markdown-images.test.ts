@@ -119,7 +119,11 @@ test("source anchors keep native browser navigation and use the existing host ac
 		link.dataset.id = "article";
 		f.w.document.body.append(link);
 		const actions: string[][] = [];
-		const app = { action: (...args: string[]) => actions.push(args) };
+		const opened: string[] = [];
+		const app = {
+			action: (...args: string[]) => actions.push(args),
+			openExternal: (_id: string | undefined, url: string) => opened.push(url),
+		};
 		const click = () => {
 			const event = new f.w.MouseEvent("click", { bubbles: true, cancelable: true });
 			// Dispatch without JSDOM's unrelated asynchronous navigation implementation.
@@ -131,7 +135,8 @@ test("source anchors keep native browser navigation and use the existing host ac
 		assert.deepEqual(actions, []);
 		f.w.__SILL_HOST__ = {};
 		assert.equal(click().defaultPrevented, true);
-		assert.deepEqual(actions, [["external", "article"]]);
+		assert.deepEqual(actions, []);
+		assert.deepEqual(opened, [link.href]);
 	} finally {
 		f.close();
 	}

@@ -40,6 +40,7 @@ export const appInputMethods = {
 			void this.openExternal(undefined, externalLink.href);
 			return;
 		}
+		if (externalLink?.dataset.action === "external") return;
 		// The end of a sideways drag through a stack is not a tap.
 		if (this.stackDragUntil > Date.now() && e.target.closest?.<HTMLElement>("[data-stack]")) {
 			e.preventDefault();
