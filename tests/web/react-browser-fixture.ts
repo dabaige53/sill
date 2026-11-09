@@ -35,6 +35,7 @@ export function installTimers(window: any) {
 	};
 	window.clearTimeout = (id: number) => timers.delete(id);
 	return {
+		now: () => now,
 		advance(ms: number) {
 			const end = now + ms;
 			while (timers.size) {

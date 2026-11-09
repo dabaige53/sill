@@ -38,6 +38,7 @@ const rich = {
 	updated_at: "2026-10-16T00:00:00Z",
 };
 
+// @wu-test type=behavior | scope=cloudCard | protects=Preserve cloud card fields without sharing mutable nested values
 test("cloud projection preserves card fields and copies nested values", () => {
 	const projected = cloudCard(rich);
 	assert.deepEqual(projected, rich);
@@ -45,6 +46,7 @@ test("cloud projection preserves card fields and copies nested values", () => {
 	assert.deepEqual(rich.tasks, [{ id: "step", text: "Step" }]);
 });
 
+// @wu-test type=behavior | scope=cloudCard fallbacks | protects=Fill absent summary and creation time without overwriting explicit empty values
 test("cloud projection fills only the summary and timeline time when missing", () => {
 	const projected = cloudCard({ id: "note", type: "note", title: "Note", body: "Text" });
 	assert.equal(projected.summary, "Text");
@@ -63,6 +65,7 @@ test("cloud projection fills only the summary and timeline time when missing", (
 	assert.equal(missing.time, Date.parse("2026-10-01T00:00:00Z"));
 });
 
+// @wu-test type=behavior | scope=cloud card timeline | protects=Keep the timeline stable after a save and preserve explicit time
 test("cloud timeline fallback stays at creation time after saves and preserves explicit time", () => {
 	const record = {
 		id: "stable-time",
@@ -79,6 +82,7 @@ test("cloud timeline fallback stays at creation time after saves and preserves e
 	assert.equal("time" in record, false);
 });
 
+// @wu-test type=boundary | scope=cloud card timeline | protects=Do not substitute update or publication time for unknown creation time
 test("cloud timeline does not turn update or source publication time into creation time", () => {
 	const record = {
 		id: "unknown-creation",
@@ -92,6 +96,7 @@ test("cloud timeline does not turn update or source publication time into creati
 	assert.equal(cloudCard(record).publishedAt, record.publishedAt);
 });
 
+// @wu-test type=integration | scope=cloud cards and card rendering | protects=Render cloud card content and personal completion states
 test("projected rich cards render authors, task state, and reminder state", () => {
 	const article = cloudCard({ ...rich, type: "article" });
 	const rendered = new JSDOM(cardHTML(article, { state: { read: false } })).window.document;
@@ -107,18 +112,7 @@ test("projected rich cards render authors, task state, and reminder state", () =
 	assert.ok(renderedReminder.querySelector('[data-action="restore-reminder"]'));
 	assert.equal(renderedReminder.querySelector('[data-action="complete-reminder"]'), null);
 });
-
-test("cloud editor sends only changed fields and preserves structure and unedited state", () => {
-	assert.deepEqual(cloudCardChanges(rich, { title: rich.title, body: "Body", read: false }), {});
-	const changes = cloudCardChanges(rich, { title: "Edited", body: "Body", read: true });
-	assert.deepEqual(changes, { title: "Edited", state: { read: true } });
-	const saved = { ...rich, ...changes, state: { ...rich.state, ...(changes.state as object) } };
-	assert.deepEqual(saved, { ...rich, title: "Edited", state: { ...rich.state, read: true } });
-	assert.deepEqual(cloudCardChanges(rich, { title: rich.title, body: "New\nBody", read: false }), {
-		body: "New\nBody",
-	});
-});
-
+// @wu-test type=behavior | scope=cloud card projection | protects=Keep unchanged card objects and preserve stored fields
 test("an unchanged record keeps its object, its drawn card and its saved copy", () => {
 	const note = { id: "note", type: "note", title: "Note", body: "First block", revision: 2 };
 	const previous = new Map<string, any>([

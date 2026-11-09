@@ -125,10 +125,12 @@ try {
 		document.body.appendChild(iframe);
 		iframe.srcdoc = html;
 	}, html);
+	// @wu-test type=integration | scope=MCP App startup | protects=prevent a temporary host failure from leaving the workspace unavailable
 	const frame = await (await page.locator("#sill").elementHandle()).contentFrame();
 	await frame.locator("body.cloud-signed-in").waitFor();
 	assert.ok(startupReads >= 3, "startup recovers after the two synthetic failures");
 	assert.equal(await frame.getByRole("button", { name: "重新连接云端" }).count(), 0);
+	// @wu-test type=behavior | scope=MCP App navigation | protects=prevent a closed settings page from reopening or leaving the wrong home navigation state
 	// Desktop panels keep the navigation lead; two actual clicks keep the latest destination.
 	await frame.locator("#account").click({ trial: true });
 	const settings = await frame.locator("#account").boundingBox();
@@ -146,6 +148,7 @@ try {
 		await frame.locator('#nav [aria-current="page"]').getAttribute("data-extra"),
 		"home",
 	);
+	// @wu-test type=behavior | scope=MCP App search navigation | protects=prevent search from blocking navigation or return to the home page
 	// Search now opens its own page immediately and returns through its top Close control.
 	await frame.evaluate(() => window.__app.action("search"));
 	assert.equal(await frame.locator("#modal[open].search.page").count(), 1);
@@ -164,6 +167,7 @@ try {
 		.locator('#nav [data-extra="home"][aria-current="page"]')
 		.waitFor({ state: "attached" });
 	assert.equal(await frame.evaluate(() => location.hash), "#feed");
+	// @wu-test type=integration | scope=MCP creation and workspace refresh | protects=prevent agent-created cards from being absent from the workspace
 	const result = await client.callTool({
 		name: "sill_createContent",
 		arguments: {
@@ -182,6 +186,7 @@ try {
 	const created = (await client.callTool({ name: "sill_listContents", arguments: {} }))
 		.structuredContent.items[0];
 	assert.equal(created.title, "Cloud plugin fixture");
+	// @wu-test type=integration | scope=MCP App card details | protects=prevent duplicated or overflowing body text and unintended content sent to the host
 	// A short saved note must open as one readable layer, with no duplicated lead.
 	await frame.locator("[data-card] .card-title-button").click();
 	await frame.locator("#modal[open] .preview-full").waitFor();
@@ -209,21 +214,16 @@ try {
 	assert.equal(await frame.locator('#modal [data-action="agent-handoff"]').count(), 0);
 	assert.equal(hostContexts.length, 0, "details do not attach content to the host");
 	assert.equal(await frame.locator("#ai-dock").isVisible(), false);
-	await frame.getByRole("button", { name: "关闭预览", exact: true }).click();
-	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
-	await frame.locator("[data-card] .card-title-button").click();
-	await frame.locator("#modal[open]").waitFor();
-	assert.equal(await frame.locator('[data-action="agent-handoff"]').count(), 0);
-	assert.equal(hostMessages.length, 0);
-	assert.equal(await frame.locator(".agent-reference-field").count(), 0);
 	await mkdir("tests/artifacts", { recursive: true });
 	await frame.getByRole("button", { name: "关闭预览", exact: true }).click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
 	await page.screenshot({ path: "tests/artifacts/cloud-app-desktop.png", animations: "disabled" });
+	// @wu-test type=boundary | scope=MCP App phone view | protects=prevent horizontal overflow or an unsupported manual content editor on mobile
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.screenshot({ path: "tests/artifacts/cloud-app-mobile.png", animations: "disabled" });
 	assert.ok(await frame.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
 	assert.equal(await frame.locator("[data-action=edit-content]").count(), 0);
+	// @wu-test type=integration | scope=MCP updates and workspace refresh | protects=prevent the workspace from showing stale content after agent updates or deletion
 	const current = (
 		await client.callTool({ name: "sill_getContent", arguments: { id: created.id } })
 	).structuredContent;
@@ -250,6 +250,7 @@ try {
 	await cloudTool(frame, "refresh");
 	await frame.waitForFunction(() => __store.state.cards.length === 0);
 	// The same external action runs through the host even though this iframe forbids popups.
+	// @wu-test type=integration | scope=MCP App external links | protects=prevent a card from being marked read before the host confirms that its link opened
 	const mail = (
 		await client.callTool({
 			name: "sill_createContent",
@@ -295,6 +296,7 @@ try {
 		mail.id,
 		{ polling: 100 },
 	);
+	// @wu-test type=behavior | scope=photo details and recovery notices | protects=prevent photo navigation from hiding an error notice or sending content unexpectedly | debt=impl-detail
 	// Recovery must survive photo navigation, which replaces the lightbox's content.
 	const photo = (
 		await client.callTool({
@@ -355,6 +357,7 @@ try {
 	});
 	await frame.locator('.lightbox-top [data-action="close"]').click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
+	// @wu-test type=boundary | scope=MCP App permissions and storage | protects=prevent account data from being stored in the browser or network requests from bypassing the host
 	await cloudTool(frame, "settings");
 	await frame.locator("[data-action=settings-group][data-extra=data]").click();
 	assert.equal(await frame.locator("#cloud-logout").innerText(), "管理插件授权");

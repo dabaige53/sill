@@ -58,6 +58,7 @@ async function recordLayout(page?: any, width?: any) {
 			headless: true,
 			...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 		});
+		// @wu-test type=integration | scope=browser scenario runner | protects=prevent page errors or unexpected external requests from being reported as passing
 		async function scenario(name?: any, fn?: any, options: any = {}, entry: any = "/index.html") {
 			const context = await browser.newContext({
 				viewport: { width: 1440, height: 1000 },
@@ -116,6 +117,7 @@ async function recordLayout(page?: any, width?: any) {
 			page.evaluate((id?: any) => JSON.parse(localStorage.getItem("sill-v1")).items[id], id);
 		const card = (page?: any, id?: any) => page.locator(`[data-card="${id}"]`);
 		const openCard = (page?: any, id?: any) => card(page, id).locator(".card-title-button").click();
+		// @wu-test type=behavior | scope=inline card action checks | protects=prevent inline actions from opening details or changing reading state
 		const feedUnopened = async (page?: any, id?: any) => {
 			assert.equal(
 				await page.locator("#modal").evaluate((n?: any) => n.open),
@@ -131,6 +133,7 @@ async function recordLayout(page?: any, width?: any) {
 			assert.equal(item?.seen || false, false, "inline action marked the card as seen");
 			assert.equal(item?.read || false, false, "inline action marked the card as read");
 		};
+		// @wu-test type=behavior | scope=touch target checks | protects=prevent reminder controls from being too small or extending beyond the screen
 		const touchTargets = async (locator?: any, width?: any) => {
 			const boxes = await locator.evaluateAll((nodes?: any) =>
 				nodes.map((n?: any) => {

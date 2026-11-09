@@ -29,6 +29,7 @@ export function mount(host) {
 	globalName: "SummaryTest",
 }).outputFiles[0].text;
 
+// @wu-test type=behavior | scope=detail summary folding | protects=prevents summary text from being clipped or hidden after reopening | debt=impl-detail
 test("folding retains nodes and measures layout height independently of the opening scale", async () => {
 	const dom = new JSDOM(
 		'<dialog class="preview"><div class="preview-sheet"><div id="root"></div></div></dialog>',

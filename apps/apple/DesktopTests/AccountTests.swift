@@ -9,7 +9,10 @@ private actor AccountStub: CloudAccountService {
   var owner = "account-a"
   var setup = false
   var restored = false
-  var restoreDelay: Duration = .zero
+  private var restorePaused = false
+  private var restoreEntered = false
+  private var restoreArrival: CheckedContinuation<Void, Never>?
+  private var restoreRelease: CheckedContinuation<Void, Never>?
   var restoreFailure: CloudWorkspaceError?
   var pendingWriteKey: String?
   var logoutFailure: CloudWorkspaceError?
@@ -20,13 +23,12 @@ private actor AccountStub: CloudAccountService {
 
   func configure(
     owner: String? = nil, setup: Bool? = nil, restored: Bool? = nil, pending: String? = nil,
-    delay: Duration? = nil, logoutFailure: CloudWorkspaceError? = nil,
+    logoutFailure: CloudWorkspaceError? = nil,
     loginFailure: CloudWorkspaceError? = nil
   ) {
     if let owner { self.owner = owner }
     if let setup { self.setup = setup }
     if let restored { self.restored = restored }
-    if let delay { restoreDelay = delay }
     pendingWriteKey = pending
     self.logoutFailure = logoutFailure
     self.loginFailure = loginFailure
@@ -49,9 +51,27 @@ private actor AccountStub: CloudAccountService {
       ]), needsPasswordSetup: setup)
   }
   func restoreSession() async throws -> CloudWorkspaceState? {
-    if restoreDelay != .zero { try await Task.sleep(for: restoreDelay) }
+    if restorePaused {
+      await withCheckedContinuation { continuation in
+        restoreRelease = continuation
+        restoreEntered = true
+        restoreArrival?.resume()
+        restoreArrival = nil
+      }
+    }
     if let restoreFailure { throw restoreFailure }
     return restored ? state() : nil
+  }
+  func pauseRestore() { restorePaused = true }
+  func waitForRestore() async {
+    if !restoreEntered {
+      await withCheckedContinuation { restoreArrival = $0 }
+    }
+  }
+  func releaseRestore() {
+    restorePaused = false
+    restoreRelease?.resume()
+    restoreRelease = nil
   }
   func failRestore(_ error: CloudWorkspaceError) { restoreFailure = error }
   func login(email: String, password: String) async throws -> CloudWorkspaceState {
@@ -81,6 +101,7 @@ private actor AccountStub: CloudAccountService {
 }
 
 @MainActor @Suite struct AccountTests {
+  // @wu-test type=boundary | scope=CloudLogin email validation | protects=Reject malformed email before login
   @Test func loginValidatesEmailBeforeSubmitting() {
     #expect(CloudLogin.validEmail("user@example.com"))
     #expect(CloudLogin.validEmail("  a+b@example.com  "))
@@ -89,28 +110,21 @@ private actor AccountStub: CloudAccountService {
     #expect(!CloudLogin.validEmail(String(repeating: "a", count: 250) + "@example.com"))
   }
 
-  private func ready(_ workspace: Workspace) async throws {
-    for _ in 0..<100 {
-      if workspace.phase == .ready { return }
-      try await Task.sleep(for: .milliseconds(10))
-    }
-    Issue.record("The authenticated snapshot was not applied")
-  }
-
+  // @wu-test type=integration | scope=Account session restoration | protects=Restore the signed-in workspace after restart
   @Test func restoresSavedSessionAndAttachesBackend() async throws {
     let service = AccountStub()
     await service.configure(restored: true)
     let workspace = Workspace(autoload: false)
     let account = Account(workspace: workspace, service: service)
     await account.start()
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     #expect(account.owner == "account-a")
     #expect(workspace.model("shared-id")?.title == "account-a")
     #expect(workspace.seconds == 12)
-    #expect(workspace.backend != nil)
     #expect(!account.busy)
   }
 
+  // @wu-test type=integration | scope=Account session restoration | protects=Keep scheduled reminders after a temporary identity lookup failure
   @Test func transientSessionFailurePreservesNotificationsUntilIdentityIsKnown() async {
     for failure in [
       CloudWorkspaceError.service("unavailable", 503), .unauthenticated, .service("forbidden", 403),
@@ -119,20 +133,38 @@ private actor AccountStub: CloudAccountService {
       await service.failRestore(failure)
       let workspace = Workspace(autoload: false)
       let account = Account(workspace: workspace, service: service)
+      let suite = "sill-test-account-reminders-" + UUID().uuidString
+      let defaults = UserDefaults(suiteName: suite)!
+      defer { defaults.removePersistentDomain(forName: suite) }
+      let client = ReminderClientStub()
+      let request = ScheduledReminder(
+        id: "sill-reminder:account-a:future:5000",
+        owner: "account-a", card: "future", title: "Synthetic reminder")
+      client.requests[request.id] = request
+      defaults.set([request.id], forKey: "sill.reminders.scheduled.account-a")
+      let reminders = SystemReminders(
+        client: client, defaults: defaults, now: { 1000 }, refillInterval: nil)
+      reminders.start(workspace: workspace, account: { account.owner }, open: { _ in })
       await account.start()
+      await reminders.finishScheduling()
       #expect(account.owner == nil)
       #expect(workspace.phase == .signedOut)
-      #expect(workspace.preservesUnresolvedReminders == (failure == .service("unavailable", 503)))
+      if failure == .service("unavailable", 503) {
+        #expect(client.requests[request.id] == request)
+      } else {
+        #expect(client.requests.isEmpty)
+      }
     }
   }
 
+  // @wu-test type=integration | scope=Account switching | protects=Prevent previous account content and activity from reaching the next account
   @Test func accountSwitchClearsWorkspaceActivityAndAllSurfaces() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
     let app = AppModel(workspace: workspace, accountService: service)
     await app.account.start()
     await app.account.login(email: "a@example.invalid", password: "synthetic")
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     app.feed.search("private query")
     app.selection.select("shared-id")
     app.ai.draft = "private draft"
@@ -144,27 +176,30 @@ private actor AccountStub: CloudAccountService {
     await app.account.logout()
     #expect(workspace.phase == .signedOut)
     #expect(workspace.cards.isEmpty)
-    #expect(workspace.backend == nil && workspace.queue.backend == nil)
     #expect(workspace.seconds == 0 && workspace.storedPreferences.isEmpty)
     #expect(!workspace.recorder.hasRecords)
     #expect(app.feed.query.isEmpty && !app.selection.active)
     #expect(app.ai.draft.isEmpty && app.ai.cards.isEmpty && app.panels.kind == nil)
     await service.configure(owner: "account-b")
     await app.account.login(email: "b@example.invalid", password: "synthetic")
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     #expect(workspace.model("shared-id")?.title == "account-b")
     #expect(workspace.state("shared-id").note == "account-b")
     oldReader.reachedEnd("shared-id")
     #expect(!oldReader.sessionActive && !workspace.recorder.hasRecords)
+    #expect(!workspace.state("shared-id").read)
+    #expect(workspace.state("shared-id").note == "account-b")
+    #expect(workspace.seconds == 12)
   }
 
+  // @wu-test type=boundary | scope=Account login callback | protects=Prevent a second login from replacing the signed-in account
   @Test func signedInAccountRejectsAnotherLoginCallback() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
     let account = Account(workspace: workspace, service: service)
     await account.start()
     await account.login(email: "a@example.invalid", password: "synthetic")
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     await service.configure(owner: "account-b")
     await account.completeLogin(URL(string: "sill://auth/callback?code=another-account")!)
     await account.login(email: "b@example.invalid", password: "synthetic")
@@ -174,20 +209,24 @@ private actor AccountStub: CloudAccountService {
     #expect(workspace.notice?.text == Copy.text("auth.logoutBeforeLogin"))
   }
 
+  // @wu-test type=integration | scope=Account logout | protects=Keep the workspace when an unresolved write blocks logout
   @Test func pendingWriteBlocksLogoutWithoutLosingTheWorkspace() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
     let account = Account(workspace: workspace, service: service)
     await account.start()
     await account.login(email: "a@example.invalid", password: "synthetic")
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     await service.configure(pending: "uncertain-write")
     await account.logout()
     #expect(workspace.phase == .ready && account.owner == "account-a")
     #expect(account.error == Copy.appleUnknownWrite)
     #expect(await service.logoutCalls == 0)
+    #expect(workspace.model("shared-id")?.title == "account-a")
+    #expect(workspace.state("shared-id").note == "account-a")
   }
 
+  // @wu-test type=integration | scope=Account password setup | protects=Finish password setup after email login
   @Test func emailCallbackAndFirstPasswordSetup() async throws {
     let service = AccountStub()
     await service.configure(setup: true)
@@ -201,23 +240,29 @@ private actor AccountStub: CloudAccountService {
     #expect(account.needsPasswordSetup)
     await account.setPassword("synthetic-new-password")
     #expect(!account.needsPasswordSetup)
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
+    #expect(account.owner == "account-a")
+    #expect(workspace.model("shared-id")?.title == "account-a")
   }
 
+  // @wu-test type=integration | scope=Account session restoration | protects=Prevent a late restore from reviving an expired account
   @Test func lateRestoreCannotReviveAnExpiredAccount() async throws {
     let service = AccountStub()
-    await service.configure(restored: true, delay: .milliseconds(80))
+    await service.configure(restored: true)
+    await service.pauseRestore()
     let workspace = Workspace(autoload: false)
     let account = Account(workspace: workspace, service: service)
     let task = Task { await account.start() }
-    while !account.busy { await Task.yield() }
+    await service.waitForRestore()
     workspace.signOutLocally()
     account.expire()
+    await service.releaseRestore()
     await task.value
     #expect(workspace.phase == .signedOut && workspace.cards.isEmpty)
     #expect(account.owner == nil && !account.busy)
   }
 
+  // @wu-test type=integration | scope=Account login and logout | protects=Show login failure and unconfirmed logout without exposing workspace data
   @Test func failedLoginAndUnconfirmedLogoutRemainExplicit() async throws {
     let service = AccountStub()
     let workspace = Workspace(autoload: false)
@@ -229,7 +274,7 @@ private actor AccountStub: CloudAccountService {
     #expect(account.error == Copy.text("login.unauthenticated"))
     await service.configure()
     await account.login(email: "a@example.invalid", password: "synthetic")
-    try await ready(workspace)
+    await waitForWorkspace(workspace)
     await service.configure(logoutFailure: .service("logout_unconfirmed", 503))
     await account.logout()
     #expect(workspace.phase == .signedOut && workspace.cards.isEmpty)

@@ -43,7 +43,7 @@
 已修改（未提交）：
 
 - 来源图标：品牌表加载时把每个品牌的 SVG 路径解析一次存为 `Path`，`SourceBrandShape.path(in:)` 只做缩放（[SourceMark.swift](../../../apps/apple/macOS/Design/SourceMark.swift)）。
-- 品牌匹配：品牌表加载时按键排好序，`SourceBrand.matching` 不再每次调用都排序。匹配顺序不变。
+- 品牌匹配：品牌表加载时按键排好序，`SourceBrand.matching` 使用预先排好的顺序。匹配顺序不变。
 - 滚动期间暂停卡片悬停：`FeedScroll` 在滚动位置变化时标记“正在移动”，停止变化 `gestureWheelRest`（120ms）后恢复（[Chrome.swift](../../../apps/apple/macOS/Shell/Chrome.swift)）。移动期间卡片层关闭命中测试（[FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift) `RestingHover`）。这个标记只在滚动开始和停下时各变一次，只有卡片层读取它。
 
 交互变化：滚动时卡片不跟随鼠标浮起；停下后鼠标下的卡片照常浮起。惯性滚动中点击卡片只会停住滚动，不会打开卡片，需要再点一次。下拉刷新、键盘操作和顶栏不受影响。

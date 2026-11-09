@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 import UserNotifications
 
@@ -6,6 +7,7 @@ import UserNotifications
 @testable import SillKit
 
 @MainActor struct SystemReminderTests {
+  // @wu-test type=behavior | scope=System reminder planning | protects=Schedule snoozed reminders and exclude inactive cards
   @Test func schedulingUsesSnoozeAndExcludesCompletedArchivedAndEndedCards() async throws {
     let now = 2_000_000.0
     let workspace = Workspace(autoload: false)
@@ -52,7 +54,7 @@ import UserNotifications
   }
 }
 
-@MainActor private final class ReminderClientStub: ReminderNotificationClient {
+@MainActor final class ReminderClientStub: ReminderNotificationClient {
   var requests: [String: ScheduledReminder] = [:]
   var deliveredValues: [ScheduledReminder] = []
   var attempts = 0
@@ -85,11 +87,20 @@ private actor ReminderBackendStub: WorkspaceBackend {
   nonisolated let isLocal = false
   let snapshot: Snapshot
   private var write: CheckedContinuation<Snapshot, any Error>?
-  var waiting: Bool { write != nil }
+  private var arrival: CheckedContinuation<Void, Never>?
   init(_ snapshot: Snapshot) { self.snapshot = snapshot }
   func read() async throws -> Snapshot { snapshot }
   func apply(_ operations: [WorkspaceOperation], expectedRevision: Int) async throws -> Snapshot {
-    try await withCheckedThrowingContinuation { write = $0 }
+    try await withCheckedThrowingContinuation {
+      write = $0
+      arrival?.resume()
+      arrival = nil
+    }
+  }
+  func waitForWrite() async {
+    if write == nil {
+      await withCheckedContinuation { arrival = $0 }
+    }
   }
   func reject() {
     write?.resume(throwing: StoreError.invalidSnapshot)
@@ -118,7 +129,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
 {
   let backend = ReminderBackendStub(snapshot)
   workspace.connect(backend, initial: snapshot)
-  for _ in 0..<200 where workspace.phase != .ready { try? await Task.sleep(for: .milliseconds(5)) }
+  await waitForWorkspace(workspace)
   return backend
 }
 
@@ -130,6 +141,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
 }
 
 @MainActor extension SystemReminderTests {
+  // @wu-test type=integration | scope=System reminder account lifecycle | protects=Keep pending reminders until explicit signout
   @Test func startupPreservesPendingUntilExplicitSignout() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -163,6 +175,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(defaults.stringArray(forKey: "sill.reminders.scheduled.a") == [])
   }
 
+  // @wu-test type=integration | scope=System reminder capacity | protects=Schedule future reminders after earlier deliveries
   @Test func deliveredOld64DoNotBlockFutureAndCapacityRefills() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -190,6 +203,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(reminders.deferredCount == 0)
   }
 
+  // @wu-test type=integration | scope=System reminder scheduling | protects=Retry failed reminder scheduling without losing existing requests
   @Test func partialAddFailureRetriesIdenticalPlans() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -202,15 +216,19 @@ private actor ReminderBackendStub: WorkspaceBackend {
       client: client, defaults: defaults, now: { 1000 }, refillInterval: nil)
     reminders.start(workspace: workspace, account: { "a" }, open: { _ in })
     await reminders.finishScheduling()
-    #expect(client.requests.count == 1)
+    #expect(client.requests.keys.sorted() == ["sill-reminder:a:one:5000"])
     #expect(reminders.message != nil)
     reminders.update()
     await reminders.finishScheduling()
-    #expect(client.requests.count == 3)
+    #expect(
+      client.requests.keys.sorted() == [
+        "sill-reminder:a:one:5000", "sill-reminder:a:three:7000", "sill-reminder:a:two:6000",
+      ])
     #expect(client.attempts == 4)
     #expect(reminders.message == nil)
   }
 
+  // @wu-test type=integration | scope=System reminder rollback | protects=Requeue a reminder when completion fails after its due time
   @Test func optimisticCompletionCancelsAndFailedWriteRequeuesAfterDue() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -228,18 +246,22 @@ private actor ReminderBackendStub: WorkspaceBackend {
     await reminders.finishScheduling()
     #expect(client.requests.isEmpty)
     #expect(defaults.stringArray(forKey: "sill.reminders.scheduled.a") == [])
-    for _ in 0..<200 {
-      if await backend.waiting { break }
-      try? await Task.sleep(for: .milliseconds(5))
-    }
+    await backend.waitForWrite()
     now = 6000
-    await backend.reject()
-    for _ in 0..<200 where !workspace.queue.idle { try? await Task.sleep(for: .milliseconds(5)) }
+    await withCheckedContinuation { continuation in
+      withObservationTracking {
+        _ = workspace.state("one").isWriting
+      } onChange: {
+        continuation.resume()
+      }
+      Task { await backend.reject() }
+    }
     await reminders.finishScheduling()
     #expect(!workspace.state("one").reminderDone)
     #expect(client.requests.keys.sorted() == ["sill-reminder:a:one:5000"])
   }
 
+  // @wu-test type=integration | scope=System reminder permission | protects=Schedule reminders after permission is granted
   @Test func grantingPermissionAndEnablingAgainRetriesUnchangedPlans() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -255,12 +277,13 @@ private actor ReminderBackendStub: WorkspaceBackend {
     client.allowed = true
     await reminders.setEnabled(true)
     await reminders.finishScheduling()
-    #expect(client.requests.count == 1)
+    #expect(client.requests.keys.sorted() == ["sill-reminder:a:one:5000"])
     #expect(reminders.message == nil)
   }
 }
 
 @MainActor extension SystemReminderTests {
+  // @wu-test type=integration | scope=System reminder rollback | protects=Keep the reminder scheduled after a rapid rollback
   @Test func rapidRollbackSupersedesQueuedCancellationEvenWhenPlansMatchLastSuccess() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }
@@ -280,6 +303,7 @@ private actor ReminderBackendStub: WorkspaceBackend {
     #expect(client.attempts == 1)
   }
 
+  // @wu-test type=integration | scope=System reminder capacity | protects=Keep nearest reminders and report deferred requests
   @Test func systemCapacityIsVisibleAndNextPassKeepsNearestRequests() async throws {
     let (defaults, suite) = reminderDefaults()
     defer { defaults.removePersistentDomain(forName: suite) }

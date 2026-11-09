@@ -75,6 +75,7 @@ function fixture() {
 	return { dom, w, api, viewport, selected, requests, emit, scroll, captures: () => captures };
 }
 
+// @wu-test type=behavior | scope=Photo carousel | protects=Update the selected photo from native scrolling
 test("touch and trackpad scrolling update the same selected photo without a competing JS snap", () => {
 	const f = fixture();
 	try {
@@ -94,6 +95,7 @@ test("touch and trackpad scrolling update the same selected photo without a comp
 	}
 });
 
+// @wu-test type=behavior | scope=Photo carousel | protects=Select the intended photo after mouse dragging without wrapping
 test("mouse dragging carries recent velocity, restores snapping after arrival, and never wraps", () => {
 	const f = fixture();
 	try {
@@ -122,6 +124,7 @@ test("mouse dragging carries recent velocity, restores snapping after arrival, a
 	}
 });
 
+// @wu-test type=behavior | scope=Photo carousel | protects=Restore the starting photo after cancellation and follow arrow selection
 test("cancel returns to the starting page and external arrows retarget the native scroller", () => {
 	const f = fixture();
 	try {

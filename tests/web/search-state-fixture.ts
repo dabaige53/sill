@@ -49,7 +49,8 @@ export function fixture() {
 	w.eval(bundle);
 	const { AppController, Store, Panels, cardHTML, markOpenPage } = w.SearchTest;
 	// One shared time keeps the stored order as the tie-break, whatever the clock does.
-	const now = Date.now();
+	const now = Date.UTC(2026, 10, 9, 12);
+	w.Date.now = () => now;
 	Store.state = {
 		cards: [
 			{ id: "a", type: "article", title: "Alpha", body: "Article", time: now },

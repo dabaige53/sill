@@ -16,6 +16,7 @@ struct UnknownWriteTests {
       id: "fault-note", title: "Synthetic note", body: "Synthetic body", revision: 0, original: nil)
   }
 
+  // @wu-test type=integration | scope=CardStore unknown write | protects=Verify a committed write without writing twice
   @Test func committedWriteWithLostReceiptIsVerifiedExactlyOnce() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -31,6 +32,7 @@ struct UnknownWriteTests {
     #expect(try await restarted.read().cards.count == 1)
   }
 
+  // @wu-test type=integration | scope=CardStore unknown write | protects=Retain the draft when write verification fails
   @Test func unavailableVerificationRetainsDraftAndDoesNotRetry() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -44,6 +46,7 @@ struct UnknownWriteTests {
     #expect(try await restarted.read().cards.count == 1)
   }
 
+  // @wu-test type=integration | scope=CardStore unknown write | protects=Preserve a concurrent change and retain the draft
   @Test func concurrentChangeBeforeVerificationRetainsDraftAndNewerFile() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -59,6 +62,7 @@ struct UnknownWriteTests {
     #expect(snapshot.revision == 2)
   }
 
+  // @wu-test type=integration | scope=CardStore atomic replacement | protects=Preserve original file bytes when replacement fails
   @Test func failureBeforeAtomicReplacementPreservesOriginalBytes() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }

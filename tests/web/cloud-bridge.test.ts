@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readCloudResult, readWhenReady } from "../../apps/web/cloud-bridge.ts";
 
+// @wu-test type=boundary | scope=readCloudResult and readWhenReady | protects=Preserve definite client errors without retrying or exposing untrusted details
 test("MCP validation and expired cursors remain definite client errors, not unknown writes", async () => {
 	for (const [code, status] of [
 		["invalid_request", 400],
@@ -31,6 +32,7 @@ test("MCP validation and expired cursors remain definite client errors, not unkn
 	}
 });
 
+// @wu-test type=boundary | scope=readCloudResult | protects=Treat malformed or missing results as unavailable and preserve successful content
 test("malformed or unavailable MCP results remain uncertain and successful content is preserved", () => {
 	assert.throws(
 		() => readCloudResult({ isError: true, content: [{ type: "text", text: "not JSON" }] }),

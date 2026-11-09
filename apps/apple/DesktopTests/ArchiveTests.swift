@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct ArchiveTests {
+  // @wu-test type=integration | scope=Archive restore | protects=Return a restored card to the feed without a notice
   @Test func restoreReturnsCardToDeskWithoutNotice() async throws {
     let (workspace, _) = await ready()
     let feed = Feed(workspace: workspace)

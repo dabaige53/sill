@@ -32,6 +32,7 @@ const { createWorker } = await import(
 	"data:text/javascript;base64," + Buffer.from(result.outputFiles[0].contents).toString("base64")
 );
 
+// @wu-test type=integration | scope=cloud Worker session refresh | protects=Coalesce active refreshes without leaking user clients or reusing completed refresh results
 test("Worker fetch calls share only active refresh work, without sharing user clients or retaining session results", async () => {
 	const f = await cloudFixture();
 	try {
@@ -89,6 +90,7 @@ test("Worker fetch calls share only active refresh work, without sharing user cl
 	}
 });
 
+// @wu-test type=boundary | scope=cloud Worker static assets | protects=Serve install metadata without initializing authentication or setting session cookies
 test("Home Screen assets are public metadata with correct MIME and no session work", async () => {
 	const worker = createWorker({
 		runtimeFactory: () => {

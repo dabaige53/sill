@@ -27,6 +27,7 @@ const server = http.createServer((req, res) => {
 const results: any[] = [];
 let browser: any;
 
+// @wu-test type=integration | scope=material density runner | protects=prevent page errors or unexpected external requests from passing silently
 async function run(
 	name: string,
 	viewport: { width: number; height: number },
@@ -99,6 +100,7 @@ async function geometry(page: any) {
 		}),
 	);
 }
+// @wu-test type=integration | scope=pagination fixture preparation | protects=prevent pagination scenarios from starting with the wrong visible card count
 async function preparePagination(page: any) {
 	await page.evaluate((now: number) => {
 		window.__store.insert(
@@ -116,6 +118,7 @@ async function preparePagination(page: any) {
 	}, reviewTime);
 	assert.equal(await page.locator(".feed-card").count(), 40);
 }
+// @wu-test type=behavior | scope=card layout geometry | protects=prevent cards from overlapping or overflowing the viewport
 async function noOverflow(page: any, width: number) {
 	const boxes = await geometry(page);
 	assert.ok(
@@ -157,6 +160,7 @@ try {
 		headless: true,
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 	});
+	// @wu-test type=behavior | scope=desktop card density | protects=prevent card overlap, missing summaries or incorrect task order
 	await run("desktop-content", { width: 1320, height: 900 }, async (page) => {
 		const cards = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
 		const boxes = await noOverflow(page, 1320);
@@ -189,6 +193,7 @@ try {
 		});
 		await shot(page, "desktop-dark");
 	});
+	// @wu-test type=behavior | scope=keyboard task preview | protects=prevent task completion from moving focus or changing stored task order | debt=impl-detail
 	await run("keyboard-task-preview", { width: 1320, height: 900 }, async (page) => {
 		await page.evaluate(() => {
 			window.__app.sort = "priority";
@@ -293,6 +298,7 @@ try {
 			"the detail must retain the complete stored task order",
 		);
 	});
+	// @wu-test type=behavior | scope=pagination card focus | protects=prevent loading more cards from losing focus or jumping to the focused card | debt=impl-detail
 	await run("pagination-keeps-card-focus", { width: 1320, height: 720 }, async (page) => {
 		await preparePagination(page);
 		const title = page.locator('[data-card="review-note"] .card-title-button');
@@ -308,6 +314,7 @@ try {
 		);
 		assert.ok(await page.evaluate(() => scrollY > 0), "restoring focus jumped back to the card");
 	});
+	// @wu-test type=behavior | scope=pagination task focus | protects=prevent pagination from losing the active task or its visible state | debt=impl-detail
 	await run("pagination-keeps-task-focus", { width: 1320, height: 720 }, async (page) => {
 		await preparePagination(page);
 		const title = page.locator('[data-card="review-note"] .card-title-button');
@@ -350,6 +357,7 @@ try {
 					.join() === "next-a,next-b,done-a,done-b,done-c",
 		);
 	});
+	// @wu-test type=behavior | scope=compact card density | protects=prevent compact cards from overlapping or hiding summary content | debt=impl-detail
 	await run("compact-density", { width: 1720, height: 900 }, async (page) => {
 		await page.evaluate(() => {
 			window.__store.state.preferences.density = "compact";
@@ -365,6 +373,7 @@ try {
 			"none",
 		);
 	});
+	// @wu-test type=behavior | scope=phone detail readability | protects=prevent long summary or task text from overflowing or disappearing
 	for (const width of [390, 320])
 		await run(
 			`phone-${width}`,

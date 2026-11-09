@@ -2,11 +2,11 @@
 
 更新：2026-10-27。
 
-本文保留五阶段交接当时的目录、端口、实施与检查记录。继续工作前，以[动画清单](../2026-10-28-animation-review/checklist.md)最新反馈、[设计变量](../../../design-system/tokens/foundation.json)和当前服务为准；按[动效开发与排查](../../agent/motion-development.md)确认入口。后续已采用浏览器原生回弹与 Vaul，早期 40ms／140ms 自定义回位不再作为 Web 普通滚动基线。
+本文保留五阶段交接当时的目录、端口、实施与检查记录。继续工作前，以[动画清单](../2026-10-28-animation-review/checklist.md)最新反馈、[设计变量](../../../design-system/tokens/foundation.json)和当前服务为准；按[动效开发与排查](../../agent/motion-development.md)确认入口。后续已采用浏览器原生回弹与 Vaul，早期 40ms／140ms 自定义回位不作为 Web 普通滚动基线。
 
 ## 工作位置与目标
 
-用户最新确认：创建新线程继续工作，复用当前工作树，不再创建 worktree。当前 worktree：`/Users/w/.codex/worktrees/animation-stages/sill`。原 worktree：`/Users/w/.codex/worktrees/6b13/sill`，原分支 `codex/ui`，基准提交 `c9c0c7077f1890f357cf55d954d860e56ae1c4db`。新 worktree 从同一提交建立，已逐字节核对迁入全部 tracked diff 和 3 个新增文件。改动仍未提交；原目录保留，不清理或回退。
+用户最新确认：创建新线程继续工作，复用当前工作树，不创建 worktree。当前 worktree：`/Users/w/.codex/worktrees/animation-stages/sill`。原 worktree：`/Users/w/.codex/worktrees/6b13/sill`，原分支 `codex/ui`，基准提交 `c9c0c7077f1890f357cf55d954d860e56ae1c4db`。新 worktree 从同一提交建立，已逐字节核对迁入全部 tracked diff 和 3 个新增文件。改动仍未提交；原目录保留，不清理或回退。
 
 任务：按 [完整动画清单](../2026-10-28-animation-review/checklist.md) 的五阶段顺序优化真实产品。第一、第二阶段已经实现，用户复核提出的五项反馈也已进一步修改，尚未获得最终视觉认可。第三、第四阶段已接入，下一步为用户复核和第五阶段，不能把“已实现”当作“用户已确认”。已有 ✅、原始需求和指定参考必须保留。
 

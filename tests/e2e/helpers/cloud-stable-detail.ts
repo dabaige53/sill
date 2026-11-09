@@ -9,6 +9,7 @@ export async function verifyStableDetail(
 	note: any,
 	task: any,
 ) {
+	// @wu-test type=behavior | scope=active detail during save | protects=prevent task or bookmark saves from resetting the active detail | debt=impl-detail
 	// Saving a local state change must keep the mounted detail and its media/scroll lifecycle.
 	await action("preview", task.id);
 	const detail = await page.locator(".preview-sheet").elementHandle();
@@ -34,6 +35,7 @@ export async function verifyStableDetail(
 		await saved();
 		await assertDetailRetained();
 	}
+	// @wu-test type=integration | scope=active detail during remote refresh | protects=prevent remote updates from closing or resetting the active detail | debt=impl-detail
 	// Real remote changes remain visible without replacing the detail surface.
 	for (const [id, changes] of [
 		[note.id, { body: "Remote body" }],

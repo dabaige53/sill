@@ -42,18 +42,65 @@ const asUser = (sub: any = owner, client?: any) =>
 const write = (op?: any, id?: any, payload?: any, key?: any) =>
 	`select sill_private.write_v1(${quote(op)},${id === null ? "null" : quote(id)},${quote(JSON.stringify(payload))}::jsonb,${quote(key)});`;
 const parse = (out?: any) => JSON.parse(out.split("\n").filter(Boolean)[0]);
-async function holding(name?: any) {
-	for (let n = 0; n < 100; n++) {
+/** Keep the writer's connection open until the competing session is actually blocked. */
+async function transaction(statement: string) {
+	const p = spawn(
+		"docker",
+		["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1", "-U", "postgres"],
+		{ stdio: ["pipe", "pipe", "pipe"] },
+	);
+	let signalReady!: () => void;
+	let failReady!: (reason?: unknown) => void;
+	const ready = new Promise<void>((resolve, reject) => {
+		signalReady = resolve;
+		failReady = reject;
+	});
+	let complete!: (output: string) => void;
+	let fail!: (reason?: unknown) => void;
+	const result = new Promise<string>((resolve, reject) => {
+		complete = resolve;
+		fail = reject;
+	});
+	const marker = "sill_transaction_ready";
+	let out = "",
+		err = "";
+	p.stdout.on("data", (data) => {
+		out += data;
+		if (out.includes(`\n${marker}\n`)) signalReady();
+	});
+	p.stderr.on("data", (data) => (err += data));
+	p.on("error", fail);
+	p.stdin.on("error", fail);
+	p.on("close", (code) => {
+		if (code) fail(new Error(err || out));
+		else complete(out.replace(`\n${marker}\n`, "\n").trim());
+	});
+	result.then(() => failReady(new Error("Transaction ended before its ready signal")), failReady);
+	p.stdin.write(`begin;${statement}\n\\echo ${marker}\n`);
+	await ready;
+	return {
+		result,
+		commit() {
+			p.stdin.end("commit;\n");
+		},
+		rollback() {
+			if (!p.stdin.writableEnded) p.stdin.end("rollback;\n");
+		},
+	};
+}
+async function blocked(name: string) {
+	const deadline = Date.now() + 10000;
+	while (Date.now() < deadline) {
 		if (
 			(await sql(
-				`select count(*) from pg_stat_activity where application_name=${quote(name)} and wait_event='PgSleep';`,
+				`select count(*) from pg_stat_activity where application_name=${quote(name)} and wait_event_type='Lock' and cardinality(pg_blocking_pids(pid))>0;`,
 			)) === "1"
 		)
 			return;
-		await new Promise((r?: any) => setTimeout(r, 30));
 	}
-	throw new Error("Writer never acquired lock");
+	throw new Error(`Session ${name} never waited for the uncommitted writer`);
 }
+// @wu-test type=integration | scope=PostgreSQL test entry and installer | protects=Install database drafts with restricted privileges and run PostgreSQL boundary checks
 test("PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback", {
 	timeout: 90000,
 }, async (t?: any) => {
@@ -114,7 +161,7 @@ test("PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback", {
 		for (const file of ["sill_v1_storage.sql", "sill_v1_rpc.sql"]) await install(file);
 		await runPostgresPermissions({
 			asUser,
-			holding,
+			blocked,
 			install,
 			other,
 			owner,
@@ -122,6 +169,7 @@ test("PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback", {
 			quote,
 			sql,
 			t,
+			transaction,
 			write,
 		});
 

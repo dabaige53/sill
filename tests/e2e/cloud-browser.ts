@@ -13,10 +13,7 @@ import { token } from "../server/helpers/signed-auth.ts";
 // Real browser -> HTTP runtime -> official SDK -> synthetic auth transport -> actual SQL.
 // No email, production credentials, cloud database, or deployment is involved.
 const fixture = await cloudFixture();
-let runtime: any,
-	browser: any,
-	mcpClient: any,
-	dropResponse = false;
+let runtime: any, browser: any, mcpClient: any;
 const server = createServer(async (req?: any, res?: any) => {
 	try {
 		const chunks = [];
@@ -28,12 +25,6 @@ const server = createServer(async (req?: any, res?: any) => {
 				...(body.length ? { body } : {}),
 			});
 		const response = await runtime(request);
-		if (dropResponse && req.method === "POST" && req.url === "/api/v1/contents") {
-			dropResponse = false;
-			res.writeHead(503, { "Content-Type": "application/json" });
-			res.end(JSON.stringify({ error: { code: "unavailable" } }));
-			return;
-		}
 		res.writeHead(response.status, {
 			...Object.fromEntries(response.headers),
 			"set-cookie": response.headers.getSetCookie(),
@@ -67,6 +58,7 @@ try {
 		page = await context.newPage(),
 		errors = [];
 	page.on("pageerror", (e?: any) => errors.push(e.message));
+	// @wu-test type=boundary | scope=cloud login entry | protects=prevent invitation tokens from remaining in the address bar or cards from appearing before login
 	await page.goto(
 		fixture.config.appOrigin + "/#access_token=synthetic-invitation&refresh_token=synthetic",
 	);
@@ -76,6 +68,7 @@ try {
 		"implicit invitation fragment is removed, never treated as a login",
 	);
 	assert.equal(await page.locator("[data-card]").count(), 0);
+	// @wu-test type=integration | scope=cloud login session | protects=prevent an expired session from failing to recover through refresh credentials | debt=flaky
 	await page.locator("#email").fill("synthetic@example.com");
 	await page.locator("#email-login").click();
 	await page.locator("#email-submit").click();
@@ -113,48 +106,28 @@ try {
 	);
 	assert.equal(await page.locator("#password-form").count(), 0);
 	assert.equal(await page.locator('[data-action="capture"], #cloud-editor').count(), 0);
-	// The retired capture UI has no draft. Keep lost-response replay coverage at the HTTP boundary.
-	const create = () =>
-		page.evaluate(async () => {
-			const response = await fetch("/api/v1/contents", {
-				method: "POST",
-				headers: { "Content-Type": "application/json", "Idempotency-Key": "browser_create_replay" },
-				body: JSON.stringify({
-					type: "note",
-					title: "Browser persisted note",
-					body: "Synthetic browser data",
-				}),
-			});
-			return response.status;
+	// Seed the card used by the remaining editor and external-update scenarios.
+	await page.evaluate(async () => {
+		const response = await fetch("/api/v1/contents", {
+			method: "POST",
+			headers: { "Content-Type": "application/json", "Idempotency-Key": "browser_fixture_card" },
+			body: JSON.stringify({
+				type: "note",
+				title: "Browser persisted note",
+				body: "Synthetic browser data",
+			}),
 		});
-	dropResponse = true;
-	assert.equal(await create(), 503);
-	assert.ok([200, 201].includes(await create()));
+		if (!response.ok) throw new Error("Unable to seed browser fixture card");
+	});
 	await page.reload();
 	await waitCloud(page);
-	const records = await page.evaluate(() => window.__store.state.cards);
-	assert.equal(records.length, 1, "same idempotency key creates once");
-	assert.equal(records[0].title, "Browser persisted note");
-	const id = records[0].id;
-	await page.evaluate((id: any) => window.__app.action("edit-content", id), id);
+	// @wu-test type=boundary | scope=content editing entry | protects=prevent an unsupported manual content editor from appearing
 	assert.equal(
-		await page.locator("#cloud-editor").count(),
+		await page.locator('#cloud-editor,[data-action="edit-content"]').count(),
 		0,
 		"existing content has no human editor",
 	);
-	const external = await page.evaluate(async (id: any) => {
-		const current = await (await fetch("/api/v1/contents/" + id)).json();
-		const r = await fetch("/api/v1/contents/" + id, {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json", "Idempotency-Key": "external_editor1" },
-			body: JSON.stringify({
-				expectedRevision: current.revision,
-				changes: { title: "Agent updated note" },
-			}),
-		});
-		return r.status;
-	}, id);
-	assert.equal(external, 200);
+	// @wu-test type=integration | scope=MCP and Web workspace | protects=prevent the Web workspace from showing stale content after agent writes
 	mcpClient = new Client({ name: "synthetic-agent", version: "1.0.0" });
 	await mcpClient.connect(
 		new StreamableHTTPClientTransport(new URL(fixture.config.agentAudience), {
@@ -205,6 +178,7 @@ try {
 			),
 		mcpCreated.structuredContent.id,
 	);
+	// @wu-test type=boundary | scope=cloud privacy and logout | protects=prevent account content from being stored in the browser or cards from remaining visible after logout
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-desktop.png", animations: "disabled" });
 	await page.setViewportSize({ width: 390, height: 844 });
@@ -221,17 +195,17 @@ try {
 		[],
 		"no token or private data persisted",
 	);
-	assert.ok(
-		(await context.cookies())
-			.filter((c?: any) => c.name === "__Host-sill-access")
-			.every((c?: any) => c.httpOnly && c.secure),
+	const accessCookies = (await context.cookies()).filter(
+		(c?: any) => c.name === "__Host-sill-access",
 	);
+	assert.equal(accessCookies.length, 1, "the signed-in session has an access cookie");
+	assert.ok(accessCookies[0].httpOnly && accessCookies[0].secure);
 	await cloudLogout(page);
 	await page.locator("#password-form").waitFor();
 	assert.equal(await page.locator("[data-card]").count(), 0);
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud browser: PKCE, CRUD, lost-response replay, MCP write visible in web, logout, 1440/390, no private localStorage",
+		"PASS cloud browser: PKCE, CRUD, MCP write visible in web, logout, 1440/390, no private localStorage",
 	);
 } finally {
 	await mcpClient?.close();

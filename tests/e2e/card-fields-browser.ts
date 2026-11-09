@@ -123,8 +123,10 @@ try {
 			try {
 				await page.goto(origin + "/#feed");
 				await page.waitForFunction(() => window.__app);
+				// @wu-test type=behavior | scope=mail card fields | protects=prevent a source from being displayed as a sender or omitted when the sender is missing
 				assert.equal(await page.locator('[data-card="mail-missing"] .mail-sender').count(), 0);
 				assert.match(await page.locator('[data-card="mail-missing"]').innerText(), /Inbox source/);
+				// @wu-test type=behavior | scope=media card duration | protects=prevent unknown, zero, and known durations from being confused
 				for (const [id, expected] of [
 					["podcast-missing", "时长未知"],
 					["podcast-zero", "0:00"],
@@ -133,6 +135,7 @@ try {
 					const time = page.locator(`[data-card="${id}"] .mini-player`);
 					assert.equal((await time.count()) ? await time.innerText() : "", expected);
 				}
+				// @wu-test type=behavior | scope=mail details | protects=prevent a missing sender from being displayed as a fabricated identity
 				for (const card of cards) {
 					await page.locator(`[data-card="${card.id}"] .card-title-button`).click();
 					await page.locator("#modal #modal-title").waitFor();
@@ -146,6 +149,7 @@ try {
 							card.authors?.[0]?.name || "",
 						);
 						assert.ok(!(await dialog.innerText()).includes("发给你"));
+						// @wu-test type=behavior | scope=media details | protects=prevent unavailable media from showing usable playback controls or losing body text and notes
 					} else {
 						assert.equal(
 							await dialog
@@ -172,6 +176,7 @@ try {
 						);
 					}
 					assert.equal(await dialog.locator("aside.preview-note p").innerText(), "Personal note");
+					// @wu-test type=behavior | scope=unavailable video | protects=prevent unavailable video from incorrectly updating read state or playback progress | debt=flaky
 					if (card.id === "video-prose") {
 						assert.ok(await dialog.locator(".unavailable-video img").isVisible());
 						assert.ok(await dialog.locator("[data-action='external']").count());
@@ -196,6 +201,7 @@ try {
 						() => !(document.querySelector("#modal") as HTMLDialogElement).open,
 					);
 				}
+				// @wu-test type=integration | scope=card field browser scenarios | protects=prevent page errors or unexpected external requests from being ignored
 				assert.deepEqual(errors, []);
 				assert.deepEqual(external, []);
 				results.push({ width, theme, status: "PASS" });

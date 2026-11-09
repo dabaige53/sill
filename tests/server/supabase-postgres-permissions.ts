@@ -4,7 +4,7 @@ import { verifyHiddenActionsMigration } from "./helpers/hidden-actions-migration
 
 export async function runPostgresPermissions({
 	asUser,
-	holding,
+	blocked,
 	install,
 	other,
 	owner,
@@ -12,10 +12,11 @@ export async function runPostgresPermissions({
 	quote,
 	sql,
 	t,
+	transaction,
 	write,
 }: {
 	asUser: any;
-	holding: any;
+	blocked: any;
 	install: any;
 	other: any;
 	owner: any;
@@ -23,8 +24,10 @@ export async function runPostgresPermissions({
 	quote: any;
 	sql: any;
 	t: any;
+	transaction: any;
 	write: any;
 }) {
+	// @wu-test type=boundary | scope=PostgreSQL draft RPC privileges | protects=Prevent anonymous and authenticated users from directly invoking private draft RPCs
 	await t.test("draft installs without any authenticated or anon execution privilege", async () => {
 		await assert.rejects(
 			sql(`${asUser()}select sill_private.get_content('x');`),
@@ -54,18 +57,24 @@ export async function runPostgresPermissions({
 		),
 	);
 	const id = created.body.id;
+	// @wu-test type=integration | scope=PostgreSQL concurrent card writes | protects=Prevent two writers with the same revision from both committing
 	await t.test(
 		"two same-revision writers serialize; stale writer conflicts after first commit",
-		async () => {
-			const first = sql(
-				`set application_name='sill-lock-a';${asUser()}begin;${write("update", id, { expectedRevision: 1, changes: { title: "Winner" } }, "writer_a1")}select pg_sleep(1.5);commit;`,
-			);
-			await holding("sill-lock-a");
-			const second = sql(
+		async (t: any) => {
+			const first = await transaction(
 				asUser() +
+					write("update", id, { expectedRevision: 1, changes: { title: "Winner" } }, "writer_a1"),
+			);
+			t.after(() => first.rollback());
+			const second = sql(
+				"set application_name='sill-lock-a';" +
+					asUser() +
 					write("update", id, { expectedRevision: 1, changes: { title: "Loser" } }, "writer_b1"),
 			);
-			const results = await Promise.allSettled([first, second]);
+			const pending = Promise.allSettled([first.result, second]);
+			await blocked("sill-lock-a");
+			first.commit();
+			const results = await pending;
 			assert.equal(results[0].status, "fulfilled");
 			assert.equal(results[1].status, "rejected");
 			assert.match(results[1].reason.message, /revision_conflict/);
@@ -80,28 +89,48 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
-	await t.test("concurrent duplicate create returns same receipt and creates one row", async () => {
-		const request = write("create", null, { title: "Once", type: "note" }, "duplicate1");
-		const first = sql(
-			`set application_name='sill-lock-b';${asUser()}begin;${request}select pg_sleep(1.5);commit;`,
-		);
-		await holding("sill-lock-b");
-		const [a, b] = await Promise.all([first, sql(asUser() + request)]);
-		assert.deepEqual(parse(a), parse(b));
-		assert.equal(
-			await sql("select count(*) from sill_private.contents where card->>'title'='Once';"),
-			"1",
-		);
-	});
+	// @wu-test type=integration | scope=PostgreSQL idempotent concurrent create | protects=Return one receipt and create one row for concurrent duplicate requests
+	await t.test(
+		"concurrent duplicate create returns same receipt and creates one row",
+		async (t: any) => {
+			const request = write("create", null, { title: "Once", type: "note" }, "duplicate1");
+			const first = await transaction(asUser() + request);
+			t.after(() => first.rollback());
+			const pending = Promise.all([
+				first.result,
+				sql("set application_name='sill-lock-b';" + asUser() + request),
+			]);
+			await blocked("sill-lock-b");
+			first.commit();
+			const [a, b] = await pending;
+			assert.deepEqual(parse(a), parse(b));
+			assert.equal(
+				await sql("select count(*) from sill_private.contents where card->>'title'='Once';"),
+				"1",
+			);
+		},
+	);
+	// @wu-test type=integration | scope=PostgreSQL snapshot watermark | protects=Prevent a snapshot from advancing past an uncommitted write
 	await t.test(
 		"snapshot cannot take watermark of uncommitted writer and delta includes later tombstone",
-		async () => {
-			const first = sql(
-				`set application_name='sill-lock-c';${asUser()}begin;${write("update", id, { expectedRevision: 2, changes: { title: "Committed" } }, "writer_c1")}select pg_sleep(1.5);commit;`,
+		async (t: any) => {
+			const first = await transaction(
+				asUser() +
+					write(
+						"update",
+						id,
+						{ expectedRevision: 2, changes: { title: "Committed" } },
+						"writer_c1",
+					),
 			);
-			await holding("sill-lock-c");
-			const reader = sql(`${asUser()}select sill_private.list_contents(null,null,100);`);
-			const [, page] = await Promise.all([first, reader]);
+			t.after(() => first.rollback());
+			const reader = sql(
+				`set application_name='sill-lock-c';${asUser()}select sill_private.list_contents(null,null,100);`,
+			);
+			const pending = Promise.all([first.result, reader]);
+			await blocked("sill-lock-c");
+			first.commit();
+			const [, page] = await pending;
 			const snap = JSON.parse(page);
 			assert.equal(snap.items.find((c?: any) => c.id === id).title, "Committed");
 			assert.ok(snap.sync_cursor);
@@ -116,6 +145,7 @@ export async function runPostgresPermissions({
 			assert.equal(delta.items[0].revision, 4);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL write transaction | protects=Roll back content, watermark and receipt after a transaction failure
 	await t.test(
 		"later transaction failure rolls back content, watermark and receipt together",
 		async () => {
@@ -145,6 +175,7 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
+	// @wu-test type=boundary | scope=PostgreSQL row-level security | protects=Prevent cross-owner row access and self-escalation of grants
 	await t.test("real RLS blocks cross-owner raw rows and grant self-escalation", async () => {
 		assert.equal(await sql(`${asUser(other)}select count(*) from sill_private.contents;`), "0");
 		await assert.rejects(
@@ -170,6 +201,7 @@ export async function runPostgresPermissions({
 			/row-level security/,
 		);
 	});
+	// @wu-test type=boundary | scope=PostgreSQL public RPC privileges | protects=Allow authorized public RPCs while blocking private tables and ungranted clients
 	await t.test(
 		"final boundary: public RPC works but direct tables, raw private RPC and same-owner ungranted client fail",
 		async () => {
@@ -291,6 +323,7 @@ export async function runPostgresPermissions({
 			);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL hiddenActions migration | protects=Preserve preferences and roll back invalid public RPC batches after migration
 	await t.test(
 		"hiddenActions migration preserves preferences and rejects invalid batches through public RPC",
 		async () => {

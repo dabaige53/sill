@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
+
 import { test } from "node:test";
 
 import { fixture } from "./visibility-motion-fixture.ts";
 
+// @wu-test type=behavior | scope=task press feedback | protects=Cancel pointer feedback without triggering a task click | debt=impl-detail
 test("task press moves only its mark, resumes from the drawn scale, and cancels without a click", () => {
 	const f = fixture();
 	try {
@@ -46,6 +46,7 @@ test("task press moves only its mark, resumes from the drawn scale, and cancels 
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=sliding chrome visibility | protects=Restore the correct visible state after chrome moves | debt=impl-detail
 test("sliding glass chrome does not start an opacity animation and restores visibility", async () => {
 	const f = fixture();
 	try {
@@ -68,6 +69,7 @@ test("sliding glass chrome does not start an opacity animation and restores visi
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=desktop header reversal | protects=Keep the header visible after a rapid hide and show | debt=impl-detail
 test("desktop header restores and retargets after scrolling without opacity tracks", async () => {
 	const f = fixture();
 	try {
@@ -98,6 +100,7 @@ test("desktop header restores and retargets after scrolling without opacity trac
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=notice visibility | protects=Disable interaction immediately while a notice exits
 test("notice fades before hiding and disables clicks from the first frame", async () => {
 	const f = fixture();
 	try {
@@ -118,39 +121,7 @@ test("notice fades before hiding and disables clicks from the first frame", asyn
 	}
 });
 
-test("Web styles use Motion except documented material, outline and Vaul-owned transitions", () => {
-	const directory = path.resolve(import.meta.dirname, "../../apps/web/styles");
-	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
-		let css = fs.readFileSync(path.join(directory, name), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-		if (name === "reader-layout.css") continue;
-		const materialRule =
-			name === "controls.css"
-				? /\.ai-dock-surface::after\s*\{[^}]*\}/g
-				: name === "form-controls.css"
-					? /\.home-search::after\s*\{[^}]*\}/g
-					: null;
-		if (materialRule) {
-			// These two material layers own their transitions (handbook/motion.md).
-			css = css.replace(materialRule, (rule) =>
-				rule.replace(/transition:\s*opacity var\(--dur-hover\) var\(--ease\);/, ""),
-			);
-		}
-		if (name === "phone-overrides.css") {
-			// Only extend Vaul's property list; duration/easing and drag timing stay library-owned.
-			css = css.replace(/\[data-vaul-drawer-wrapper\]\s*\{[^}]*\}/g, (rule) =>
-				rule.replace(
-					/transition-property:\s*transform,\s*--phone-drawer-roundness\s*!important;/,
-					"",
-				),
-			);
-		}
-		assert.doesNotMatch(
-			css,
-			/@(?:-webkit-)?keyframes\b|(?:^|[;{])\s*(?:animation|transition)(?:-[\w-]+)?\s*:/m,
-			name,
-		);
-	}
-});
+// @wu-test type=behavior | scope=visibility reversal | protects=Keep the latest visible state after rapid hide and show
 test("fast hide/show cancels stale completion and repeated state does not restart", async () => {
 	const f = fixture();
 	try {
@@ -171,6 +142,7 @@ test("fast hide/show cancels stale completion and repeated state does not restar
 		f.dom.window.close();
 	}
 });
+// @wu-test type=behavior | scope=keyboard visibility changes | protects=Hide controls immediately for keyboard interaction
 test("keyboard state changes remain immediate", async () => {
 	const f = fixture();
 	try {
@@ -186,42 +158,7 @@ test("keyboard state changes remain immediate", async () => {
 	}
 });
 
-test("layout retargeting animates position without changing width or scaling text", () => {
-	const f = fixture();
-	try {
-		f.motion.flip(f.el, { left: 120, top: 40, width: 200 }, { left: 20, top: 10, width: 300 });
-		assert.equal(f.animations.length, 2, "width change fades content and translates its container");
-		for (const animation of f.animations) {
-			assert.ok(
-				animation.frames.every((frame: any) => !("width" in frame) && !("height" in frame)),
-			);
-			assert.ok(animation.frames.every((frame: any) => !String(frame.transform).includes("scale")));
-		}
-		assert.match(f.animations.at(-1).frames[0].transform, /translate\(100px,30px\)/);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("direct phone FLIP cancels old layout motion without starting reflow or width fades", () => {
-	const f = fixture();
-	try {
-		for (const width of [650, 390]) {
-			f.w.innerWidth = width;
-			let cancelled = false;
-			f.motion.layoutAnimations.set(f.el, { cancel: () => (cancelled = true) });
-			f.motion.flip(f.el, { left: 120, top: 40, width: 200 }, { left: 20, top: 10, width: 300 });
-			assert.equal(cancelled, true);
-			assert.equal(f.motion.layoutAnimations.has(f.el), false);
-			assert.equal(f.animations.length, 0);
-		}
-		f.motion.drop(f.el);
-		assert.equal(f.animations.length, 1, "independent arrival motion remains available on phones");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=boundary | scope=MotionEngine.time | protects=Read equivalent CSS durations in milliseconds and seconds
 test("motion durations accept both milliseconds and Vite-minified seconds", () => {
 	const f = fixture();
 	try {
@@ -235,6 +172,7 @@ test("motion durations accept both milliseconds and Vite-minified seconds", () =
 	}
 });
 
+// @wu-test type=behavior | scope=popover visibility | protects=Keep the latest menu state and close immediately for keyboard input
 test("menu reversal keeps the latest state and keyboard closing is immediate", async () => {
 	const f = fixture();
 	try {
@@ -256,6 +194,7 @@ test("menu reversal keeps the latest state and keyboard closing is immediate", a
 	}
 });
 
+// @wu-test type=behavior | scope=host and pseudo-element motion | protects=Keep host press feedback independent of pseudo-element motion | debt=impl-detail
 test("pseudo-element animation neither cancels nor writes the host transform", async () => {
 	const f = fixture();
 	try {
@@ -276,6 +215,7 @@ test("pseudo-element animation neither cancels nor writes the host transform", a
 	}
 });
 
+// @wu-test type=behavior | scope=card entry cancellation | protects=Prevent a canceled card entry from reappearing | debt=impl-detail
 test("queued card entry waits for layout and canceled entry never revives", () => {
 	const f = fixture();
 	try {

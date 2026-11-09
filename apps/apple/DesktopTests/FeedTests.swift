@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct FeedTests {
+  // @wu-test type=behavior | scope=Task preview | protects=Keep task rows stable when completion changes
   @Test func taskRowsStayInPlaceWhenCompletionChanges() async throws {
     let (workspace, _) = await ready([], extra: [syntheticTask])
     let card = try #require(workspace.model("task"))
@@ -17,6 +18,7 @@ import Testing
     #expect(state.previewTasks(of: card).map(\.id) == before)
   }
 
+  // @wu-test type=behavior | scope=Unread feed membership | protects=Keep a read card visible until membership refresh
   @Test func readingKeepsMembers() async {
     let (workspace, _) = await ready()
     let feed = Feed(workspace: workspace)
@@ -29,6 +31,7 @@ import Testing
     #expect(!feed.entries.contains(.card("a")))
   }
 
+  // @wu-test type=behavior | scope=Feed ordering | protects=Keep completed cards in place until explicit refresh | debt=flaky
   @Test func completionKeepsOrderUntilExplicitRefresh() async throws {
     var task = try #require(syntheticTask.object)
     task["due"] = .number(2)
@@ -65,6 +68,7 @@ import Testing
     #expect(!feed.cardOrder.prefix(2).contains("reminder"))
   }
 
+  // @wu-test type=behavior | scope=Feed pagination | protects=Load all cards across pages without premature termination
   @Test func pagesBy40() async {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -77,6 +81,7 @@ import Testing
     #expect(!feed.hasMore)
   }
 
+  // @wu-test type=behavior | scope=Feed scope restoration | protects=Restore each scope's loaded cards and scroll position | debt=impl-detail
   @Test func scopesRestoreTheirOwnPageAndScrollPosition() async throws {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -105,6 +110,7 @@ import Testing
     #expect(feed.entries.count == 40)
   }
 
+  // @wu-test type=behavior | scope=Feed filter changes | protects=Return filtered results to the top and first page | debt=impl-detail
   @Test func filterChangesResetThePageAndRequestItsTop() async throws {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -133,6 +139,7 @@ import Testing
     #expect(feed.entries.count == 40)
   }
 
+  // @wu-test type=behavior | scope=Feed return to top | protects=Keep active filters and loaded cards when returning to the top | debt=impl-detail
   @Test func returningToTopKeepsAllSearchConditionsAndLoadedCards() async throws {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)

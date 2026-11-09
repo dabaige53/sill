@@ -61,6 +61,7 @@ try {
 				},
 				{ photo, theme },
 			);
+			// @wu-test type=behavior | scope=photo toolbar layout | protects=prevent photo actions from overflowing, overlapping thumbnails or using the wrong theme
 			await page.goto(origin);
 			await page.waitForFunction(() => window.__app?.layout.frame === 0);
 			await page.evaluate(() => window.__app.openCard("photo-tools"));
@@ -114,6 +115,7 @@ try {
 				quality: 85,
 				animations: "disabled",
 			});
+			// @wu-test type=behavior | scope=photo actions and tag save | protects=prevent photo navigation or tag saving from losing the selected photo or action state
 			let source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
 			await page.locator('#modal [data-action="bookmark"]').click();
 			await page.waitForFunction(() => window.__store.item("photo-tools").bookmarked === true);
@@ -140,6 +142,7 @@ try {
 				await page.evaluate(() => [...window.__store.tags(window.__store.card("photo-tools"))]),
 				["照片核对"],
 			);
+			// @wu-test type=behavior | scope=photo tag cancellation | protects=prevent cancelling tag edits from changing the card or selected photo
 			await page.locator('#modal [data-action="edit"]').click();
 			source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
 			await page.locator("#tag-new").fill("不保存");
@@ -157,6 +160,7 @@ try {
 				await page.evaluate(() => [...window.__store.tags(window.__store.card("photo-tools"))]),
 				["照片核对"],
 			);
+			// @wu-test type=behavior | scope=legacy photo action preferences | protects=prevent obsolete hidden-action preferences from removing current photo controls
 			await page.evaluate(() => {
 				window.__app.setPref("hiddenActions", ["bookmark", "tag", "later"]);
 				window.__app.openCard("photo-tools");
@@ -184,6 +188,7 @@ try {
 			await context.close();
 		}
 	}
+	// @wu-test type=integration | scope=generated photo component styling | protects=prevent embedded photo controls from inheriting an unreadable host color | debt=impl-detail
 	const page = await browser.newPage();
 	await page.setContent(
 		`<style>:root{--ink:#1d1d1f;--card:#fff}${fs.readFileSync(path.join(root, "design-system/components/bundle.css"), "utf8")}</style><div class="lightbox"><div class="float-bar glass"><button class="icon-button">x</button></div></div>`,

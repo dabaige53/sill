@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct WebAlignmentTests {
+  // @wu-test type=behavior | scope=Batch bookmarks | protects=Undo a batch bookmark while retaining selection
   @Test func batchBookmarkCanBeUndoneWithoutLosingSelection() async {
     let (workspace, _) = await ready(["a", "b"])
     let selection = Selection(workspace: workspace)
@@ -21,6 +22,7 @@ import Testing
     #expect(selection.ids == ["a", "b"])
   }
 
+  // @wu-test type=behavior | scope=Search suggestions | protects=Restrict suggestions to the active filters
   @Test func searchSuggestionsFollowTheCurrentFilters() async {
     let (workspace, _) = await ready(["a", "b"])
     let feed = Feed(workspace: workspace)
@@ -38,6 +40,7 @@ import Testing
     #expect(feed.suggestions("no matching title").isEmpty)
   }
 
+  // @wu-test type=behavior | scope=AI composer context | protects=Keep the draft and restore the composer when adding cards
   @Test func addingAIContextRestoresTheComposerAndKeepsTheDraft() {
     let context = AIContext()
     context.draft = "Keep this draft"

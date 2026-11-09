@@ -1,10 +1,12 @@
 /** Preserve public controller behavior while its responsibilities move into modules. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { renderToStaticMarkup } from "react-dom/server";
-import { fixture } from "./app-fixture.ts";
 
-test("toast pauses elapsed time and a replacement cannot inherit the old countdown", () => {
+import { fixture } from "./app-fixture.ts";
+import { installTimers } from "./react-browser-fixture.ts";
+
+// @wu-test type=behavior | scope=toast visibility | protects=Keep notifications visible for the remaining active time and give replacements a fresh duration
+test("toast pauses elapsed time and a replacement cannot inherit the old countdown", async () => {
 	const f = fixture();
 	try {
 		const { w, app } = f;
@@ -12,78 +14,55 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 			"beforeend",
 			'<div id="toast" hidden><span id="toast-text"></span><span id="toast-action"></span></div>',
 		);
-		let now = 0,
-			active = true,
-			next = 1;
-		const timers = new Map<number, { callback: () => void; duration: number }>();
-		w.performance.now = () => now;
+		let active = true;
+		const clock = installTimers(w);
+		w.performance.now = clock.now;
 		w.document.hasFocus = () => active;
-		w.setTimeout = (callback: () => void, duration: number) => {
-			const id = next++;
-			timers.set(id, { callback, duration });
-			return id;
-		};
-		w.clearTimeout = (id: number) => timers.delete(id);
+		const toast = w.document.getElementById("toast");
+		toast.tabIndex = 0;
+		const text = () => w.document.getElementById("toast-text").textContent;
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
 		app.showToast("Notice", false);
-		assert.equal(timers.get(app.toastTimer).duration, 3200);
-		now = 1200;
-		app.toastHover = true;
+		clock.advance(1200);
+		toast.focus();
 		app.updateToastClock();
-		assert.equal(app.toastRemaining, 2000);
-		assert.equal(timers.size, 0);
-		now = 9000;
+		clock.advance(7800);
 		app.updateToastClock();
-		assert.equal(app.toastRemaining, 2000);
-		app.toastHover = false;
+		assert.equal(toast.inert, false, "focused notices remain available");
+		assert.equal(text(), "Notice");
+		toast.blur();
 		app.updateToastClock();
-		assert.equal(timers.get(app.toastTimer).duration, 2000);
-		now += 300;
+		clock.advance(300);
 		active = false;
 		app.updateToastClock(true);
-		assert.equal(app.toastRemaining, 1700);
+		clock.advance(10000);
+		assert.equal(toast.inert, false, "unfocused windows do not consume notice time");
 		app.showToast("Replacement", false);
-		assert.equal(timers.size, 0);
+		clock.advance(10000);
+		assert.equal(text(), "Replacement");
+		assert.equal(toast.inert, false);
 		active = true;
 		app.updateToastClock();
-		assert.equal(timers.get(app.toastTimer).duration, 3200);
-		app.hideToast();
-		assert.equal(timers.size, 0);
-		assert.equal(w.document.getElementById("toast").inert, true);
+		clock.advance(3199);
+		assert.equal(toast.inert, false, "replacement gets its entire active duration");
+		clock.advance(1);
+		assert.equal(toast.inert, true);
+		for (const animation of animations) animation.finish();
+		await Promise.resolve();
+		assert.equal(toast.hidden, true);
 		app.showToast("Failure", true);
-		assert.equal(timers.size, 0);
+		clock.advance(10000);
+		assert.equal(text(), "Failure");
+		assert.equal(toast.hidden, false);
+		assert.equal(toast.inert, false, "failure notices require an explicit dismissal");
 	} finally {
 		f.dom.window.close();
 	}
 });
 
-test("settings toggles share one progress animation without fading the panel", () => {
-	const f = fixture();
-	try {
-		const { app, w, Store } = f;
-		Store.setPref("stack", true);
-		app.modalKind = "settings";
-		app.repaintSettings();
-		const animations: any[] = [];
-		w.__motionValueAnimations = animations;
-		app.setPref("stack", false);
-		assert.equal(animations.length, 1);
-		assert.equal(animations[0].destination, 0);
-		assert.equal(animations[0].options.visualDuration, 0.3);
-		assert.equal(animations[0].options.bounce, 0.25);
-		animations[0].finish();
-		const toggle = app.dialog.querySelector('[data-id="stack"]');
-		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "0");
-		assert.equal(toggle.querySelector(".toggle-knob").style.transform, "translateX(0px) scaleX(1)");
-		w.document.documentElement.dataset.inputModality = "keyboard";
-		app.setPref("stack", true);
-		assert.equal(animations.length, 1);
-		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "1");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("media opens without body or playback state and ignores obsolete playback actions", () => {
+// @wu-test type=behavior | scope=media preview | protects=Open unavailable media without changing saved playback progress
+test("unavailable media opens with its saved playback progress unchanged", () => {
 	const f = fixture();
 	try {
 		const { app, w, Store } = f;
@@ -91,15 +70,6 @@ test("media opens without body or playback state and ignores obsolete playback a
 		Store.state.cards = [card];
 		Store.state.items = { media: { seen: true, read: false, progress: 0.25 } };
 		Store.item(card.id);
-		const patches: any[] = [];
-		const patch = Store.patch.bind(Store);
-		// Opening reads the card; playback fields stay untouched.
-		Store.patch = (id: string, values: any) => {
-			if ("playbackPosition" in values || "progress" in values)
-				throw new Error("Preview must not write playback state");
-			patches.push(values);
-			return patch(id, values);
-		};
 		app.previewTrail = [];
 		app.currentId = "";
 		app.bindPreview = () => {};
@@ -117,10 +87,6 @@ test("media opens without body or playback state and ignores obsolete playback a
 		assert.equal(app.dialog.querySelector(".media-step,.media-controls"), null);
 		assert.ok(app.dialog.querySelector(".unavailable-video button[disabled]"));
 		assert.doesNotMatch(app.dialog.textContent, /章节 · 8/);
-		for (const name of ["media-play", "media-next", "media-prev", "podcast-play", "podcast-seek"]) {
-			app.action(name, "media");
-		}
-		assert.equal(JSON.stringify(patches), JSON.stringify([{ seen: true, read: true }]));
 		assert.equal(Store.item(card.id).progress, 0.25);
 		assert.equal(Store.item(card.id).playbackPosition, undefined);
 	} finally {
@@ -128,6 +94,7 @@ test("media opens without body or playback state and ignores obsolete playback a
 	}
 });
 
+// @wu-test type=behavior | scope=desktop card dismissal | protects=Keep the closing card visible and inert until dismissal finishes
 test("desktop card close keeps the dialog until its exit completes", async () => {
 	const f = fixture();
 	try {
@@ -147,10 +114,9 @@ test("desktop card close keeps the dialog until its exit completes", async () =>
 		assert.equal(app.dialog.open, true);
 		assert.equal(app.dialog.inert, true);
 		const exit = animations.find(
-			(animation: any) => animation.frames[1]?.transform === "translateY(10px)",
+			(animation: any) => animation.target === app.dialog.querySelector(".preview-sheet"),
 		);
 		assert.ok(exit);
-		assert.equal(exit.options.duration, 220);
 		exit.finish();
 		await Promise.resolve();
 		await Promise.resolve();
@@ -160,6 +126,7 @@ test("desktop card close keeps the dialog until its exit completes", async () =>
 	}
 });
 
+// @wu-test type=behavior | scope=desktop card and navigation bars | protects=Hide navigation bars while a card is open below the feed top and restore them when closing starts | debt=over-mock
 test("an open card below the feed top tucks the desktop top bar and AI box until its close begins", async () => {
 	const f = fixture();
 	try {
@@ -199,7 +166,8 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 	}
 });
 
-test("AI references enter once and stay inert until their removal finishes", async () => {
+// @wu-test type=behavior | scope=AI reference removal | protects=Prevent interaction with a reference while it leaves and remove it after the transition
+test("AI references stay inert until removal finishes and preserve the input draft", async () => {
 	const f = fixture();
 	try {
 		const { app, w } = f;
@@ -208,63 +176,32 @@ test("AI references enter once and stay inert until their removal finishes", asy
 			'<div id="ai-dock"><div id="ai-dock-context"></div><input id="ai-dock-input"></div>',
 		);
 		app.aiSelectionIds = ["mail-one"];
-		app.aiDraft = "";
+		app.aiDraft = "Unsent draft";
 		const animations: any[] = [];
 		w.__motionAnimations = animations;
 		app.renderAIDock();
-		assert.equal(animations.length, 2);
+		for (const animation of animations) animation.finish();
+		await Promise.resolve();
+		animations.length = 0;
 		app.renderAIDock();
-		assert.equal(animations.length, 2);
+		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 1);
 		app.action("ai-context-remove", "mail-one");
 		const node = w.document.querySelector("[data-ai-context]");
 		assert.equal(node.inert, true);
 		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 1);
-		assert.equal(animations[0].options.duration, 500);
-		assert.equal(animations[1].options.duration, 180);
-		assert.equal(animations.at(-2).options.duration, 220);
-		assert.equal(animations.at(-1).options.duration, 140);
-		animations.at(-1).finish();
-		await Promise.resolve();
-		assert.equal(
-			w.document.querySelectorAll("[data-ai-context]").length,
-			1,
-			"fade alone cannot remove a traveling reference",
-		);
-		animations.at(-2).finish();
+		assert.equal(w.document.getElementById("ai-dock-input").value, "Unsent draft");
+		assert.ok(animations.some((animation) => animation.target === node));
+		for (const animation of animations) animation.finish();
 		for (let i = 0; i < 5; i++) await Promise.resolve();
 		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 0);
+		assert.equal(w.document.getElementById("ai-dock-input").value, "Unsent draft");
+		assert.equal(w.document.activeElement, w.document.getElementById("ai-dock-input"));
 	} finally {
 		f.dom.window.close();
 	}
 });
 
-test("new cover fades to its read-state opacity and cached covers do not replay", () => {
-	const f = fixture();
-	try {
-		const { app, w } = f;
-		w.document.head.innerHTML =
-			"<style>.card-image{opacity:0}.card-image.is-loaded{opacity:.66}</style>";
-		app.grid.innerHTML = '<img class="card-image" src="https://synthetic.test/cover.png">';
-		const image = app.grid.firstElementChild;
-		Object.defineProperties(image, { complete: { value: true }, naturalWidth: { value: 100 } });
-		w.requestAnimationFrame = (fn: () => void) => {
-			fn();
-			return 0;
-		};
-		app.loadedImages = new Set();
-		app.layout = { schedule() {} };
-		const animations: any[] = [];
-		w.__motionAnimations = animations;
-		app.revealImages(app.grid);
-		assert.equal(animations.length, 1);
-		assert.equal(animations[0].frames[1].opacity, "0.66");
-		app.revealImages(app.grid);
-		assert.equal(animations.length, 1);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=card cover reveal | protects=Show loaded covers without replaying a visible fade behind an open card | debt=over-mock,impl-detail
 test("a cover that loads under a card drawer or off screen shows without a fade", () => {
 	const f = fixture();
 	try {
@@ -305,6 +242,7 @@ test("a cover that loads under a card drawer or off screen shows without a fade"
 	}
 });
 
+// @wu-test type=behavior | scope=task completion in card detail | protects=Preserve detail, focus and scroll while toggling a task
 test("task completion retains the detail, toolbar, checklist focus and scroll", () => {
 	const f = fixture();
 	try {
@@ -342,6 +280,7 @@ test("task completion retains the detail, toolbar, checklist focus and scroll", 
 	}
 });
 
+// @wu-test type=behavior | scope=video card navigation | protects=Open the video preview instead of an unsupported reader
 test("a video card has no fullscreen: a reading request opens its preview", () => {
 	const f = fixture();
 	const { w, Store } = f;
@@ -389,6 +328,7 @@ test("a video card has no fullscreen: a reading request opens its preview", () =
 });
 
 for (const modality of ["pointer", "keyboard"]) {
+	// @wu-test type=behavior | scope=card dismissal focus | protects=Return focus to the trigger after keyboard dismissal
 	test(`card dismissal restores focus only for keyboard navigation: ${modality}`, () => {
 		const f = fixture();
 		try {

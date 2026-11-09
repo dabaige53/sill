@@ -61,7 +61,7 @@
 - [Web 使用 React、TypeScript 与 Vite](../../adr/0047-react-web.md) — `0047-react-web.md`
 - [手机顶行统一，搜索改用分类与 # 标签](../../adr/0048-phone-top-row-and-search-tokens.md) — `0048-phone-top-row-and-search-tokens.md`
 - [Web 顶栏搜索与底部 AI 框](../../adr/0049-web-top-search-and-ai-dock.md) — `0049-web-top-search-and-ai-dock.md`
-- [卡片使用明确字段，不再使用混合补充信息](../../adr/0050-explicit-card-fields.md) — `0050-explicit-card-fields.md`
+- [卡片使用明确字段，不使用混合补充信息](../../adr/0050-explicit-card-fields.md) — `0050-explicit-card-fields.md`
 - [卡片 A 字号、资讯阅读与 Mac 设置弹窗](../../adr/0051-card-type-a-and-article-reading.md) — `0051-card-type-a-and-article-reading.md`
 - [登录授权页面与设置画板](../../adr/0052-auth-pages-and-settings-boards.md) — `0052-auth-pages-and-settings-boards.md`
 - [ADR 0053：桌面导航对齐与稳定搜索宽度](../../adr/0053-desktop-navigation-alignment.md) — `0053-desktop-navigation-alignment.md`
@@ -233,7 +233,7 @@
 
 ## 旧归档
 
-旧规范不再迁建备份目录。先检查独有事实与有效要求，再决定并入现行正文、保存独有证据或经确认退出工作目录。历史测试报告与重复规范分别处理。
+旧规范不迁建备份目录。先检查独有事实与有效要求，再决定并入现行正文、保存独有证据或经确认退出工作目录。历史测试报告与重复规范分别处理。
 
 | 当前文件 | 类型 | 建议处理 |
 | --- | --- | --- |

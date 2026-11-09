@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { fixture } from "./app-fixture.ts";
 
+// @wu-test type=behavior | scope=calendar export | protects=Escape event punctuation and newlines so the downloaded calendar contains one valid event
 test("calendar download preserves punctuation and newlines in one event", () => {
 	const f = fixture();
 	try {

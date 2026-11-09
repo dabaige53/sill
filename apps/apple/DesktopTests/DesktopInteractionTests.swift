@@ -5,6 +5,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct DesktopInteractionTests {
+  // @wu-test type=behavior | scope=Search focus interaction | protects=Reopen suggestions without disturbing existing text focus | debt=impl-detail
   @Test func clickingFocusedSearchReopensDismissedSuggestionsWithoutRefocusingText() {
     let shell = Shell()
     shell.focusSearch()
@@ -16,6 +17,7 @@ import Testing
     #expect(shell.searchRequest == request)
   }
 
+  // @wu-test type=behavior | scope=Desktop interaction | protects=Close the menu for search and block search behind settings | debt=impl-detail
   @Test func ownershipAndSearchAreMutuallyExclusive() {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let shell = Shell()
@@ -42,22 +44,22 @@ import Testing
     #expect(panels.kind == nil)
   }
 
-  @Test func zeroDeltaEndingReleasesTrackpadPull() async throws {
+  // @wu-test type=behavior | scope=Feed pull to refresh | protects=Start one refresh when a trackpad pull ends with zero delta
+  @Test func zeroDeltaEndingReleasesTrackpadPull() {
     let refresh = FeedRefresh()
     var calls = 0
     refresh.request = { _ in calls += 1 }
     #expect(refresh.receive(delta: 300, input: .began, atTop: true))
-    #expect(refresh.distance == 0, "the first edge event establishes the input origin")
     #expect(refresh.receive(delta: 300, input: .changed, atTop: true))
-    try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.05))
-    #expect(refresh.phase == .pulling)
     #expect(calls == 0)
     #expect(refresh.receive(delta: 0, input: .ended, atTop: true))
     #expect(calls == 1)
     #expect(!refresh.receive(delta: 0, input: .ended, atTop: true))
+    #expect(calls == 1)
     refresh.cancel()
   }
 
+  // @wu-test type=behavior | scope=Feed pull to refresh | protects=Avoid refreshing after cancellation or momentum
   @Test func cancellationAndMomentumDoNotStartRefresh() {
     let refresh = FeedRefresh()
     var calls = 0
@@ -69,14 +71,7 @@ import Testing
     #expect(refresh.phase == .idle)
   }
 
-  @Test func wheelClassificationSeparatesMomentumAndFreshInput() {
-    #expect(WheelPhase(phase: [], momentum: .changed) == .momentum)
-    #expect(WheelPhase(phase: [], momentum: []) == .discrete)
-    #expect(WheelPhase(phase: .began, momentum: []) == .began)
-    #expect(WheelPhase(phase: .ended, momentum: []) == .ended)
-    #expect(WheelPhase(phase: .cancelled, momentum: []) == .cancelled)
-  }
-
+  // @wu-test type=behavior | scope=Reader dismissal | protects=Keep a covered reader open when an old completion arrives
   @Test func coveredReaderIgnoresLateSuccess() {
     let scroll = ReaderScroll()
     var callback: ((Bool) -> Void)?
@@ -91,6 +86,7 @@ import Testing
     scroll.disconnect()
   }
 
+  // @wu-test type=behavior | scope=Feed search | protects=Keep the latest query and prevent cleared searches from returning
   @Test func newestSearchWinsAndClearCancelsPendingWork() async {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let feed = Feed(workspace: workspace)

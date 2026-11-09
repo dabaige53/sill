@@ -22,6 +22,7 @@ try {
 	const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 	page.setDefaultTimeout(8000);
 	page.on("pageerror", (e?: any) => errors.push(e.message));
+	// @wu-test type=integration | scope=local state migration | protects=prevent legacy notes, bookmarks and tasks from being lost during migration
 	await page.addInitScript(() => {
 		if (!localStorage.getItem("sill-v1"))
 			localStorage.setItem(
@@ -51,6 +52,7 @@ try {
 		await page.locator('#ai-panel,[data-action="applications"],[data-action="card-ai"]').count(),
 		0,
 	);
+	// @wu-test type=integration | scope=local browser fixture operations | protects=prevent failed fixture operations from being treated as successful
 	const apply = async (operations?: any) => {
 		const response = await fetch(origin + "/api/local/operations", {
 			method: "POST",
@@ -61,6 +63,7 @@ try {
 		assert.equal(response.status, 200, JSON.stringify(value));
 		return value;
 	};
+	// @wu-test type=integration | scope=local workspace synchronization | protects=prevent agent writes or page bookmark changes from being lost between clients
 	await apply([
 		{
 			op: "card.upsert",
@@ -88,6 +91,7 @@ try {
 	]);
 	await page.getByText("新 AI 备注", { exact: true }).waitFor();
 	assert.equal(await page.evaluate(() => window.__store.pref("density")), "compact");
+	// @wu-test type=integration | scope=local note persistence | protects=prevent a note edited in the page from being lost to the shared workspace
 	await page.getByRole("button", { name: "编辑标签与备注", exact: true }).click();
 	if (!(await page.locator("#note-editor").isVisible())) await page.locator(".note-field").click();
 	await page.locator("#note-editor").fill("页面写回给 AI");
@@ -97,6 +101,7 @@ try {
 	);
 	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.items["agent-test"].note, "页面写回给 AI");
+	// @wu-test type=integration | scope=local note conflict | protects=prevent a delayed save from replacing the edit baseline or overwriting a newer note
 	// A response started before opening the editor must not replace its baseline.
 	let releaseSave: () => void;
 	const saveGate = new Promise<void>((resolve) => {
@@ -144,22 +149,44 @@ try {
 	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
+	// @wu-test type=behavior | scope=local refresh and card layout | protects=prevent refresh from breaking the feed or cards from overflowing or overlapping
 	// Refresh has no button on the rail: the R key (or a pull at the top) runs it.
 	await page.keyboard.press("r");
 	await page.waitForFunction(() => document.querySelector("#announcer").textContent === "刷新完成");
+	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.cards.length, 31);
-	const box = await page.locator('[data-card="agent-test"]').boundingBox();
-	// Desktop columns share the spare width with no col-max cap, so check the card against the grid.
+	assert.ok(value.state.cards.some((card: any) => card.id === "agent-test"));
+	await page.locator("#feed-grid").evaluate(async (grid: HTMLElement) => {
+		await Promise.all(grid.getAnimations({ subtree: true }).map((animation) => animation.finished));
+	});
 	const grid = await page.locator("#feed-grid").evaluate((el: HTMLElement) => ({
-		width: el.clientWidth,
-		columns: Number(el.dataset.columns),
+		left: el.getBoundingClientRect().left,
+		right: el.getBoundingClientRect().right,
 	}));
-	const share = (grid.width - (grid.columns - 1) * 24) / grid.columns;
-	assert.ok(
-		box.width >= 280 && Math.abs(box.width - share) < 1,
-		`card width ${box.width}, share ${share}`,
+	const boxes = await page.locator("#feed-grid > .feed-card").evaluateAll((cards: HTMLElement[]) =>
+		cards.map((card) => {
+			const { left, right, top, bottom, width } = card.getBoundingClientRect();
+			return { id: card.dataset.card, left, right, top, bottom, width };
+		}),
 	);
+	assert.ok(
+		boxes.some((box) => box.id === "agent-test"),
+		"refreshed content is rendered",
+	);
+	for (const [index, box] of boxes.entries()) {
+		assert.ok(box.width >= 280, `card ${box.id} retains a readable width`);
+		assert.ok(box.left >= grid.left - 1 && box.right <= grid.right + 1);
+		for (const other of boxes.slice(index + 1))
+			assert.ok(
+				box.right <= other.left + 1 ||
+					other.right <= box.left + 1 ||
+					box.bottom <= other.top + 1 ||
+					other.bottom <= box.top + 1,
+				`cards ${box.id} and ${other.id} do not overlap`,
+			);
+	}
 	await page.screenshot({ path: join(artifacts, "local-cards.png"), animations: "disabled" });
+	// @wu-test type=integration | scope=local workspace persistence | protects=prevent deleted cards from returning after another page refreshes or the server restarts
 	// A second page sees the same data; a restart reloads the persisted repository.
 	const second = await browser.newPage();
 	await second.goto(origin);
@@ -187,6 +214,7 @@ try {
 	// Retired manual capture does not affect preserved source metadata.
 	assert.deepEqual(value.state.sources, [{ id: "legacy-source", status: "ok", syncedAt: 123 }]);
 	assert.equal(await page.locator('input[type="file"],#import-rings').count(), 0);
+	// @wu-test type=integration | scope=local browser runtime | protects=prevent uncaught page errors from passing silently
 	assert.deepEqual(errors, []);
 	await writeFile(
 		join(artifacts, "local-browser.json"),

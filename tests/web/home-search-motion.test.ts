@@ -45,6 +45,7 @@ function fixture(markup: string) {
 	return { dom, w, api: w.SearchMotion, animations: w.__motionAnimations as any[] };
 }
 
+// @wu-test type=behavior | scope=search list interruption | protects=prevents a stale exit from removing a reopened list or exposing closed options to interaction | debt=over-mock,impl-detail
 test("closing retains inert options, and reopening cancels the old exit without removing the list", async () => {
 	const f = fixture('<div id="slot"></div>');
 	try {
@@ -82,6 +83,7 @@ test("closing retains inert options, and reopening cancels the old exit without 
 	}
 });
 
+// @wu-test type=behavior | scope=search option navigation | protects=prevents hover from moving the list and keeps the keyboard-selected option visible
 test("hover never scrolls the list underneath the pointer; keyboard navigation keeps its row visible", () => {
 	const f = fixture(
 		'<div id="list"><span class="home-hash-highlight"></span><button id="home-option-1"></button></div>',
@@ -102,6 +104,7 @@ test("hover never scrolls the list underneath the pointer; keyboard navigation k
 	}
 });
 
+// @wu-test type=behavior | scope=search clear control | protects=prevents a disappearing clear button from receiving focus | debt=over-mock,impl-detail
 test("the clear icon leaves in its reserved slot and stops accepting focus immediately", () => {
 	const f = fixture(
 		'<div id="field"><button class="home-search-clear" hidden>Clear</button></div>',

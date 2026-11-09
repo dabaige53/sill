@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
-import { byteLimit } from "../../.codex/hooks/file-token-policy.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 
+// @wu-test type=integration | scope=.codex/hooks pre-commit | protects=Run byte-limit checks against staged and local changes
 test("Codex pre-commit hook enforces the byte limit against index and local files", async (t) => {
 	const directory = mkdtempSync(join(tmpdir(), "sill-token-hook-"));
 	t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -46,6 +46,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		return result.stdout ? JSON.parse(result.stdout).hookSpecificOutput : undefined;
 	};
 
+	// @wu-test type=integration | scope=.codex/hooks staged and local checks | protects=Detect oversized untracked local files before commit
 	await t.test("empty index and untracked oversized files pass", () => {
 		write("untracked.ts", "a".repeat(20_001));
 		assert.equal(check().status, 0);
@@ -56,6 +57,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		);
 		rmSync(join(directory, "untracked.ts"));
 	});
+	// @wu-test type=boundary | scope=.codex/hooks byte limit | protects=Allow the exact byte limit and deny an oversized working copy
 	await t.test("exactly 20,000 staged bytes pass despite oversized working copy", () => {
 		write("boundary.ts", "a".repeat(20_000));
 		git("add", "--", "boundary.ts");
@@ -65,6 +67,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		write("boundary.ts", "a".repeat(20_000));
 		assert.equal(hook('git commit -m "Allowed"'), undefined);
 	});
+	// @wu-test type=boundary | scope=.codex/hooks exemptions | protects=Avoid blocking exempt generated documents and binary assets
 	await t.test("locks, generated outputs and binary assets pass", () => {
 		for (const path of [
 			"nested/package-lock.json",
@@ -112,9 +115,13 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		assert.equal(check(["--local"]).status, 0);
 		git("commit", "--quiet", "-m", "Allowed staged files");
 	});
+	// @wu-test type=boundary | scope=.codex/hooks baseline limits | protects=Enforce the approved size from configuration without extending it to new paths
 	await t.test("approved baseline caps existing paths without allowing new large files", () => {
 		const path = "apps/web/styles/cards.css";
-		const limit = byteLimit(path);
+		const baseline = JSON.parse(
+			readFileSync(join(root, ".codex/hooks/file-size-baseline.json"), "utf8"),
+		);
+		const limit = baseline[path];
 		assert.ok(limit > 20_000);
 		write(path, "x".repeat(limit));
 		git("add", "--", path);
@@ -131,6 +138,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		assert.equal(check().status, 1);
 		git("rm", "-f", "--", renamed);
 	});
+	// @wu-test type=integration | scope=.codex/hooks pre-commit output | protects=Deny oversized staged UTF-8 files and report their paths
 	await t.test(
 		"oversized staged UTF-8 file returns a Codex denial with splitting instructions",
 		() => {
@@ -152,6 +160,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 			git("reset", "--quiet", "HEAD", "--", path);
 		},
 	);
+	// @wu-test type=integration | scope=.codex/hooks staged changes | protects=Allow unchanged or deleted files while checking renamed oversized files
 	await t.test("unchanged oversized files and staged deletions pass; renames are checked", () => {
 		write("old.ts", "x".repeat(20_001));
 		git("add", "--", "old.ts");
@@ -163,6 +172,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		git("rm", "-f", "--", "renamed.ts");
 		assert.equal(check().status, 0);
 	});
+	// @wu-test type=boundary | scope=.codex/hooks command validation | protects=Prevent commits from bypassing staged-file checks
 	await t.test("combined staging and commit or implicit staging are denied", () => {
 		for (const command of [
 			'git add . && git commit -m "Commit"',
@@ -171,6 +181,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		])
 			assert.equal(hook(command).permissionDecision, "deny");
 	});
+	// @wu-test type=boundary | scope=.codex/hooks local file checks | protects=Honor Git ignores while checking authored data and new migrations
 	await t.test(
 		"local checks honor ignores and do not exempt authored data or new migrations",
 		() => {

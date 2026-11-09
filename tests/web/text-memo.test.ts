@@ -6,6 +6,7 @@ import { markdownBlocks, markdownExcerpt, markdownText } from "../../apps/web/at
 import { textMemo } from "../../apps/web/atoms/text-memo.ts";
 import { cardReadingTime, cardSearchText } from "../../apps/web/data/card-source.ts";
 
+// @wu-test type=performance | scope=textMemo | protects=Reuse derived text and evict old bodies within the configured character budget
 test("a memo derives each distinct text once and keeps the recently used ones within budget", () => {
 	const derived: string[] = [];
 	const length = textMemo((text: string) => {
@@ -31,8 +32,9 @@ test("a memo derives each distinct text once and keeps the recently used ones wi
 	assert.equal(derived.filter((text) => text === "longer than six").length, 2);
 });
 
+// @wu-test type=performance | scope=Markdown derived text | protects=Parse a body once across excerpts, search text and reading time
 test("one body is parsed once for its text, face excerpt and reading time", () => {
-	const body = `## 合成正文 ${Math.random()}\n\n${"字".repeat(801)}\n\n- point one\n- point two`;
+	const body = `## 合成正文缓存检查\n\n${"字".repeat(801)}\n\n- point one\n- point two`;
 	const parse = MarkdownIt.prototype.parse;
 	let parses = 0;
 	MarkdownIt.prototype.parse = function (...args: Parameters<typeof parse>) {
@@ -51,6 +53,7 @@ test("one body is parsed once for its text, face excerpt and reading time", () =
 	assert.equal(parses, 1);
 });
 
+// @wu-test type=behavior | scope=cardSearchText | protects=Keep search text current after card fields or personal notes change
 test("search text matches the joined card fields and follows note and field changes", () => {
 	const card = {
 		title: "Synthetic Title",

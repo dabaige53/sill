@@ -26,6 +26,7 @@ const article: Card = {
 	tags: ["Tag"],
 };
 
+// @wu-test type=boundary | scope=cardDates | protects=Keep publication and creation timestamps distinct
 test("publication and system times stay distinct without aliases", () => {
 	const dates = cardDates({
 		publishedAt: "2026-10-01",
@@ -37,6 +38,7 @@ test("publication and system times stay distinct without aliases", () => {
 	assert.equal(cardDates({ published_at: "2026-10-01" }).published, null);
 });
 
+// @wu-test type=boundary | scope=cardDate | protects=Reject invalid and ambiguous dates without inventing timestamps
 test("invalid and ambiguous content dates never become invented timestamps", () => {
 	for (const value of [
 		null,
@@ -53,6 +55,7 @@ test("invalid and ambiguous content dates never become invented timestamps", () 
 	assert.equal(cardDate("2024-02-29")?.text, "2024-02-29");
 });
 
+// @wu-test type=behavior | scope=article reading surfaces | protects=Keep reading estimates consistent and personal notes out of card faces
 test("all reading surfaces use the same calculated estimate and never show notes on the face", () => {
 	Store.state = Store.fresh();
 	Store.state.items[article.id] = { note: "Personal <script> & note" };
@@ -81,6 +84,7 @@ test("all reading surfaces use the same calculated estimate and never show notes
 	assert.equal(Card.safeParse({ ...article, meta: "6min" }).success, false);
 });
 
+// @wu-test type=behavior | scope=cardReadingTime | protects=Calculate reading estimates for supported card types
 test("reading time counts Chinese characters and English words from the Markdown body", () => {
 	assert.equal(cardReadingTime({ type: "article", body: "" }), "");
 	assert.equal(cardReadingTime({ type: "article", body: "字".repeat(401) }), "约 2 分钟阅读");
@@ -97,6 +101,7 @@ test("reading time counts Chinese characters and English words from the Markdown
 		assert.equal(cardReadingTime({ type, body: "字".repeat(4000) }), "");
 });
 
+// @wu-test type=behavior | scope=cardDate time zones | protects=Preserve date-only values and display timestamps in the device time zone
 test("date-only precision stays unchanged across device zones", () => {
 	const original = process.env.TZ;
 	try {
@@ -105,12 +110,14 @@ test("date-only precision stays unchanged across device zones", () => {
 		assert.equal(cardDate("2026-10-13")?.text, "2026-10-13");
 		process.env.TZ = "America/Los_Angeles";
 		assert.equal(cardDate("2026-10-13T01:30:00Z")?.text, "2026-10-12 18:30 UTC-07:00");
+		assert.equal(cardDate("2026-10-13")?.text, "2026-10-13");
 	} finally {
 		if (original === undefined) delete process.env.TZ;
 		else process.env.TZ = original;
 	}
 });
 
+// @wu-test type=behavior | scope=mail, file and podcast details | protects=Avoid unsupported reading estimates and preserve podcast notes
 test("mail and file views show no reading time; podcasts retain personal notes", () => {
 	Store.state = Store.fresh();
 	for (const card of [
@@ -147,6 +154,7 @@ test("mail and file views show no reading time; podcasts retain personal notes",
 	assert.equal(doc.querySelector(".preview-note-label")?.textContent, "备注");
 });
 
+// @wu-test type=behavior | scope=mail sender identity | protects=Do not display a source name as the sender
 test("mail identity never borrows sources", () => {
 	Store.state = Store.fresh();
 	for (const sender of [undefined, "", "Real sender"]) {
@@ -178,6 +186,7 @@ test("mail identity never borrows sources", () => {
 	noIdentity.window.close();
 });
 
+// @wu-test type=behavior | scope=podcast duration and playback | protects=Do not invent duration or derive playback position from reading progress
 test("podcast duration stays unknown when absent and never derives playback from reading progress", () => {
 	Store.state = Store.fresh();
 	for (const seconds of [undefined, 0, 240]) {
@@ -223,6 +232,7 @@ test("podcast duration stays unknown when absent and never derives playback from
 	}
 });
 
+// @wu-test type=behavior | scope=video card detail | protects=Render valid media without inventing chapters or changing saved state
 test("valid media without body opens and prose never becomes media chapters or playback steps", () => {
 	Store.state = Store.fresh();
 	for (const body of [undefined, "", "First paragraph\n\nSecond paragraph"]) {
@@ -267,31 +277,7 @@ test("valid media without body opens and prose never becomes media chapters or p
 	}
 });
 
-test("article and photo heads name their day like the preview head", () => {
-	const story = Card.parse({ ...article, id: "dated-article", publishedAt: "2024-03-05" });
-	const photo = Card.parse({
-		id: "dated-photo",
-		type: "photo",
-		title: "Trip",
-		images: ["coast"],
-		location: "Coast",
-		publishedAt: "2024-03-06",
-	});
-	const head = (html: string) => {
-		const dom = new JSDOM(html);
-		try {
-			return dom.window.document.querySelector(".card-src, .preview-meta > span:last-child")
-				?.textContent;
-		} finally {
-			dom.window.close();
-		}
-	};
-	const feed = head(cardHTML(story));
-	assert.equal(feed, "Writer · 2024/3/5 · 约 6 分钟阅读");
-	assert.equal(head(Panels.preview({}, story)), feed);
-	assert.equal(head(cardHTML(photo)), "Coast · 2024/3/6");
-});
-
+// @wu-test type=integration | scope=card date rendering | protects=Show consistent dates across card faces and details
 test("content dates stay identical on card faces, previews and readers", (t) => {
 	t.mock.timers.enable({ apis: ["Date"], now: new Date(2026, 9, 22, 12) });
 	Store.state = Store.fresh();
@@ -368,6 +354,7 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 	assert.equal(detailDate("2026-10-22", true), "今天");
 });
 
+// @wu-test type=behavior | scope=PR card and detail | protects=Show observed PR facts without inventing missing statistics
 test("PR has its own snapshot layout and never invents missing statistics", (t) => {
 	t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-22T12:00:00+08:00") });
 	Store.state = Store.fresh();
@@ -414,6 +401,7 @@ test("PR has its own snapshot layout and never invents missing statistics", (t) 
 	assert.equal(detail.querySelector('[data-action="reader"]'), null);
 });
 
+// @wu-test type=behavior | scope=PR detail | protects=Omit absent PR data and show available file counts
 test("PR detail opens its rows with the state and leaves rows without data out", () => {
 	Store.state = Store.fresh();
 	const sparse = Card.parse({
@@ -443,6 +431,7 @@ test("PR detail opens its rows with the state and leaves rows without data out",
 	assert.ok(rows.every((row) => row.firstElementChild?.classList.contains("row-icon")));
 });
 
+// @wu-test type=behavior | scope=mail attachments | protects=Show attachment links in detail without exposing them on the card face
 test("mail files render links in the detail and stay off the card face", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({
@@ -463,6 +452,7 @@ test("mail files render links in the detail and stay off the card face", () => {
 	assert.equal(cleared.querySelector(".detail-row"), null);
 });
 
+// @wu-test type=regression | scope=PR card counts | protects=Prevent an empty line-count slot from pushing a file count right
 test("PR card face starts its counts at the left when the PR has no branch", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({

@@ -5,6 +5,7 @@ import { A, B, claims, identity } from "./helpers/boundary-fixture.ts";
 import { AUTH, C, oauthFixture } from "./helpers/oauth-fixture.ts";
 
 export async function registerSessionPolicyTests() {
+	// @wu-test type=integration | scope=database OAuth token issuer | protects=Prevent revoked access and refresh sessions from regaining authorization after reconsent
 	test("draft issuer binds versions to immutable OAuth sessions; old access/refresh cannot revive after reconsent", async () => {
 		const f = await oauthFixture();
 		try {
@@ -94,6 +95,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth consent grant persistence | protects=Persist the five explicitly approved permissions
 	test("owner-reviewed full Sill policy persists all five scopes without widening another client", async () => {
 		const f = await oauthFixture();
 		try {
@@ -113,6 +115,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth authorization identifiers | protects=Preserve opaque provider authorization IDs through review and storage
 	test("opaque provider authorization IDs survive review, login return and SQL without UUID coercion", async () => {
 		const opaque = "synthetic_authorization_handle_01",
 			f = await oauthFixture({ authorizationId: opaque });
@@ -140,6 +143,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth authorization ID migration | protects=Preserve existing authorization handles when migrating to text
 	test("production upgrade preserves existing UUID flow handles as text", async () => {
 		const { cloudFixture } = await import("./helpers/cloud-fixture.ts");
 		const f = await cloudFixture();
@@ -183,6 +187,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth automatic consent | protects=Prevent automatic consent from widening or replacing a grant
 	test("provider automatic consent resumes only one existing exact Sill grant without writes", async () => {
 		const f = await oauthFixture();
 		try {
@@ -215,6 +220,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth login handoff | protects=Reject another browser or an expired authorization return
 	test("full login handoff reaches review, while another browser and expired return cannot resume", async () => {
 		const f = await oauthFixture();
 		try {
@@ -260,6 +266,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=boundary | scope=OAuth identity scope policy | protects=Reject identity scopes not allowed by the client policy
 	test("actual host default five scopes fail against the current openid-only policy", async () => {
 		const f = await oauthFixture();
 		try {
@@ -274,6 +281,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth identity scope review | protects=Allow explicitly permitted identity scopes to reach review without granting content access
 	test("observed ChatGPT openid email offline_access reaches explicit review under matching client policy", async () => {
 		const f = await oauthFixture();
 		try {
@@ -293,6 +301,7 @@ export async function registerSessionPolicyTests() {
 		}
 	});
 
+	// @wu-test type=integration | scope=OAuth identity scope review | protects=Show explicitly permitted identity scopes without granting content access
 	test("ChatGPT five identity scopes reach review only when explicitly allowed for this client", async () => {
 		const f = await oauthFixture();
 		try {

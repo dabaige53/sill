@@ -5,6 +5,7 @@ import { openBackupSecret, sealBackupSecret } from "../../server/cloud/backup-va
 
 const owner = "00000000-0000-4000-8000-000000000001";
 const id = "00000000-0000-4000-8000-000000000002";
+// @wu-test type=boundary | scope=contracts/backup backupSnapshot | protects=Prevent backup credentials and targets from entering portable snapshots
 test("portable snapshots do not accept backup configuration or credentials", () => {
 	const snapshot = {
 		format: "sill-workspace",
@@ -19,6 +20,7 @@ test("portable snapshots do not accept backup configuration or credentials", () 
 	);
 	assert.ok(!backupSnapshot.safeParse({ ...snapshot, targets: [] }).success);
 });
+// @wu-test type=boundary | scope=server/cloud/backup-vault | protects=Prevent encrypted credentials from being opened under another owner or target
 test("encrypted credentials cannot be opened for another owner or target", async () => {
 	const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, [
 		"encrypt",

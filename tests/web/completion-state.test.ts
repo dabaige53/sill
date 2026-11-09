@@ -14,6 +14,7 @@ const taskCard = {
 };
 const taskMarkup = `<article data-card="task-one"><span class="task-count">0/2</span><button class="check-item" data-action="task" data-id="task-one" data-extra="first" aria-checked="false"><span class="check-dot"></span>First</button><button class="check-item" data-action="task" data-id="task-one" data-extra="second" aria-checked="false"><span class="check-dot"></span>Second</button></article>`;
 
+// @wu-test type=behavior | scope=task detail completion | protects=Preserve focus, scroll and working controls across repeated task toggles
 test("task preview completion keeps mounted rows, focus, scroll and bindings across repeated clicks", () => {
 	const f = fixture();
 	try {
@@ -54,6 +55,7 @@ test("task preview completion keeps mounted rows, focus, scroll and bindings acr
 	}
 });
 
+// @wu-test type=integration | scope=home and search task completion | protects=Update task controls and counts in home and retained search
 test("home and search task controls update their own mounted nodes and completion counts", () => {
 	const f = fixture();
 	try {
@@ -91,6 +93,7 @@ test("home and search task controls update their own mounted nodes and completio
 	}
 });
 
+// @wu-test type=behavior | scope=bookmark removal in detail | protects=Update bookmark state without replacing the open detail
 test("removing a bookmark from the open preview defers feed membership changes", () => {
 	const f = fixture();
 	try {
@@ -111,6 +114,7 @@ test("removing a bookmark from the open preview defers feed membership changes",
 	}
 });
 
+// @wu-test type=regression | scope=task completion rendering | protects=Prevent duplicated or missing completion icons on later renders
 test("a later feed render reconciles completion icons without duplicating or losing React children", () => {
 	const f = fixture();
 	try {
@@ -145,6 +149,7 @@ test("a later feed render reconciles completion icons without duplicating or los
 	}
 });
 
+// @wu-test type=behavior | scope=home reminder completion | protects=Preserve focus when completing and restoring a reminder
 test("home reminder completion keeps its control focused and restores in place", () => {
 	const f = fixture();
 	try {

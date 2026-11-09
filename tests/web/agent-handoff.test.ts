@@ -7,14 +7,32 @@ import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import {
 	type AgentCard,
-	AgentHandoff,
 	type AgentScope,
-	agentKey,
 	agentPayload,
+	cardLinkURL,
 	openCardLink,
 } from "../../apps/web/services/agent-handoff.ts";
 
 const scope: AgentScope = { kind: "cloud", owner: "owner-a" };
+
+// @wu-test type=boundary | scope=source links | protects=Keep full source URLs and disable missing or unsafe destinations
+test("article source links are native links with full query and fragment; missing or unsafe URLs stay disabled", () => {
+	const url = "https://example.com/article?view=full&lang=zh#section";
+	const card = { id: "source-link", type: "article", title: "Article", body: "Body", url };
+	const app = {};
+	Store.state = Store.fresh();
+	const document = new JSDOM(Panels.preview(app, card)).window.document;
+	const link = document.querySelector<HTMLAnchorElement>(".float-bar a.is-own");
+	assert.equal(link?.getAttribute("href"), url);
+	assert.equal(link?.target, "_blank");
+	assert.equal(link?.rel, "noopener noreferrer");
+	for (const value of [undefined, "", "javascript:alert(1)", "not a URL"]) {
+		assert.equal(cardLinkURL(value), undefined);
+		const unavailable = new JSDOM(Panels.preview(app, { ...card, url: value })).window.document;
+		assert.ok(unavailable.querySelector('[data-action="external"][disabled]'));
+		assert.equal(unavailable.querySelector(".float-bar a.is-own"), null);
+	}
+});
 const card = {
 	id: "card-a",
 	revision: 7,
@@ -23,7 +41,6 @@ const card = {
 	summary: "需要核对的结论",
 };
 const payload = agentPayload(card, scope);
-const key = agentKey(card.id, scope);
 
 function fixture() {
 	const messages: any[] = [];
@@ -70,6 +87,7 @@ function fixture() {
 	};
 }
 
+// @wu-test type=boundary | scope=agentPayload | protects=Preserve full card content while excluding personal state and unknown fields
 test("attachments include full content without personal state or unknown fields", () => {
 	const prepared = agentPayload(
 		{
@@ -86,6 +104,7 @@ test("attachments include full content without personal state or unknown fields"
 	assert.doesNotMatch(prepared.text, /private|secret/);
 });
 
+// @wu-test type=integration | scope=createHostActions.discuss and syncContext | protects=Preserve accumulated attachments and respect host context removal without sending a message
 test("attachments accumulate without sending and follow host removal", async () => {
 	const f = fixture();
 	await Promise.all([
@@ -99,6 +118,7 @@ test("attachments accumulate without sending and follow host removal", async () 
 	assert.equal(f.contexts[2].content.length, 1);
 });
 
+// @wu-test type=boundary | scope=createHostActions.discuss | protects=Reject unavailable hosts, changed accounts and uncertain context updates
 test("unsupported hosts, rejected updates and changed accounts never send", async () => {
 	const f = fixture();
 	f.flags.context = false;
@@ -119,6 +139,7 @@ test("unsupported hosts, rejected updates and changed accounts never send", asyn
 	assert.equal(f.messages.length, 0);
 });
 
+// @wu-test type=boundary | scope=openCardLink | protects=Reject unsafe links and host failures without reporting an unconfirmed browser open
 test("host navigation never falls back to blocked popups, and browser ambiguity is not an acknowledged open", async () => {
 	const f = fixture();
 	let popups = 0;
@@ -143,6 +164,7 @@ test("host navigation never falls back to blocked popups, and browser ambiguity 
 	assert.equal(popups, 1);
 });
 
+// @wu-test type=behavior | scope=Panels.preview, Panels.reader and Panels.lightbox | protects=Keep removed handoff actions out of card details while retaining digest content
 test("details omit handoff actions even when a host can supply one", () => {
 	Store.state = Store.fresh();
 	const app = {
@@ -167,8 +189,11 @@ test("details omit handoff actions even when a host can supply one", () => {
 			);
 			assert.equal(document.querySelectorAll(".preview-foot .preview-foot").length, 0, card.type);
 			// Shared verbs, then at most three of the card's own (ADR 0037).
-			assert.ok(document.querySelectorAll(".float-bar button:not(.is-own)").length <= 3, card.type);
-			assert.ok(document.querySelectorAll(".float-bar button.is-own").length <= 3, card.type);
+			assert.ok(
+				document.querySelectorAll(".float-bar .icon-button:not(.is-own)").length <= 3,
+				card.type,
+			);
+			assert.ok(document.querySelectorAll(".float-bar .icon-button.is-own").length <= 3, card.type);
 		} finally {
 			dom.window.close();
 		}

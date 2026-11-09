@@ -20,6 +20,7 @@ const bundle = buildSync({
 	platform: "browser",
 	globalName: "RefreshTest",
 }).outputFiles[0].text;
+// @wu-test type=behavior | scope=pull refresh feedback | protects=Report pull refresh failure without duplicate loading feedback | debt=over-mock,impl-detail
 test("local pull failure returns false without text or a second dock spinner", async () => {
 	const dom = new JSDOM(
 		'<main></main><div id="dock"></div><div id="sync-status">Recovery controls</div>',

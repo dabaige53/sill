@@ -2,11 +2,11 @@
 
 ## 问题与状态
 
-状态：待定位，未修复。最近检查：2026-11-08。
+状态：用例等待方式已改写，待验证；偶发失败根因仍待确认。最近检查：2026-11-09。
 
 ## 环境与触发
 
-- 入口：`tests/e2e/motion-material-browser-material-focus.ts` 的 `Real touchCancel keeps the drawer open without writing`，在 `web / browser (motion)` 中运行。
+- 入口：`tests/e2e/motion-material-browser-material-focus.ts` 的 touchCancel 场景，在 `web / browser (motion)` 中运行。原名称为 `Real touchCancel keeps the drawer open without writing`。
 - 报错原文：`cancel restores the drawer position`。
 - 目前无法按需复现，只在 CI 中偶发。
 
@@ -18,8 +18,10 @@
 
 ## 处理情况
 
-只在同一 tag 上重跑失败任务，没有改测试或产品代码。
+- 发布时只在同一 tag 上重跑失败任务，没有修改代码。
+- 2026-11-09：用例改为等待抽屉进入视口且自身动画结束后采样起点；确认真实触摸已使抽屉发生位移，再发送取消事件；等待抽屉回到原位且动画结束后检查结果。删除两次固定 600ms 等待，保留原位误差小于 2px 的断言。
+- 补充取消前后已保存内容一致的检查，场景名称调整为 `Real touchCancel restores the open drawer without changing saved content`。未修改产品手势处理。
 
 ## 验证与后续
 
-下一步：记录失败时的实际位置差，确认是否为动画未结束。如果确认，把固定等待改为等位置稳定；如果不是，检查取消手势后的抽屉复位逻辑。
+本轮仅完成源码改写，未运行浏览器或 CI，不能将本次修改视为偶发失败已经消除。下一步在授权范围内运行该场景；若真实拖动或回位条件超时，记录实际位置、动画与弹窗状态，继续检查取消手势后的复位逻辑。

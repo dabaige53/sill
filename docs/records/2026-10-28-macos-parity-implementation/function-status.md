@@ -56,7 +56,7 @@
 | C12 照片封面布局稳定 | 保留一致 | 保留16:9容器和二/三图比例，慢加载实际位置待验。 | [CardBodies.swift](../../../apps/apple/macOS/Feed/CardBodies.swift) |
 | C13 文章目录设计依据 | 依据已统一 | 手册统一为左侧32px紧凑目录，旧右侧规则被替代。 | [ReaderPage.swift](../../../apps/apple/macOS/Reader/ReaderPage.swift) |
 | C14 视频文字稿跟随 | 本次已补 | 仅播放中且开启跟随时将当前行滚到最近可见位置。 | [MediaDetail.swift](../../../apps/apple/macOS/Reader/MediaDetail.swift) |
-| C15 建议依据 | 本次已补 | 展示全部why.basis，不再截成五条。 | [ReaderContent.swift](../../../apps/apple/macOS/Reader/ReaderContent.swift) |
+| C15 建议依据 | 本次已补 | 展示全部why.basis，不截成五条。 | [ReaderContent.swift](../../../apps/apple/macOS/Reader/ReaderContent.swift) |
 | C16 摘要来源 | 本次已补 | 缺少完整覆盖日期时回退卡片来源。 | [ReaderContent.swift](../../../apps/apple/macOS/Reader/ReaderContent.swift) |
 | C17 关联卡片空列表 | 本次已补 | 关联ID全部不可用时隐藏区块。 | [ReaderContent.swift](../../../apps/apple/macOS/Reader/ReaderContent.swift) |
 | C18 单张照片灯箱 | 本次已补 | 单张照片也展示缩略图。 | [PhotoLightbox.swift](../../../apps/apple/macOS/Reader/PhotoLightbox.swift) |

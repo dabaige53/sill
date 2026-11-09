@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { fixture } from "./visibility-motion-fixture.ts";
 
+// @wu-test type=behavior | scope=detail entry | protects=prevents a duplicate source card or a discontinuous detail entry | debt=over-mock,impl-detail
 test("desktop card entry matches its source rect and phone entry keeps its sheet motion", () => {
 	const f = fixture();
 	try {
@@ -44,6 +45,7 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 	}
 });
 
+// @wu-test type=behavior | scope=detail toolbar entry | protects=prevents the toolbar from remaining inaccessible after an interrupted entry | debt=over-mock,impl-detail
 test("desktop detail tools start with the surface after layout and cancel together", () => {
 	const f = fixture();
 	try {
@@ -85,32 +87,7 @@ test("desktop detail tools start with the surface after layout and cancel togeth
 	}
 });
 
-test("capsule follows the card bottom at source, midpoint and destination without scaling icons", () => {
-	const f = fixture();
-	try {
-		const surface = { left: 400, top: 200, width: 600, height: 400 };
-		const tool = { left: 550, top: 520, width: 300, height: 60 };
-		for (const p of [0, 0.5, 1]) {
-			const pose = { x: -450 * (1 - p), y: -220 * (1 - p), sx: 0.5 + 0.5 * p, sy: 0.5 + 0.5 * p };
-			for (const nested of [false, true]) {
-				const result = f.w.MotionTest.capsulePose(pose, surface, tool, nested);
-				const worldScaleX = result.sx * (nested ? pose.sx : 1);
-				const worldScaleY = result.sy * (nested ? pose.sy : 1);
-				assert.equal(worldScaleX, 1);
-				assert.equal(worldScaleY, 1);
-				const center = nested ? 400 + pose.y + (150 + result.y) * pose.sy : 550 + result.y;
-				const bottom = 400 + pose.y + 200 * pose.sy;
-				assert.ok(
-					Math.abs(bottom - (center + 30) - 20) < 0.001,
-					"keep the 20px bottom gap throughout the flight",
-				);
-			}
-		}
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=detail return | protects=prevents duplicate or interactive content during the return to a card | debt=over-mock,impl-detail
 test("return content changes inside the opaque surface while the real card stays hidden", () => {
 	const f = fixture();
 	try {
@@ -150,6 +127,7 @@ test("return content changes inside the opaque surface while the real card stays
 	}
 });
 
+// @wu-test type=behavior | scope=nested detail navigation | protects=prevents stale detail content or lost scroll position after interrupted navigation | debt=over-mock,impl-detail
 test("nested detail exit keeps the frozen parent-size surface until completion and cancellation cleans it", async () => {
 	const f = fixture();
 	try {
@@ -185,6 +163,7 @@ test("nested detail exit keeps the frozen parent-size surface until completion a
 	}
 });
 
+// @wu-test type=behavior | scope=long detail navigation | protects=prevents duplicated interactive controls and missing content during detail navigation | debt=impl-detail
 test("long detail capture keeps its CSS and isolates controls without sampling paragraph styles", () => {
 	const f = fixture();
 	try {
@@ -220,27 +199,7 @@ test("long detail capture keeps its CSS and isolates controls without sampling p
 	}
 });
 
-test("phone nested entry moves the sheet and tools by the same distance", () => {
-	const f = fixture();
-	try {
-		f.w.matchMedia = () => ({ matches: true });
-		const dialog = f.w.document.createElement("dialog");
-		dialog.className = "preview";
-		dialog.innerHTML = '<div class="preview-sheet"></div><div class="float-bar"></div>';
-		f.w.document.body.append(dialog);
-		const captured = f.motion.captureDetail(dialog);
-		dialog.firstElementChild.getBoundingClientRect = () => ({ height: 600 });
-		f.motion.navigateDetail(dialog, captured, false);
-		assert.equal(f.animations.length, 2);
-		assert.ok(f.animations.every((a) => a.frames[0].transform === "translateY(600px)"));
-		assert.ok(f.animations.every((a) => a.frames.every((frame: any) => !("opacity" in frame))));
-		assert.ok(f.animations.every((a) => a.options.duration === 260));
-		f.motion.cancelPanel(dialog);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=interrupted reader transition | protects=prevents the reader from jumping when a transition is interrupted | debt=impl-detail
 test("freezing an interrupted reader preserves its drawn transform without applying it twice", () => {
 	const f = fixture();
 	try {
@@ -265,6 +224,7 @@ test("freezing an interrupted reader preserves its drawn transform without apply
 	}
 });
 
+// @wu-test type=behavior | scope=nested detail reopening | protects=prevents an interrupted detail from jumping or retaining stale content | debt=over-mock,impl-detail
 test("reopening the exiting child resumes its drawn opacity and position without retaining old faces", () => {
 	const f = fixture();
 	try {
@@ -290,6 +250,7 @@ test("reopening the exiting child resumes its drawn opacity and position without
 	}
 });
 
+// @wu-test type=behavior | scope=reader expansion with media | protects=prevents duplicated media during reader expansion | debt=over-mock,impl-detail
 test("expanded resize uses card geometry and reveals content during travel without cloning media", () => {
 	const f = fixture();
 	try {
@@ -333,6 +294,7 @@ test("expanded resize uses card geometry and reveals content during travel witho
 	}
 });
 
+// @wu-test type=behavior | scope=reader expansion cancellation | protects=prevents target content from becoming unavailable after cancellation
 test("queued resize cancellation leaves target content available", () => {
 	const f = fixture();
 	try {

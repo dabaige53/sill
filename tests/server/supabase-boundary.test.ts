@@ -12,6 +12,7 @@ import {
 	setupBoundary,
 } from "./helpers/boundary-fixture.ts";
 
+// @wu-test type=integration | scope=database public RPC boundary | protects=Enforce the public RPC authorization boundary
 test("public RPC boundary denies direct access and enforces per-client authorization", async (t?: any) => {
 	const db = new PGlite();
 	try {
@@ -23,6 +24,7 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 			.body;
 		const two = (await write("create", null, { type: "note", title: "Other record" }, "create_two"))
 			.body;
+		// @wu-test type=boundary | scope=database RPC executor privileges | protects=Prevent authenticated callers from directly accessing private data or privileged RPCs
 		await t.test(
 			"wrapper executes under nonowner non-bypass role; direct table and private RPC deny",
 			async () => {
@@ -60,6 +62,7 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 				await identity(db);
 			},
 		);
+		// @wu-test type=boundary | scope=database caller grants | protects=Prevent cross-owner and ungranted clients from borrowing permissions or receipts
 		await t.test(
 			"cross owner and same-owner clients cannot borrow grants or replay receipts",
 			async () => {
@@ -89,6 +92,7 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 				await assert.rejects(rpc(db, "sill_get_content", [one.id]), /forbidden/);
 			},
 		);
+		// @wu-test type=boundary | scope=database request claims | protects=Reject malformed claims and direct calls to private claim helpers
 		await t.test(
 			"private claim helpers fail closed without trusted claims and cannot be invoked directly",
 			async () => {
@@ -116,6 +120,7 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 				await identity(db);
 			},
 		);
+		// @wu-test type=boundary | scope=database request authorization | protects=Reject wrong-audience, expired and anonymous claims
 		await t.test(
 			"database boundary independently rejects wrong resource, expired and anonymous claims",
 			async () => {
@@ -147,6 +152,7 @@ test("public RPC boundary denies direct access and enforces per-client authoriza
 	}
 });
 
+// @wu-test type=integration | scope=database longSummary validation | protects=Preserve valid long summaries and reject invalid shapes
 test("the card validator accepts a long summary of 2–8 points and rejects other shapes", async () => {
 	const db = new PGlite();
 	try {

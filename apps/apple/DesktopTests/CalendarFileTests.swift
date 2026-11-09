@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct CalendarFileTests {
+  // @wu-test type=behavior | scope=CalendarFile export | protects=Escape event fields in a calendar file
   @Test func eventBecomesOneEscapedVEvent() async throws {
     let (workspace, _) = await ready(
       [],

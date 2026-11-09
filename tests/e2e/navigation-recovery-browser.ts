@@ -12,6 +12,7 @@ const browser = await chromium.launch({
 	...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 });
 let failed = 0;
+// @wu-test type=integration | scope=navigation recovery runner | protects=prevent failed fixture writes or browser errors from passing silently
 async function scenario(name?: any, run?: any, options: any = {}) {
 	const dir = await mkdtemp(join(tmpdir(), "sill-navigation-recovery-")),
 		server = await startLocal({ port: 0, file: join(dir, "cards.json") });
@@ -50,6 +51,7 @@ async function scenario(name?: any, run?: any, options: any = {}) {
 		await rm(dir, { recursive: true, force: true });
 	}
 }
+// @wu-test type=behavior | scope=navigation recovery synchronization | protects=prevent navigation checks from depending on fixed animation delays | debt=flaky
 const settle = (page?: any) => page.waitForTimeout(600);
 const close = async (page?: any) => {
 	await page.keyboard.press("Escape");

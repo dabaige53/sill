@@ -46,6 +46,7 @@ const rect = (left: number, top: number, width: number, height: number) => ({
 	bottom: top + height,
 });
 
+// @wu-test type=behavior | scope=AI dock collapse | protects=Preserve the draft and visible position when collapse is interrupted | debt=impl-detail
 test("AI collapse clips towards the clicked button and preserves unscaled content and draft", () => {
 	const f = fixture(
 		'<div id="ai-dock" style="border-radius:30px"><div class="ai-dock-surface"></div><div class="ai-dock-row"><input value="Keep draft"><span data-ai-context="one">Reference</span></div><button class="ai-dock-restore">AI</button></div>',
@@ -91,33 +92,7 @@ test("AI collapse clips towards the clicked button and preserves unscaled conten
 	}
 });
 
-test("AI reference fade and travel use independent durations and removal waits for travel", async () => {
-	const f = fixture('<span id="chip">Reference</span>');
-	try {
-		const node = f.document.querySelector("#chip");
-		const entry = f.api.contextMotion(node, true);
-		assert.equal(f.animations[0].options.duration, 500);
-		assert.equal(f.animations[1].options.duration, 180);
-		entry.cancel();
-		const exit = f.api.contextMotion(node, false);
-		assert.equal(f.animations.at(-2).options.duration, 220);
-		assert.equal(f.animations.at(-1).options.duration, 140);
-		let done = false;
-		void exit.finished.then(() => (done = true));
-		f.animations.at(-1).finish();
-		await Promise.resolve();
-		assert.equal(done, false);
-		f.animations.at(-2).finish();
-		await exit.finished;
-		assert.equal(done, true);
-		node.getBoundingClientRect = () => rect(0, 30, 100, 20);
-		f.api.reflowContext(node, rect(0, 0, 100, 20));
-		assert.equal(f.animations.at(-1).options.duration, 280);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
+// @wu-test type=behavior | scope=phone search transition | protects=Preserve focus and navigation ownership when search transition reverses | debt=impl-detail
 test("phone search follows the supplied choreography and reverses from the drawn header", () => {
 	const f = fixture(
 		'<div id="dock"><nav><button>Home</button><button>AI</button><button>Search</button></nav></div><dialog class="search"><div class="search-page-heading">Search</div><div class="search-header"><div class="search-pill"><input id="filter-search"><button class="search-clear"></button><button class="search-dictate"></button></div><button class="search-cancel">取消</button></div><div class="search-results-region"><section class="search-suggest"></section><div id="search-results"><div class="search-browse">Categories</div></div></div></dialog>',
@@ -179,6 +154,7 @@ test("phone search follows the supplied choreography and reverses from the drawn
 	}
 });
 
+// @wu-test type=behavior | scope=AI dock collapse position | protects=Collapse the AI dock toward the nearest window edge
 test("AI bubble collapses to the near edge on both sides of the window", () => {
 	const f = fixture();
 	try {

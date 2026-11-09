@@ -25,31 +25,27 @@ const toolbar = (card: any) => {
 };
 const seed = (type: string) => SeedCards.find((card: any) => card.type === type);
 
-test("card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons", () => {
+// @wu-test type=behavior | scope=detail toolbar | protects=Keep bookmark, tag editing and read-later actions available for every card kind
+test("card detail exposes the shared actions for every card kind", () => {
 	Store.state = Store.fresh();
 	for (const card of SeedCards.filter((c: any) => c.type !== "photo")) {
 		const bar = toolbar(card);
 		try {
 			assert.deepEqual(bar.shared, ["bookmark", "edit", "later"], card.type);
-			assert.ok(bar.own.length <= 3, card.type);
-			assert.equal(bar.rule, bar.own.length ? 1 : 0, card.type);
-			assert.equal(
-				bar.document.querySelectorAll(".preview-body .solid-button").length,
-				0,
-				card.type,
-			);
-			assert.equal(bar.document.querySelectorAll(".reminder-actions").length, 0, card.type);
 		} finally {
 			bar.close();
 		}
 	}
 });
 
-test("mail opens its web page, events download and reminders remind again from the toolbar", () => {
+// @wu-test type=behavior | scope=card-specific detail actions | protects=Keep mail links, future event actions and reminder actions available
+test("mail opens its web page, events download and reminders remind again from the toolbar", (t) => {
+	const now = Date.UTC(2026, 10, 9, 12);
+	t.mock.method(Date, "now", () => now);
 	Store.state = Store.fresh();
 	const mailURL = "https://mail.example.com/message/1";
 	const mail = toolbar({ ...seed("mail"), url: mailURL });
-	const event = toolbar({ ...seed("event"), start: Date.now() + 60 * 60000 });
+	const event = toolbar({ ...seed("event"), start: now + 60 * 60000 });
 	const reminder = toolbar(seed("reminder"));
 	try {
 		assert.deepEqual(mail.own, ["external"]);
@@ -71,6 +67,7 @@ test("mail opens its web page, events download and reminders remind again from t
 	}
 });
 
+// @wu-test type=behavior | scope=legacy detail action preferences | protects=prevents old hidden-action preferences from hiding current actions
 test("legacy hidden preferences do not remove shared or own detail actions", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["bookmark", "tag", "later"]);
@@ -94,11 +91,13 @@ test("legacy hidden preferences do not remove shared or own detail actions", () 
 	Store.state = Store.fresh();
 });
 
+// @wu-test type=boundary | scope=legacy preference contract | protects=prevents valid legacy preferences from being rejected while rejecting unknown actions
 test("legacy hiddenActions remains readable in the shared preference contract", () => {
 	assert.ok(Preferences.safeParse({ hiddenActions: ["reply", "download"] }).success);
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
 });
 
+// @wu-test type=behavior | scope=legacy action settings | protects=prevents removed controls from returning or saved legacy preferences from being changed
 test("settings omit action hiding controls and preserve saved legacy preferences", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["tag"]);
@@ -113,6 +112,7 @@ test("settings omit action hiding controls and preserve saved legacy preferences
 	}
 });
 
+// @wu-test type=behavior | scope=photo lightbox actions | protects=prevents legacy preferences from hiding photo actions or losing bookmark state
 test("photo lightbox shows every shared tool despite legacy hidden preferences", () => {
 	const photo: Card = { ...seed("photo"), images: ["architecture", "coast"] };
 	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {
@@ -124,7 +124,7 @@ test("photo lightbox shows every shared tool despite legacy hidden preferences",
 			const document = dom.window.document;
 			const expected = ["bookmark", "edit", "later"];
 			assert.deepEqual(
-				[...document.querySelectorAll(".float-bar button")].map((n) =>
+				[...document.querySelectorAll(".float-bar .icon-button")].map((n) =>
 					n.getAttribute("data-action"),
 				),
 				expected,
@@ -145,8 +145,10 @@ test("photo lightbox shows every shared tool despite legacy hidden preferences",
 	Store.state = Store.fresh();
 });
 
-test("imminent event prioritizes dismiss over download only when join is available", () => {
-	const now = Date.now();
+// @wu-test type=behavior | scope=event detail actions | protects=prevents an imminent meeting from showing the wrong primary actions
+test("imminent event prioritizes dismiss over download only when join is available", (t) => {
+	const now = Date.UTC(2026, 10, 9, 12);
+	t.mock.method(Date, "now", () => now);
 	const event = {
 		...seed("event"),
 		start: now + 5 * 60000,

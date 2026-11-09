@@ -10,6 +10,7 @@ export async function verifySelectionOperations(
 	reminder: any,
 	batchRequests: any[],
 ) {
+	// @wu-test type=integration | scope=cloud selection | protects=prevent selection and cancellation from writing workspace data | debt=flaky
 	const selectCards = async () => {
 		await page.evaluate(
 			(ids) => {
@@ -32,6 +33,7 @@ export async function verifySelectionOperations(
 		"clearing a selection must not write",
 	);
 	assert.equal(await page.evaluate(() => __app.selected.size), 0);
+	// @wu-test type=integration | scope=cloud bulk bookmark | protects=prevent selected cards from being saved in separate or incomplete operations
 	await selectCards();
 	await page.locator('[data-action="selected-bookmark"]').click();
 	await saved();
@@ -43,6 +45,7 @@ export async function verifySelectionOperations(
 		2,
 		"bulk gesture is one atomic batch",
 	);
+	// @wu-test type=integration | scope=cloud bulk read later | protects=prevent bulk read-later state from being lost or toggled incorrectly
 	await selectCards();
 	await page.locator('[data-action="selected-later"]').click();
 	await saved();
@@ -62,6 +65,7 @@ export async function verifySelectionOperations(
 	await page.locator("body.cloud-signed-in").waitFor();
 	assert.equal(await page.evaluate((id) => __store.item(id).later, note.id), false);
 	assert.equal(await page.evaluate((id) => __store.item(id).later, task.id), false);
+	// @wu-test type=behavior | scope=mixed bulk read-later selection | protects=prevent mixed selections from toggling cards in opposite directions
 	// A mixed selection adds both cards instead of toggling each card independently.
 	await action("later", note.id);
 	await saved();
@@ -73,6 +77,7 @@ export async function verifySelectionOperations(
 	assert.equal(state.state.items[note.id].later, true);
 	assert.equal(state.state.items[task.id].later, true);
 	assert.equal(state.state.items[reminder.id]?.later ?? false, false);
+	// @wu-test type=integration | scope=search bulk read later | protects=prevent search selection actions from changing the wrong cards
 	// The search toolbar must use its own selection and persist the same toggle.
 	await action("clear-selection");
 	await page.evaluate(() => __app.openPanel("search"));
@@ -93,6 +98,7 @@ export async function verifySelectionOperations(
 	await searchLater.click();
 	await saved();
 	assert.equal((await api("/api/v1/workspace")).state.items[task.id].later, true);
+	// @wu-test type=integration | scope=cloud bulk bookmark | protects=prevent bulk bookmark removal from leaving selected cards bookmarked
 	await action("clear-selection");
 	await action("close");
 	await selectCards();
@@ -103,6 +109,7 @@ export async function verifySelectionOperations(
 	assert.equal(state.state.items[task.id].bookmarked, false);
 	await page.locator('#selection-bar [data-action="selected-bookmark"]').click();
 	await saved();
+	// @wu-test type=boundary | scope=AI selection handoff | protects=prevent adding selection context from writing card data
 	const beforeAI = batchRequests.length;
 	await page.locator('#selection-bar [data-action="selected-ai"]').click();
 	assert.deepEqual(
@@ -111,6 +118,7 @@ export async function verifySelectionOperations(
 	);
 	assert.equal(await page.evaluate(() => __app.selected.size), 0);
 	assert.equal(batchRequests.length, beforeAI, "adding AI context must not mutate cards");
+	// @wu-test type=integration | scope=bulk tags and note save | protects=prevent tag editing from writing early or omitting selected cards
 	await selectCards();
 	const requestsBeforeTags = batchRequests.length;
 	await page.locator('#selection-bar [data-action="selected-tag"]').click();

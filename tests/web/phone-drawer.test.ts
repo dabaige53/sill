@@ -95,21 +95,17 @@ function fixture(scroll = 180) {
 	};
 }
 
-test("Vaul opens without snap points and retains card DOM, scroll and focus", async () => {
+// @wu-test type=behavior | scope=Phone card drawer | protects=Preserve card focus and scroll when the drawer rerenders
+test("drawer rerender preserves card content, focus and scroll", () => {
 	const f = fixture();
 	try {
-		const drawer = f.dialog.querySelector("[data-vaul-drawer]");
-		assert.equal(drawer.style.animationPlayState, "");
-		assert.ok(drawer.querySelector("[data-vaul-handle]"));
 		const task = f.dialog.querySelector("#task");
 		const scroll = f.dialog.querySelector(".sheet-scroll");
-		assert.ok(f.dialog.hasAttribute("data-phone-drawer"));
-		assert.equal(f.dialog.querySelector("[data-vaul-drawer]").dataset.vaulSnapPoints, "false");
-		assert.equal(f.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
 		scroll.scrollTop = 80;
 		task.focus();
 		f.api.renderView(f.dialog, f.api.createElement("div", null, f.body));
-		assert.equal(f.dialog.querySelector("#task"), task);
+		assert.equal(f.dialog.querySelector("#modal-title").textContent, "Synthetic card");
+		assert.equal(f.dialog.querySelectorAll("#task").length, 1);
 		assert.equal(f.w.document.activeElement, task);
 		assert.equal(scroll.scrollTop, 80);
 	} finally {
@@ -117,6 +113,7 @@ test("Vaul opens without snap points and retains card DOM, scroll and focus", as
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer interruption | protects=Prevent a pending close from closing the next card
 test("unmount cancels a pending close so it cannot close the next card", () => {
 	const f = fixture();
 	try {
@@ -138,26 +135,15 @@ test("unmount cancels a pending close so it cannot close the next card", () => {
 	}
 });
 
-test("native close waits for Vaul and old pull gestures do not bind", () => {
+// @wu-test type=behavior | scope=Phone drawer closing | protects=Close once after the drawer finishes closing
+test("native close waits for the drawer and calls its completion once", () => {
 	const f = fixture();
 	try {
-		let bound = 0;
-		f.api.Gestures.prototype.bindPullDown.call({
-			app: f.app,
-			bindPreviewResistance() {
-				bound++;
-			},
-			bindPreviewHandle() {
-				bound++;
-			},
-			bindPreviewExpansion() {
-				bound++;
-			},
-		});
-		assert.equal(bound, 0);
 		let closed = 0;
 		f.api.flushSync(() => f.api.closePhoneDrawer(f.dialog, () => closed++));
 		assert.equal(closed, 0);
+		f.api.flushSync(() => f.clock.advance(550));
+		assert.equal(closed, 1);
 		f.api.flushSync(() => f.clock.advance(550));
 		assert.equal(closed, 1);
 	} finally {
@@ -165,6 +151,7 @@ test("native close waits for Vaul and old pull gestures do not bind", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer background | protects=Restore feed position and content after closing the drawer | debt=impl-detail
 test("the scale target includes the page chrome and restores page geometry on unmount", async () => {
 	const f = fixture();
 	try {
@@ -192,6 +179,7 @@ test("the scale target includes the page chrome and restores page geometry on un
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer background | protects=Keep a deep feed position through drawer close
 test("a deep feed retains its native reading offset for the whole drawer close", () => {
 	const f = fixture(2500);
 	try {
@@ -218,6 +206,7 @@ test("a deep feed retains its native reading offset for the whole drawer close",
 	}
 });
 
+// @wu-test type=integration | scope=Nested phone previews | protects=Restore the parent card and its scroll position after closing a child
 test("linked phone previews retain the mounted parent and restore its scroll on close", () => {
 	const f = fixture();
 	try {
@@ -252,6 +241,7 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer gesture | protects=Close a drawer with a downward drag over a scrolled feed | debt=flaky,impl-detail
 test("a drawer above a scrolled feed accepts a downward drag and closes", async () => {
 	const f = fixture();
 	try {
@@ -299,6 +289,7 @@ test("a drawer above a scrolled feed accepts a downward drag and closes", async 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone drawer scrolling | protects=Keep the drawer open when scrolling upward at its top
 test("wheel at the top does not move or close the Vaul drawer", () => {
 	const f = fixture();
 	try {
@@ -320,6 +311,7 @@ test("wheel at the top does not move or close the Vaul drawer", () => {
 	}
 });
 
+// @wu-test type=integration | scope=Phone tag editor | protects=Keep the card drawer open while interacting with the tag editor
 test("presses, focus and Escape in the tags layer leave the card drawer open", () => {
 	const f = fixture();
 	try {

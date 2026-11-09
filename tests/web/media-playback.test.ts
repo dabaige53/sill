@@ -6,6 +6,7 @@ import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
 import { youtubeID } from "../../apps/web/cards/youtube-player.tsx";
 
+// @wu-test type=boundary | scope=YouTube URL validation | protects=Reject lookalike hosts and invalid video URLs
 test("YouTube parsing accepts official videos, not lookalike domains or arbitrary pages", () => {
 	assert.equal(youtubeID("https://youtu.be/abcdefghijk"), "abcdefghijk");
 	assert.equal(youtubeID("https://www.youtube.com/watch?v=abcdefghijk"), "abcdefghijk");
@@ -14,6 +15,7 @@ test("YouTube parsing accepts official videos, not lookalike domains or arbitrar
 	assert.equal(youtubeID("javascript:alert(1)"), null);
 });
 
+// @wu-test type=boundary | scope=YouTube iframe | protects=Set the player origin and referrer policy before loading
 test("official iframe sets its own origin-only referrer policy before loading", async () => {
 	const js = buildSync({
 		stdin: {
@@ -56,6 +58,7 @@ test("official iframe sets its own origin-only referrer policy before loading", 
 	dom.window.close();
 });
 
+// @wu-test type=integration | scope=YouTube API loading | protects=Allow retry after the player API fails to load
 test("blocked YouTube API times out, releases its script and retries", async () => {
 	const js = buildSync({
 		stdin: {
@@ -94,6 +97,7 @@ test("blocked YouTube API times out, releases its script and retries", async () 
 	dom.window.close();
 });
 
+// @wu-test type=integration | scope=YouTube player recovery | protects=Offer retry and retain the playback position after timeout
 test("YouTube readiness timeout exposes retry and rebuilding preserves resume", async () => {
 	const js = buildSync({
 		stdin: {
@@ -143,6 +147,7 @@ test("YouTube readiness timeout exposes retry and rebuilding preserves resume", 
 	dom.window.close();
 });
 
+// @wu-test type=integration | scope=Video reader transition | protects=Preserve the player when switching preview and full view
 test("video preview and full reading retain the actual iframe and one player instance", async () => {
 	const js = buildSync({
 		stdin: {

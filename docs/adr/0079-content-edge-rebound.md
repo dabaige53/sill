@@ -6,7 +6,7 @@
 
 用户明确参考[ui-lab网站](https://lab.xevrion.dev/)整页边缘回弹，Web桌面大于650px时根html／body改为auto。最初将刷新wheel改成只观察圆环、停止main随动，用户随后指出影响下拉刷新时卡片页的随动，故撤回这一部分。当前普通滚动保留原生反馈；明确的下拉刷新序列仍由原控制器接手，恢复main位移、64px阈值、参考阻力与0.35秒回位。body.is-pulling覆盖拉动至内容回位完成，期间根部暂为none，结束后恢复auto，避免原生与Motion叠加。鼠标、PWA和圆环加载／完成展示保持原规则。
 
-Web桌面普通详情不再绑定自定义边缘输入；无push-ring时sheet-scroll／reader-scroll采用overflow-y: scroll和overscroll-behavior-y: contain，保持局部滚动容器并阻止背景滚动。有读完上推圆环时仍为none并沿用完成手势。PWA根html／body保留none与下述自定义回位；不复制参考页布局，不加模拟空白制造滚动。
+Web桌面普通详情不绑定自定义边缘输入；无push-ring时sheet-scroll／reader-scroll采用overflow-y: scroll和overscroll-behavior-y: contain，保持局部滚动容器并阻止背景滚动。有读完上推圆环时仍为none并沿用完成手势。PWA根html／body保留none与下述自定义回位；不复制参考页布局，不加模拟空白制造滚动。
 
 原生效果、阻力与回位时机由浏览器及系统处理，不承诺固定时长或所有浏览器有相同回弹。contain保留局部边缘效果的依据见[MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overscroll-behavior)。代码检查不能代替用户触控板确认。
 

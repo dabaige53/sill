@@ -7,6 +7,7 @@ import { A, B, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=integration | scope=server/cloud backup access | protects=Prevent agent tokens from configuring secrets or accessing another owner and restrict backup tools by grant
 test("backup MCP exposes no credential input and credential setup rejects agent tokens", async () => {
 	const f = await cloudFixture();
 	let client: any;

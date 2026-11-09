@@ -51,11 +51,13 @@ const isMenuOpen = (page: any) =>
 		.locator("#selection-menu")
 		.count()
 		.then((count: number) => count > 0);
+// @wu-test type=behavior | scope=selection cancellation checks | protects=prevent cancelled selection gestures from changing cards or losing selection
 const unchanged = async (page: any, before: any) => {
 	assert.deepEqual(await snapshot(page), before, "a gesture or dismissal changed card data");
 	assert.deepEqual(await selection(page), firstIds, "dismissal lost the selected cards");
 	assert.equal(await page.evaluate(() => window.__selectionProbe.patches), 0);
 };
+// @wu-test type=integration | scope=selection gesture fixture | protects=prevent gesture scenarios from using a missing or invisible target
 async function point(page: any) {
 	const target = page.locator('[data-card="selection-01"] .card-summary');
 	await target.scrollIntoViewIfNeeded();
@@ -69,6 +71,7 @@ async function touch(session: any, type: string, p?: { x: number; y: number }) {
 		touchPoints: p ? [{ ...p, id: 1, radiusX: 4, radiusY: 4, force: 1 }] : [],
 	});
 }
+// @wu-test type=integration | scope=selection drag setup | protects=prevent gesture scenarios from proceeding before selection and drag are active | debt=flaky
 async function beginLift(page: any, mobile: boolean) {
 	const p = await point(page);
 	const session = mobile ? await page.context().newCDPSession(page) : null;
@@ -101,6 +104,7 @@ async function beginLift(page: any, mobile: boolean) {
 		},
 	};
 }
+// @wu-test type=behavior | scope=selection drag preview | protects=prevent drag previews from exposing duplicate interactive controls or incorrect card content | debt=impl-detail
 async function checkThumbnail(page: any, container: string) {
 	const count = await page.evaluate(() => window.__app.selected.size);
 	// Like Photos: each chosen card (up to three) is a real clone in the pile; the first one chosen lies on top.
@@ -144,6 +148,7 @@ try {
 		headless: true,
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 	});
+	// @wu-test type=integration | scope=selection scenario runner | protects=prevent browser errors or external requests from passing silently
 	async function scenario(name: string, fn: (page: any) => Promise<void>, options: any = desktop) {
 		const context = await browser.newContext(options);
 		const page = await context.newPage();

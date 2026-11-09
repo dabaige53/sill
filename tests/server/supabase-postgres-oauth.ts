@@ -18,6 +18,7 @@ export async function runPostgresOauth({
 	sql: any;
 	t: any;
 }) {
+	// @wu-test type=integration | scope=PostgreSQL OAuth consent gateway | protects=Prevent concurrent consent claims and stale approval after revocation
 	await t.test(
 		"consent gateway installs as NOSUPERUSER; concurrent claim, revoke and stale finalization are safe",
 		async () => {
@@ -111,6 +112,7 @@ export async function runPostgresOauth({
 				);
 		},
 	);
+	// @wu-test type=integration | scope=PostgreSQL shared OAuth enrollment | protects=Keep shared application enrollment isolated by account
 	await t.test(
 		"shared application enrollment installs without SUPERUSER and respects account RLS",
 		async () => {
@@ -173,6 +175,7 @@ export async function runPostgresOauth({
 			);
 		},
 	);
+	// @wu-test type=boundary | scope=PostgreSQL OAuth issuer privileges | protects=Prevent public callers from invoking the issuer or accessing token sessions
 	await t.test(
 		"issuer hook installs without SUPERUSER and has no public invocation or table ownership",
 		async () => {

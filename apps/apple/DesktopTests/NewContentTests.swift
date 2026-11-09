@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct NewContentTests {
+  // @wu-test type=integration | scope=Due reminder delivery | protects=Show a due reminder once for the same trigger | debt=flaky
   @Test func dueReminderShowsOnceThenStaysShown() async {
     let (workspace, _) = await ready([], extra: [syntheticReminder])
     #expect(workspace.dueReminders() == ["reminder"])

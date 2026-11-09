@@ -4,12 +4,15 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-09 | 1.2.39 候选 CI | agentAction、readFileSync、theme-color、completed task must return focus to its title、SelectionTests、Biome | [候选格式、类型与旧行为断言](2026-11-09-release-1.2.39/diagnosis.md) |
+| 2026-11-09 | PostgreSQL 测试类型 | Promise.withResolvers、PromiseConstructor、ES2023、supabase-postgres.ts、LSP | [测试事务辅助函数类型库不兼容](2026-11-08-local-task-consolidation/README.md#2026-11-09-lsp-诊断) |
 | 2026-11-08 | 发布流程 | Database migration and stored-card compatibility have not been verified、SILL_DATABASE_VERIFIED_COMMIT、production environment、仓库级变量、publish 失败 | [发布核对变量设到仓库级不生效](2026-11-08-release-1.2.38/diagnosis-verified-commit-scope.md) |
 | 2026-11-08 | Web 浏览器测试 | cancel restores the drawer position、Real touchCancel、web / browser (motion)、偶发失败、手机抽屉 | [手机抽屉 touchCancel 用例偶发失败](2026-11-08-release-1.2.38/diagnosis-touch-cancel-flake.md) |
 | 2026-11-08 | Web / Mac 数据与加载 | 操作卡顿、搜索慢、读长文每 5 秒停顿、整库投影、深拷贝基线、Markdown 重复解析、阅读时长、zod 进包、包体、定时整库下载、写入前整库读取、X-Sill-Revision、unchanged | [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md) |
 | 2026-11-08 | Web 阅读与保存 | 阅读时频繁保存、每 5 秒、500ms、reading.add、阅读进度、整个工作区回执、receipts、流量大、未保存秒数被覆盖 | [Web 阅读时频繁保存整个工作区](2026-11-07-web-markdown-reparse/diagnosis-reading-writes.md) |
 | 2026-11-08 | Web 信息流 | 点按刷新慢、卡片多时卡顿、Store.card、线性查找、平方增长、refreshCard | [Web 刷新单张卡片时逐张扫描卡片库](2026-11-07-web-markdown-reparse/diagnosis-feed-refresh.md) |
 | 2026-11-07 | Web 搜索与信息流 | 搜索输入卡顿、按键延迟、点按重绘慢、markdown-it、markdownText、readingMinutes、阅读时长、正文反复解析、缓存失效、500 张 | [Web 搜索与信息流反复解析正文](2026-11-07-web-markdown-reparse/diagnosis-markdown-reparse.md) |
+| 2026-11-06 | 测试类型引用 | TS2304、AgentScope、Card、Locator、environment.d.ts、测试辅助代码清理 | [测试清剿类型引用检查](2026-11-06-test-purge/validation.md#类型引用检查) |
 | 2026-11-05 | Mac 卡片详情 | 放大缩小卡顿、空白帧、关闭后白框、白边、回落表面、readCard、CardFlightSurface、geometryReady | [Mac 详情放大缩小卡顿与关闭后白框](2026-11-05-macos-reader-resize/README.md) |
 | 2026-11-05 | Mac 卡片详情 | 打开长文卡片卡顿、主线程延迟、458ms、长正文排版、MarkdownText、LazyVStack、目录高亮 | [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md) |
 | 2026-11-03 | Mac 打包 | 线上 DMG 与本地不一致、顶部玻璃不同、性能差、Liquid Glass、LC_BUILD_VERSION、sdk 14.0、Xcode 26.6、Xcode 27.2 | [Mac 线上包与本地包不一致](2026-11-03-macos-build-parity/diagnosis.md) |
@@ -31,6 +34,7 @@
 | 2026-10-31 | 生产 MCP、skills 与工作台 | INVALID_ARGUMENT、冲突原因缺失、旧游标、回执截断、搜索工具发现、summary 示例、控件超时、日程下载回执、来源认证 | [生产流程与兼容性](2026-10-31-production-acceptance/diagnosis.md) |
 | 2026-10-31 | CI 与测试 | main 持续变红、PR 继承失败、排序断言、新卡在顶部、打开即已读、missing_summary、下拉取样、Date.now 平局 | [main CI 失败诊断](2026-10-31-main-ci-tests/diagnosis.md) |
 | 2026-10-31 | MCP 写入与卡片跳转 | 目录误开外链、全屏首击定位偏差、defaultPrevented、封面未显示、链接写不进去、HTTPS pattern、connector schema validation、files url、去原文打不开、加入会议无效、openLinks、mailto、sources url、missing_summary | [卡片链接写入与跳转](2026-10-31-card-links/diagnosis.md) |
+| 2026-10-31 | 文章正文与原文入口 | Markdown 图片不显示、Readwise 图文顺序、原文按钮、noopener | [正文图片与原文入口](2026-10-31-inline-images/README.md) |
 | 2026-10-30 | 设置画板生成 | ERR_UNKNOWN_FILE_EXTENSION、avatar.png、window is not defined、AIDock、previews.ts | [设置画板生成修正](2026-10-30-settings-about-backup/README.md#检查) |
 | 2026-10-30 | MCP 写入与信息流排序 | 导入缺时间、提醒没有 due、秒级时间、1970、正文被精简、广告没删、新卡在底部、没有新内容提示、排序乱 | [导入缺时间与新卡沉底](2026-10-30-import-time-feed-order/diagnosis.md) |
 | 2026-10-30 | Mac 启动与资源包 | 打开即崩溃、EXC_BREAKPOINT、NSBundle.module、Cover.image、Sill_Sill.bundle、头像体积 | [Mac 资源包定位与头像压缩](2026-10-30-macos-resource-bundle/README.md) |

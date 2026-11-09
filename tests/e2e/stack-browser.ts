@@ -17,6 +17,7 @@ import { chromium } from "playwright";
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 	});
 	let failures = 0;
+	// @wu-test type=integration | scope=stack scenario runner | protects=prevent stack scenarios from running before the deck is ready | debt=flaky
 	async function scenario(name?: any, run?: any, width: any = 1440, touch: any = false) {
 		const context = await browser.newContext({
 				viewport: { width, height: 1000 },
@@ -62,6 +63,7 @@ import { chromium } from "playwright";
 		await page.mouse.move(p.x + dx, p.y + 2, { steps: 5 });
 		await page.mouse.up();
 	};
+	// @wu-test type=behavior | scope=stack keyboard navigation | protects=prevent rapid keyboard input from dropping a card transition | debt=impl-detail
 	await scenario("Keyboard burst accepts every key without waiting for motion", async (page) => {
 		await page.locator("[data-stack]").first().focus();
 		await page.keyboard.press("ArrowRight");
@@ -70,6 +72,7 @@ import { chromium } from "playwright";
 		assert.equal(await current(page), "1");
 		assert.equal(await page.locator(".deck").getAttribute("data-busy"), null);
 	});
+	// @wu-test type=behavior | scope=stack mixed input | protects=prevent pending wheel input from overriding a later keyboard action | debt=flaky
 	await scenario("Keyboard takes ownership of a pending wheel gesture", async (page) => {
 		const p = await position(page);
 		await page.locator("[data-stack]").first().focus();
@@ -79,6 +82,7 @@ import { chromium } from "playwright";
 		await page.waitForTimeout(350);
 		assert.equal(await current(page), "1");
 	});
+	// @wu-test type=behavior | scope=stack wheel reversal | protects=prevent a reverse wheel gesture from moving the stack in the wrong direction
 	await scenario(
 		"Trackpad reversal during the coasting guard changes direction",
 		async (page?: any) => {
@@ -90,6 +94,7 @@ import { chromium } from "playwright";
 			assert.equal(await current(page), "0");
 		},
 	);
+	// @wu-test type=behavior | scope=stack repeated swipes | protects=prevent a second swipe during settling from being ignored or opening a dialog
 	await scenario(
 		"A second mouse swipe can start during the settling animation",
 		async (page?: any) => {
@@ -101,6 +106,7 @@ import { chromium } from "playwright";
 			assert.equal(await page.locator("#modal").evaluate((e?: any) => e.open), false);
 		},
 	);
+	// @wu-test type=behavior | scope=stack pointer cancellation | protects=prevent a cancelled pointer gesture from changing the card or blocking a later tap
 	await scenario(
 		"Cancelled pointer restores deck; a fresh tap still opens the stack",
 		async (page?: any) => {
@@ -120,6 +126,7 @@ import { chromium } from "playwright";
 			assert.equal(await page.locator("[data-stack-open]").count(), 1);
 		},
 	);
+	// @wu-test type=behavior | scope=stack touch boundaries | protects=prevent touch swipes from skipping cards or moving past either end | debt=impl-detail
 	await scenario(
 		"Touch deck stays level and settles without wobble through the last card and back",
 		async (page) => {
@@ -182,6 +189,7 @@ import { chromium } from "playwright";
 		390,
 		true,
 	);
+	// @wu-test type=behavior | scope=stack touch direction | protects=prevent vertical scrolling from changing cards or horizontal swipes from blocking opening | debt=flaky
 	await scenario(
 		"Touch swipe, reverse, vertical scroll and title tap remain independent",
 		async (page?: any) => {
@@ -223,6 +231,7 @@ import { chromium } from "playwright";
 		390,
 		true,
 	);
+	// @wu-test type=behavior | scope=reading panel width | protects=prevent preview or reader content from overflowing or becoming too narrow
 	for (const width of [1440, 390])
 		await scenario(
 			`Reading panel uses available width at ${width}px`,

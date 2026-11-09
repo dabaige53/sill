@@ -12,7 +12,7 @@
 
 ## 实现
 
-- Web 和服务端使用 TypeScript ES modules；构建产物统一在 `dist/`，不再提交根页面或依赖文件顺序拼接。
+- Web 和服务端使用 TypeScript ES modules；构建产物统一在 `dist/`，不提交根页面或依赖文件顺序拼接。
 - 设计画板的第三方 `support.js`、生成的 `components/bundle.js` 和已发布 Worker 快照保留，不把它们当作活跃手写源码迁移或格式化。
 - `contracts/` 统一卡片和接口定义，导出 JSON Schema；Web 不打包 zod，Apple 通过固定版本生成器生成类型。
 - 11 种卡片、17 种来源使用共同标签。旧 `source`、`kind` 在内存中迁入 `sources`；邮件保留 `sender`。未知类型与字段不丢弃。

@@ -4,6 +4,7 @@ import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { AUTH, oauthFixture } from "./helpers/oauth-fixture.ts";
 
+// @wu-test type=integration | scope=password login and OAuth handoff | protects=Reject invalid login attempts and avoid automatic consent after login
 test("password login resumes consent without approval, rejects wrong credentials and cross-origin", async () => {
 	const f = await oauthFixture();
 	try {
@@ -43,6 +44,7 @@ test("password login resumes consent without approval, rejects wrong credentials
 		await f.close();
 	}
 });
+// @wu-test type=integration | scope=email password setup | protects=Require verified password setup while preserving the pending authorization
 test("email verification can set a password and preserve the pending authorization", async () => {
 	const f = await oauthFixture();
 	try {
@@ -80,6 +82,7 @@ test("email verification can set a password and preserve the pending authorizati
 	}
 });
 
+// @wu-test type=integration | scope=native email authentication | protects=Prevent native code redemption without the original verifier
 test("native email forwards only a PKCE code and redeems it only with native verifier", async () => {
 	const f = await oauthFixture();
 	try {
@@ -117,6 +120,7 @@ test("native email forwards only a PKCE code and redeems it only with native ver
 	}
 });
 
+// @wu-test type=boundary | scope=native authentication callback | protects=Reject duplicate authorization codes and cross-origin redemption
 test("native callback rejects ambiguous codes and foreign-origin redemption", async () => {
 	const f = await oauthFixture();
 	try {
@@ -146,6 +150,7 @@ test("native callback rejects ambiguous codes and foreign-origin redemption", as
 	}
 });
 
+// @wu-test type=integration | scope=native email authentication | protects=Request the native HTTPS callback when sending the login email
 test("native email requests the exact HTTPS callback query from Supabase", async () => {
 	const f = await cloudFixture();
 	try {
@@ -164,6 +169,7 @@ test("native email requests the exact HTTPS callback query from Supabase", async
 	}
 });
 
+// @wu-test type=boundary | scope=authentication recovery pages | protects=Prevent recovery pages from echoing untrusted input and misrepresenting login intent
 test("login copy distinguishes workspace entry from consent and recovery never echoes input", async () => {
 	const f = await oauthFixture();
 	try {
@@ -194,6 +200,7 @@ test("login copy distinguishes workspace entry from consent and recovery never e
 		await f.db.close();
 	}
 });
+// @wu-test type=integration | scope=signed-in password change | protects=Prevent password changes without the current password
 test("signed-in password change requires the current password", async () => {
 	const f = await oauthFixture();
 	try {
@@ -232,6 +239,7 @@ test("signed-in password change requires the current password", async () => {
 		await f.close();
 	}
 });
+// @wu-test type=integration | scope=authentication logout | protects=Apply the requested logout scope and clear browser credentials
 test("logout ends this browser by default and every device on request", async () => {
 	const f = await oauthFixture();
 	try {
@@ -259,6 +267,7 @@ test("logout ends this browser by default and every device on request", async ()
 		await f.close();
 	}
 });
+// @wu-test type=behavior | scope=server/cloud login page | protects=Show recovery only when email login is enabled
 test("login page explains invitation and offers recovery only when email is enabled", async () => {
 	const { loginPage } = await import("../../server/cloud/login-page.ts");
 	const closed = loginPage();
@@ -268,6 +277,7 @@ test("login page explains invitation and offers recovery only when email is enab
 	assert.match(loginPage({ emailEnabled: true }), /id="forgot"/);
 });
 
+// @wu-test type=integration | scope=authentication account-page return | protects=Return users to the requested account page after login
 test("signed-out account pages go to login and come back after signing in", async () => {
 	const f = await oauthFixture();
 	try {

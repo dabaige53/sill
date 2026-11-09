@@ -27,6 +27,7 @@ private actor BackupTransportStub {
     ])
   }
 
+  // @wu-test type=integration | scope=Backup restore reconciliation | protects=Replay the identical restore request after an unknown result
   @Test func uncertainRestoreRetainsExactRequestUntilVerifiedOrReplayed() async throws {
     let transport = BackupTransportStub()
     let model = BackupModel()
@@ -51,6 +52,7 @@ private actor BackupTransportStub {
     #expect(refreshed == 1)
   }
 
+  // @wu-test type=behavior | scope=Backup restore feedback | protects=Report successful restore when workspace refresh fails
   @Test func successfulRestoreWithFailedRefreshReportsBothResults() async {
     let model = BackupModel()
     model.configure { _, _, _ in .object(["restored": .bool(true)]) }

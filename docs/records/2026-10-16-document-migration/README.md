@@ -3,7 +3,7 @@
 日期：2026-10-16。按文件管理规范第 9 节完成批次 1；本记录不代表后续代码批次、业务接口实施或线上部署完成。
 
 - 现行规则归入 product、design、guides；历史事件与证据归入 records；旧功能说明和旧测试报告归入 archive。
-- docs/README.md 是唯一文档导航；根 README 不再按日期列进展。
+- docs/README.md 是唯一文档导航；根 README 不按日期列进展。
 - LOCAL-ACCEPTANCE 只描述 2026-10-12 一次验收，整体保留。无障碍记录的提交日期为 2026-10-13，按该日期归类。
 - cloud-ui-no-header 的 ZIP 全部条目与目录中展开文件逐字节一致，删除重复 ZIP。
 - cloud-ui 的 ZIP 中 acceptance-report.md 为独有正文，先展开保留。其余九项与展开文件逐字节一致，再删除重复 ZIP。原文件名与哈希清单保留历史用途，链接改为现存文件。

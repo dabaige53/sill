@@ -2,14 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { JSDOM } from "jsdom";
 import { createCloudTransport, readWhenReady } from "../../apps/web/cloud-bridge.ts";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { workspaceUri } from "../../server/cloud/mcp.ts";
-import { restrictMediaScripts } from "../../server/cloud/media-policy.ts";
 import { A, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
+// @wu-test type=behavior | scope=apps/web/cloud-bridge readWhenReady | protects=Recover initial reads without retrying denied requests or writes
 test("initial host reads recover automatically, while denied reads and writes are not retried", async () => {
 	let calls = 0;
 	const delays = [];
@@ -46,6 +47,7 @@ test("initial host reads recover automatically, while denied reads and writes ar
 	}
 });
 
+// @wu-test type=integration | scope=apps/web/cloud-bridge createCloudTransport | protects=Forward edit revision and idempotency key to host tools
 test("cloud view preserves edit revision and idempotency when using host tools", async () => {
 	const calls = [],
 		request = createCloudTransport(async (args?: any) => {
@@ -68,6 +70,7 @@ test("cloud view preserves edit revision and idempotency when using host tools",
 	await assert.rejects(request("/auth/login", { method: "POST" }));
 });
 
+// @wu-test type=integration | scope=server/cloud MCP workspace resources | protects=Serve usable protected HTML and deny revoked clients at supported entry points
 test("sidebar and thread entries use scoped cloud resources and disappear on revocation", async () => {
 	const f = await cloudFixture();
 	let client: any;
@@ -76,6 +79,35 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 			`insert into sill_private.caller_grants values('${A}','oauth:codex-test',array['content:read','content:write','content:delete','event:read','event:submit'],array['*'],'${resource}');`,
 		);
 		const html = "<!doctype html><html><head><title>Sill cloud app</title></head></html>";
+		const checkPage = (text: string) => {
+			const dom = new JSDOM(text);
+			try {
+				const { document } = dom.window;
+				assert.equal(document.title, "Sill cloud app");
+				const policy = document
+					.querySelector('meta[http-equiv="Content-Security-Policy"]')
+					?.getAttribute("content");
+				assert.ok(policy, "the hosted document carries its own script policy");
+				const directives = new Map(
+					policy
+						.split(";")
+						.filter((part) => part.trim())
+						.map((part) => {
+							const [name, ...sources] = part.trim().split(/\s+/);
+							return [name, sources];
+						}),
+				);
+				assert.deepEqual(directives.get("object-src"), ["'none'"]);
+				assert.deepEqual(directives.get("base-uri"), ["'none'"]);
+				assert.deepEqual(directives.get("script-src"), [
+					"'unsafe-inline'",
+					"https://www.youtube.com",
+					"https://s.ytimg.com",
+				]);
+			} finally {
+				dom.window.close();
+			}
+		};
 		const runtime = createSillRuntime(
 			{ ...f.config, mcpEnabled: true },
 			{ clientFactory: f.factory, appHtml: html },
@@ -122,7 +154,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 			},
 		});
 		const page = (await client.readResource({ uri: workspaceUri })).contents[0];
-		assert.equal(page.text, restrictMediaScripts(html));
+		checkPage(page.text);
 		assert.ok(page._meta.ui.csp.resourceDomains.includes("https://images.example.com"));
 		assert.deepEqual(page._meta.ui.csp.frameDomains, ["https://www.youtube-nocookie.com"]);
 		// Installed hosts retain the resource URI discovered by an earlier release.
@@ -133,7 +165,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 		];
 		for (const uri of resourceUris) {
 			const resource = (await client.readResource({ uri })).contents[0];
-			assert.equal(resource.text, restrictMediaScripts(html));
+			checkPage(resource.text);
 			assert.equal(resource.uri, uri);
 		}
 		await assert.rejects(client.readResource({ uri: "ui://sill/other" }));

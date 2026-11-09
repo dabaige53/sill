@@ -5,6 +5,7 @@ import Testing
 @testable import Sill
 
 @MainActor struct PerformanceTraceTests {
+  // @wu-test type=behavior | scope=Performance trace recording | protects=Restrict recorded fields and prevent duplicate or stale spans
   @Test func recordsAndStopsWithoutContent() throws {
     let root = URL(fileURLWithPath: "/private/tmp/sill-trace-test-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -21,10 +22,14 @@ import Testing
     let rows = try text.split(separator: "\n").map {
       try JSONSerialization.jsonObject(with: Data($0.utf8)) as! [String: Any]
     }
-    #expect(
-      rows.compactMap { $0["event"] as? String } == [
-        "start", "search", "marker", "search", "stop", "capture_quality",
-      ])
+    let search = rows.filter { $0["event"] as? String == "search" }
+    #expect(search.count == 2)
+    for phase in ["begin", "end"] {
+      #expect(
+        search.filter { ($0["attributes"] as? [String: Any])?["phase"] as? String == phase }
+          .count == 1)
+    }
+    #expect(rows.filter { $0["event"] as? String == "marker" }.count == 1)
     #expect(
       rows.allSatisfy {
         Set($0.keys).isSubset(of: ["event", "elapsed_seconds", "metrics", "attributes"])
@@ -41,6 +46,7 @@ import Testing
     #expect(!secondText.contains("search"))
   }
 
+  // @wu-test type=integration | scope=Performance trace sampling | protects=Record resource samples and main-thread delays | debt=flaky
   @Test func samplesResources() async throws {
     let root = URL(fileURLWithPath: "/private/tmp/sill-trace-sample-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }

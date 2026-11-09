@@ -33,7 +33,7 @@
 
 旧卡片断言已单独提交修正，依据与结果见[卡片内容一致性记录](../2026-10-31-card-content-consistency/README.md)。提交 `6fbe9ae2` 的五类检查全部成功：[Web](https://github.com/dabaige53/sill/actions/runs/41376777708)、[集成](https://github.com/dabaige53/sill/actions/runs/41376777923)、[数据](https://github.com/dabaige53/sill/actions/runs/41376777723)、[Mac](https://github.com/dabaige53/sill/actions/runs/41376777833)、[授权策略](https://github.com/dabaige53/sill/actions/runs/41376777710)。
 
-触发去重仅保留 main push 与 PR 检查，插件包装不再重复构建 Web。`628845f3` 将原 12 个浏览器入口分成 motion、navigation、layout 三组，使用独立 Runner，保留全部入口和失败状态；2026-11-02 续办时已推送。
+触发去重仅保留 main push 与 PR 检查，插件包装不重复构建 Web。`628845f3` 将原 12 个浏览器入口分成 motion、navigation、layout 三组，使用独立 Runner，保留全部入口和失败状态；2026-11-02 续办时已推送。
 
 缓存接入采用 npm 下载缓存与 Swift 精确输入缓存。普通 PR 只读；指定任务在默认分支或手动运行时保存。Swift 恢复后仍执行完整测试或打包，成功后才保存，并沿用恢复时计算的 key。原任务临时草稿已不存在，本次依据源码补全，不覆盖其他文件。
 

@@ -8,9 +8,12 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [本地任务整合与清理](2026-11-08-local-task-consolidation/README.md)
+- [1.2.39 发布准备](2026-11-09-release-1.2.39/README.md)
 - [1.2.38 发布](2026-11-08-release-1.2.38/README.md)
 - [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md)
 - [Web 性能排查](2026-11-07-web-markdown-reparse/README.md)
+- [测试代码清剿](2026-11-06-test-purge/README.md)
 - [Mac 详情放大缩小卡顿与关闭后白框](2026-11-05-macos-reader-resize/README.md)
 - [1.2.36 发布](2026-11-05-release-1.2.36/README.md)
 - [Mac 打开长文卡片卡顿](2026-11-05-macos-long-article-open/README.md)
@@ -32,6 +35,8 @@
 - [卡片内容一致性第一批](2026-10-31-card-content-consistency/README.md)
 - [main 测试与功能提交不同步](2026-10-31-main-ci-tests/README.md)
 - [卡片链接写入与跳转排查](2026-10-31-card-links/README.md)
+- [正文图片与原文入口](2026-10-31-inline-images/README.md)
+
 - [设置关于与备份页面完善](2026-10-30-settings-about-backup/README.md)
 
 - [Mac 启动崩溃与共享头像压缩](2026-10-30-macos-resource-bundle/README.md)

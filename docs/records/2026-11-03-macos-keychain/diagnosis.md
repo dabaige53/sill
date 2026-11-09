@@ -13,7 +13,7 @@ macOS，已安装 `/Applications/Sill.app`，arm64。用户截图显示输入“
 - `apps/apple/SillKit/CloudSessionVault.swift` 通过 `SecItemCopyMatching` 读取同名通用密码项，保存时更新已有项，不主动删除再创建。
 - `scripts/build-macos.ts` 使用 `codesign --force --deep --sign -`；发布操作手册也说明当前是临时签名。
 - 本轮只读检查已安装应用的签名：`Signature=adhoc`、`TeamIdentifier=not set`，应用身份要求为 `cdhash`。没有读取钥匙串内容。
-- Apple 的 [Code Signing Requirement Language](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/RequirementLang/RequirementLang.html) 说明临时签名只识别被签名的这一个程序，不具有证书身份。更换构建后原授权可能不再匹配；这是更新后再次询问的解释，尚未证明同一构建每次启动都询问的原因。
+- Apple 的 [Code Signing Requirement Language](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/RequirementLang/RequirementLang.html) 说明临时签名只识别被签名的这一个程序，不具有证书身份。更换构建后原授权可能失效；这是更新后再次询问的解释，尚未证明同一构建每次启动都询问的原因。
 
 ## 处理情况
 
@@ -27,6 +27,6 @@ macOS，已安装 `/Applications/Sill.app`，arm64。用户截图显示输入“
 
 ## 固定签名实施
 
-用户确认后改用固定自签证书 `Sill Self-Signed`：`scripts/create-macos-signing-cert.sh` 一次性生成证书并写入 GitHub secrets，`macos-package.yml` 导入临时钥匙串签名，缺少 secret 时构建失败；签名后检查指定要求绑定证书（`certificate leaf`），不再是 `cdhash`。用户对新身份点一次“始终允许”后，后续版本应不再询问。仍未经 Apple 公证。
+用户确认后改用固定自签证书 `Sill Self-Signed`：`scripts/create-macos-signing-cert.sh` 一次性生成证书并写入 GitHub secrets，`macos-package.yml` 导入临时钥匙串签名，缺少 secret 时构建失败；签名后检查指定要求绑定固定证书（`certificate leaf`）。用户对新身份点一次“始终允许”后，后续版本应不询问。仍未经 Apple 公证。
 
 证书与 secrets 已在 GitHub 配置。签名流程在 GitHub Actions 执行，安装后的钥匙串表现尚待用户在真机确认。

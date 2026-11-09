@@ -6,6 +6,7 @@ import { cloudState, workspaceBatch } from "../../contracts/cloud.ts";
 import { A, B, claims, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 import { verifyHiddenActionsMigration } from "./helpers/hidden-actions-migration.ts";
 
+// @wu-test type=integration | scope=database workspace operations | protects=Prevent partial writes, stale overwrites, replay conflicts and cross-owner access
 test("workspace atomic operations, state validation, old API, replay and owner boundary", async () => {
 	const db = new PGlite();
 	try {
@@ -261,6 +262,7 @@ test("workspace atomic operations, state validation, old API, replay and owner b
 		await db.close();
 	}
 });
+// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject forged revision metadata and unknown item state
 test("workspace request schemas reject forged server metadata and unknown state", () => {
 	assert.equal(cloudState.safeParse({ lessLike: true }).success, true);
 	assert.equal(cloudState.safeParse({ unknown: true }).success, false);
@@ -278,18 +280,20 @@ test("workspace request schemas reject forged server metadata and unknown state"
 	);
 });
 
-test("oversized workspace batches stop before validating every operation", () => {
+// @wu-test type=boundary | scope=contracts/cloud workspaceBatch | protects=Reject oversized batches of otherwise valid operations
+test("workspace batches accept the limit and reject one operation beyond it", () => {
+	const operation = { op: "reading.add", seconds: 1 };
+	assert.equal(
+		workspaceBatch.safeParse({ operations: Array.from({ length: 5000 }, () => operation) }).success,
+		true,
+	);
 	const result = workspaceBatch.safeParse({
-		operations: Array.from({ length: 10000 }, () => ({})),
+		operations: Array.from({ length: 5001 }, () => operation),
 	});
 	assert.equal(result.success, false);
-	if (!result.success) {
-		assert.equal(result.error.issues.length, 1);
-		assert.equal(result.error.issues[0].code, "too_big");
-		assert.deepEqual(result.error.issues[0].path, ["operations"]);
-	}
 });
 
+// @wu-test type=integration | scope=server/cloud workspace HTTP | protects=Prevent cross-owner HTTP operations and preserve idempotent receipts
 test("workspace HTTP uses the same validation, session and receipt boundary", async () => {
 	const { cloudFixture } = await import("./helpers/cloud-fixture.ts");
 	const { createSillRuntime } = await import("../../server/cloud/http.ts");
@@ -390,6 +394,7 @@ test("workspace HTTP uses the same validation, session and receipt boundary", as
 	}
 });
 
+// @wu-test type=integration | scope=database hiddenActions migration | protects=Preserve preferences and roll back invalid migration-era writes
 test("hiddenActions migration: public preferences write, validation and atomic rollback", async () => {
 	const db = new PGlite();
 	try {

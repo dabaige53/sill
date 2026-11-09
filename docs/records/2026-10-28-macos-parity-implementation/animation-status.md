@@ -9,7 +9,7 @@
 | A03 窗口改变但列数不变 | 本次已补 | 列宽变化触发220ms布局过渡；140ms淡入仅作用正文，卡壳保持稳定。 | [CardTile.swift](../../../apps/apple/macOS/Feed/CardTile.swift) |
 | A04 叠卡运动几何 | 原生保留 | 保留Mac叠卡纯水平平移，不复制Web倾斜和下落；见ADR 0083。 | [FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift) |
 | A05 叠卡键盘速度 | 本次已补 | 方向键即时翻页，Enter和Space展开。 | [FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift) |
-| A06 叠卡连续反向与中断 | 本次已补 | 从当前绘制值接手，用代次令牌取消旧落定回调，反向不再被旧目标覆盖。 | [FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift) |
+| A06 叠卡连续反向与中断 | 本次已补 | 从当前绘制值接手，用代次令牌取消旧落定回调，反向不被旧目标覆盖。 | [FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift) |
 | A07 卡片打开的几何路径 | 原生保留 | 正文最终字号布局一次，外框移动并裁切露出，不缩放正文与按钮。 | [ReaderOverlay.swift](../../../apps/apple/macOS/Reader/ReaderOverlay.swift) |
 | A08 打开时正文/工具出现时序 | 原生保留 | 保留Mac几何进度20%–75%交接卡面与正文，区别于Web延迟淡入。 | [ReaderOverlay.swift](../../../apps/apple/macOS/Reader/ReaderOverlay.swift) |
 | A09 关闭回卡的正文交接 | 原生保留 | 收回期间按原生几何进度交接，结束再交还真实卡片；位置实测待补。 | [ReaderOverlay.swift](../../../apps/apple/macOS/Reader/ReaderOverlay.swift) |

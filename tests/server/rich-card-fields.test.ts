@@ -10,6 +10,7 @@ const rich = (card: any) =>
 	card.type === "pr" ||
 	["audioUrl", "chapters", "transcript", "attachments"].some((key) => Object.hasOwn(card, key));
 
+// @wu-test type=integration | scope=database rich card writes | protects=Preserve PR and playback fields while rejecting invalid merged changes atomically
 test("rich cards round trip and invalid merged changes leave the original revision intact", async () => {
 	const f = await cloudFixture();
 	try {
@@ -87,6 +88,7 @@ test("rich cards round trip and invalid merged changes leave the original revisi
 	}
 });
 
+// @wu-test type=integration | scope=HTTP and MCP rich card fields | protects=Preserve PR snapshots and playback fields through public interfaces
 test("HTTP and MCP expose PR snapshots and playback fields", async () => {
 	const { Client } = await import("@modelcontextprotocol/sdk/client/index.js");
 	const { StreamableHTTPClientTransport } = await import(
@@ -152,6 +154,7 @@ test("HTTP and MCP expose PR snapshots and playback fields", async () => {
 	}
 });
 
+// @wu-test type=integration | scope=local repository rich card state | protects=Preserve playback position independently of read state and reading progress
 test("local storage preserves playback independently of read and reading progress", async () => {
 	const { mkdtemp, rm } = await import("node:fs/promises");
 	const { LocalRepository } = await import("../../server/local/repository.ts");

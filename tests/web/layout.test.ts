@@ -8,6 +8,7 @@ Object.defineProperty(globalThis, "matchMedia", {
 });
 const { columnGeometry } = await import("../../apps/web/interactions/layout.ts");
 
+// @wu-test type=behavior | scope=Feed column layout | protects=Keep readable card columns on a medium desktop
 test("a medium desktop preserves readable columns instead of packing the minimum", () => {
 	const layout = columnGeometry(1240);
 	assert.equal(layout.columns, 3);
@@ -15,6 +16,7 @@ test("a medium desktop preserves readable columns instead of packing the minimum
 	assert.equal(layout.inset, 26);
 });
 
+// @wu-test type=behavior | scope=Feed column layout | protects=Use available width on compact desktop and phone layouts
 test("compact desks grow beyond four columns and a phone keeps its available width", () => {
 	const compact = columnGeometry(1640, { min: 240, ideal: 280, max: 320 });
 	assert.equal(compact.columns, 5);
@@ -26,6 +28,7 @@ test("compact desks grow beyond four columns and a phone keeps its available wid
 	});
 });
 
+// @wu-test type=boundary | scope=Feed column layout | protects=Keep columns inside the available width across density settings
 test("density breakpoints never overlap or put columns outside the container", () => {
 	for (const profile of [
 		{ min: 240, ideal: 280, max: 320 },
@@ -42,6 +45,7 @@ test("density breakpoints never overlap or put columns outside the container", (
 	}
 });
 
+// @wu-test type=boundary | scope=Feed column breakpoints | protects=Avoid adding a column before readable width is available
 test("adding a column requires its ideal reading width, including near the former jump", () => {
 	for (const width of [1600, 1610, 1620, 1640]) {
 		const result = columnGeometry(width);
@@ -57,6 +61,7 @@ test("adding a column requires its ideal reading width, including near the forme
 	}
 });
 
+// @wu-test type=behavior | scope=Feed column layout | protects=Keep two usable columns in narrow desktop windows
 test("narrow desktop windows retain two usable columns", () => {
 	for (const width of [632, 652]) {
 		const result = columnGeometry(width, { gap: 20 });
@@ -65,6 +70,7 @@ test("narrow desktop windows retain two usable columns", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Feed fill layout | protects=Fill desktop width while preserving the column count
 test("desktop fill uses the whole width without changing the column-count rule", () => {
 	for (const windowWidth of [900, 1440, 2200]) {
 		const width = windowWidth - 24;
@@ -77,6 +83,7 @@ test("desktop fill uses the whole width without changing the column-count rule",
 	}
 });
 
+// @wu-test type=behavior | scope=Feed card resizing | protects=Release stale card height when column width changes | debt=impl-detail
 test("resizing cards releases the height held for content updates", async () => {
 	const { JSDOM } = await import("jsdom");
 	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");
@@ -116,6 +123,7 @@ test("resizing cards releases the height held for content updates", async () => 
 	}
 });
 
+// @wu-test type=behavior | scope=Phone feed reflow | protects=Keep phone cards positioned correctly after interrupting desktop animation | debt=impl-detail
 test("phone reflow lays out immediately and cancels a running desktop FLIP", async () => {
 	const { JSDOM } = await import("jsdom");
 	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");

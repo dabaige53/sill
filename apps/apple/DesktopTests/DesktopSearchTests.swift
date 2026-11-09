@@ -6,6 +6,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct DesktopSearchTests {
+  // @wu-test type=behavior | scope=Feed search token parsing | protects=Exclude an unfinished hash token from the text query
   @Test func hashFragmentNeverFiltersTheText() {
     #expect(Feed.searchText("Synthetic #wo") == "Synthetic")
     #expect(Feed.hashFragment("Synthetic #wo") == "wo")
@@ -14,6 +15,7 @@ import Testing
     #expect(Feed.hashFragment("a#b") == nil)
   }
 
+  // @wu-test type=behavior | scope=Feed search tokens | protects=Apply a selected tag without retaining its input fragment
   @Test func pickedHashOptionBecomesATokenAndLeavesTheText() async {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)
@@ -34,19 +36,27 @@ import Testing
     #expect(feed.tag == nil && feed.mark == nil && feed.scope == .all)
   }
 
-  @Test func scopeAbsorbsMatchingStatusAndFiltersAnimate() async {
-    let (workspace, _) = await ready(["a"])
+  // @wu-test type=behavior | scope=Feed scope and search filters | protects=Avoid retaining a duplicate status when selecting its matching scope
+  @Test func scopeAbsorbsMatchingStatusWithoutRestrictingAllCards() async {
+    let (workspace, _) = await ready(["a", "b"])
+    let marked = await withCheckedContinuation { continuation in
+      workspace.change("b", ["read": .bool(true)]) { continuation.resume(returning: $0) }
+    }
+    #expect(marked)
     let feed = Feed(workspace: workspace)
-    feed.entered = true
     feed.pick(HashOption(value: .mark(.unread)), in: "")
+    #expect(feed.entries == [.card("a")])
     feed.select(.unread)
     #expect(feed.mark == nil)
+    #expect(feed.entries == [.card("a")])
     feed.select(.all)
     #expect(feed.scope == .all && feed.mark == nil)
+    #expect(feed.entries == [.card("a"), .card("b")])
     feed.search("Synthetic")
-    #expect(feed.animateChanges)
+    #expect(feed.entries == [.card("a"), .card("b")])
   }
 
+  // @wu-test type=behavior | scope=Feed search type filters | protects=Show available types and clear the selected type with search
   @Test func typeChipsListTypesWithResultsAndLeaveWithTheText() async {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)

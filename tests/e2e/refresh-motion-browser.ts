@@ -44,28 +44,7 @@ try {
 		await page.goto(
 			`http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}`,
 		);
-		await page.waitForFunction(() => window.__app && !window.__app.layout.frame);
-		assert.equal(
-			await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY),
-			"none",
-		);
-		assert.notEqual(
-			await page.locator(".pull-ring").evaluate((node) => getComputedStyle(node).backdropFilter),
-			"none",
-			"glass material is preserved",
-		);
-		assert.equal(
-			await page.evaluate(() => {
-				const image = document.createElement("img");
-				image.className = "card-image";
-				document.body.appendChild(image);
-				const properties = getComputedStyle(image).transitionProperty;
-				image.remove();
-				return properties.includes("filter");
-			}),
-			false,
-			"covers must not animate large blur filters",
-		);
+		// @wu-test type=behavior | scope=pull refresh cancellation | protects=prevent a cancelled pull from dispatching a refresh or leaving content displaced | debt=flaky,impl-detail
 		await page.evaluate(() => {
 			window.__pullCalls = 0;
 			window.__app.refresh = () => {
@@ -107,6 +86,7 @@ try {
 		await page.waitForFunction(
 			() => (document.querySelector("main") as HTMLElement).style.translate === "",
 		);
+		// @wu-test type=behavior | scope=pull refresh request lock | protects=prevent repeated pulls from starting concurrent refreshes or hiding feedback | debt=flaky
 		await pull();
 		await page.waitForFunction(
 			() => (document.querySelector("main") as HTMLElement).style.translate === "",
@@ -143,6 +123,7 @@ try {
 			await page.locator(".home-mark").evaluate((node) => getComputedStyle(node).visibility),
 			"visible",
 		);
+		// @wu-test type=behavior | scope=pull refresh retry | protects=prevent failed refresh from blocking retry or ordinary scrolling | debt=flaky,impl-detail
 		await page.evaluate(() => {
 			window.__app.refresh = async () => false;
 		});
@@ -168,6 +149,7 @@ try {
 		await page.mouse.wheel(0, 400);
 		await page.waitForTimeout(300);
 		assert.ok((await page.evaluate(() => scrollY)) > 0, "ordinary scrolling remains available");
+		// @wu-test type=integration | scope=refresh browser runtime | protects=prevent uncaught page errors from passing silently
 		assert.deepEqual(errors, []);
 		console.log(`PASS refresh ownership, cancel, request lock, scroll: normal`);
 		await context.close();

@@ -33,6 +33,7 @@ function homeFixture(position = 3200) {
 	return { ...f, tap, refreshedAt, animations: w.__motionValueAnimations, scroll: () => scroll };
 }
 
+// @wu-test type=behavior | scope=Home navigation | protects=Refresh only after a double tap reaches the top
 test("a home tap animates upward; a second tap adds refresh only after reaching the top", () => {
 	const f = homeFixture();
 	try {
@@ -56,6 +57,7 @@ test("a home tap animates upward; a second tap adds refresh only after reaching 
 	}
 });
 
+// @wu-test type=behavior | scope=Home navigation | protects=Return to the top without refreshing on a single or slow tap
 test("a single tap or two slow taps scroll home without refreshing", () => {
 	for (const second of [null, tokens.motion.homeReturn.doubleTapMs + 1]) {
 		const f = homeFixture();
@@ -71,6 +73,7 @@ test("a single tap or two slow taps scroll home without refreshing", () => {
 	}
 });
 
+// @wu-test type=behavior | scope=Home navigation | protects=Refresh on a double tap when already at the top
 test("double tapping while already at the top refreshes without a fake scrolling animation", () => {
 	const f = homeFixture(0);
 	try {
@@ -84,6 +87,7 @@ test("double tapping while already at the top refreshes without a fake scrolling
 	}
 });
 
+// @wu-test type=behavior | scope=Home return motion | protects=Keep long return journeys within the intended duration | debt=impl-detail
 test("long returns have a bounded duration instead of extending with the feed", () => {
 	const f = homeFixture(120000);
 	try {
@@ -96,6 +100,7 @@ test("long returns have a bounded duration instead of extending with the feed", 
 	}
 });
 
+// @wu-test type=behavior | scope=Home navigation interruption | protects=Stop at the touched position and cancel queued refresh
 test("touching content interrupts the return at its current position and cancels its refresh", () => {
 	const f = homeFixture();
 	try {
@@ -114,6 +119,7 @@ test("touching content interrupts the return at its current position and cancels
 	}
 });
 
+// @wu-test type=behavior | scope=Home navigation interruption | protects=Keep the new page when an old return completes
 test("switching pages cancels an armed home refresh and a late completion cannot change the new page", () => {
 	const f = homeFixture();
 	try {
@@ -135,6 +141,7 @@ test("switching pages cancels an armed home refresh and a late completion cannot
 	}
 });
 
+// @wu-test type=behavior | scope=Home navigation | protects=Restore the feed position before returning to the top
 test("a home double tap can start on another page without discarding the restored feed position", () => {
 	const f = homeFixture(1600);
 	try {

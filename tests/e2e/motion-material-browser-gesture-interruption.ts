@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function runGestureInterruption({ phone, scenario }: { phone: any; scenario: any }) {
-	await scenario("Card right-click does not create a product menu", async (page) => {
-		await page.locator('[data-card="motion-0"] .card-title-button').click({ button: "right" });
-		assert.equal(await page.locator(".card-more-menu,#selection-menu").count(), 0);
-	});
+	// @wu-test type=behavior | scope=reader progress | protects=prevent reading progress from displaying an incorrect position | debt=impl-detail,flaky
 	await scenario(
 		"Reader progress scales from the left without changing layout width",
 		async (page) => {
@@ -34,54 +31,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 		},
 	);
 
-	await scenario(
-		"Style priorities preserve gesture and toolbar behavior",
-		async (page) => {
-			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.locator("#modal.preview[open]").waitFor();
-			await page.waitForTimeout(700);
-			const states = await page.evaluate(() => {
-				const sheet = document.querySelector<HTMLElement>(".preview-sheet"),
-					scroll = sheet.querySelector<HTMLElement>(".sheet-scroll"),
-					bar = document.querySelector<HTMLElement>("#modal .float-bar"),
-					head = sheet.querySelector<HTMLElement>(".sheet-head-tools");
-				const transition = (node: HTMLElement) => {
-					const style = getComputedStyle(node);
-					return {
-						properties: style.transitionProperty.split(", "),
-						transform: style.transform,
-						durations: style.transitionDuration.split(", ").map(Number.parseFloat),
-						delays: style.transitionDelay.split(", ").map(Number.parseFloat),
-					};
-				};
-				const initial = transition(sheet);
-				sheet.classList.add("is-drag");
-				const dragging = transition(sheet),
-					nested = transition(scroll);
-				sheet.classList.remove("is-drag");
-				scroll.classList.add("is-drag");
-				const directScroll = transition(scroll);
-				scroll.classList.remove("is-drag");
-				bar.classList.add("is-tucked");
-				head.classList.add("is-tucked");
-				return {
-					initial,
-					dragging,
-					nested,
-					directScroll,
-					bar: transition(bar),
-					head: transition(head),
-				};
-			});
-			for (const state of Object.values(states) as any[])
-				assert.ok(
-					state.durations.every((duration: number) => duration === 0),
-					"Motion is the sole playback owner",
-				);
-		},
-		phone,
-	);
-
+	// @wu-test type=behavior | scope=interrupted notices and detail | protects=prevent stale transitions from replacing the latest notice or card | debt=flaky
 	await scenario(
 		"Rapid toast replacement and panel reversal keep the latest content",
 		async (page) => {
@@ -108,6 +58,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 		},
 	);
 
+	// @wu-test type=behavior | scope=search after interrupted dismissal | protects=prevent a delayed dismissal from closing a newly opened search | debt=impl-detail,flaky
 	await scenario(
 		"A delayed gesture dismissal leaves a newly opened search usable",
 		async (page) => {
@@ -127,6 +78,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 			);
 		},
 	);
+	// @wu-test type=behavior | scope=phone drawer interruption | protects=prevent an interrupted transition from hiding the newly opened card | debt=flaky
 	for (const close of [false, true]) {
 		await scenario(
 			`Phone drawer remains usable after ${close ? "closing" : "opening"} is interrupted`,

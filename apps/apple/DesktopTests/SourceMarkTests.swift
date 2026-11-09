@@ -3,6 +3,7 @@ import Testing
 @testable import Sill
 
 struct SourceMarkTests {
+  // @wu-test type=behavior | scope=Source brand matching | protects=Show a brand only for a matching source
   @Test func explicitBrandIdentity() {
     #expect(SourceBrand.matching(name: "Work", kind: "mail") == nil)
     #expect(SourceBrand.matching(name: "Gmail · Work", kind: "mail") != nil)
@@ -10,6 +11,7 @@ struct SourceMarkTests {
     #expect(SourceBrand.matching(name: "Not GitHub", kind: "web") == nil)
   }
 
+  // @wu-test type=behavior | scope=Source brand matching | protects=Match supported source brands without matching unrelated names
   @Test func readingTaskAndNoteBrands() {
     for (kind, name) in [
       ("readwise", "Readwise"), ("todoist", "Todoist"), ("dedaobiji", "得到笔记"),

@@ -4,6 +4,7 @@ import { JSDOM } from "jsdom";
 import { publicationName, sourceBrand, sourceMarkHtml } from "../../apps/web/cards/source-mark.tsx";
 import marks from "../../design-system/assets/source-marks/marks.json" with { type: "json" };
 
+// @wu-test type=behavior | scope=sourceBrand and publicationName | protects=Avoid assigning a brand to a generic source
 test("source brands use explicit identity without treating a generic mailbox as Gmail", () => {
 	assert.equal(sourceBrand({ kind: "mail", name: "Work" }), undefined);
 	assert.equal(sourceBrand({ kind: "mail", name: "Gmail · Work" }), "gmail");
@@ -18,6 +19,7 @@ test("source brands use explicit identity without treating a generic mailbox as 
 	);
 });
 
+// @wu-test type=behavior | scope=source brand matching | protects=Show the correct mark for recognized source identities
 test("reading, task and note brands match explicit kinds and account names", () => {
 	for (const [brand, name, type] of [
 		["readwise", "Readwise", "article"],
@@ -36,6 +38,7 @@ test("reading, task and note brands match explicit kinds and account names", () 
 	assert.equal(sourceBrand({ kind: "note", name: "Personal" }), undefined);
 });
 
+// @wu-test type=boundary | scope=source mark rendering | protects=Prevent unknown source text from becoming markup
 test("source marks limit stacks and never render unknown source text as markup", () => {
 	const source = { kind: "unknown", name: '<img src=x onerror="alert(1)">' };
 	const doc = new JSDOM(sourceMarkHtml({ type: "article", sources: Array(5).fill(source) })).window

@@ -1,6 +1,6 @@
 # 测试目录
 
-更新：2026-11-02。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-11-06。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agent/test.md) 确认授权、范围和结果边界。
 
@@ -13,12 +13,11 @@
 | 服务端与集成 | `server/` | `npm run test:server`；真实 Postgres 单独运行 |
 | 浏览器交互、布局与性能 | `e2e/` | 按下表选择专项，不默认执行 |
 | Apple 数据与桌面状态 | `apps/apple/Tests/`、`apps/apple/DesktopTests/` | `npm run test:macos` |
-| Mac 原生界面 | `apple/PerformanceUITests.swift` | 显式 `npm run perf:macos -- ui` |
-| 后台性能与报告 | `apps/apple/DesktopTests/PerformanceBenchmarks.swift`、`apple/performance-report.test.ts` | `npm run perf:macos`；`npm run test:performance-report` |
+| 性能报告 | `apple/performance-report.test.ts` | `npm run test:performance-report` |
 
-`npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试、性能基准及 Docker Postgres。报告解析不需要 Xcode。构建产物断言统一由 `scripts/check.ts` 管理。
+`npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试及 Docker Postgres。报告解析不需要 Xcode。`scripts/check.ts` 检查独立页面的静态图片地址。
 
-CI 自动入口为 `ci.yml`：先运行分流自检及文件检查，纯文档改动到此结束；产品改动调用后续工作流，具体范围见 [CI 说明](../docs/implementation/CI.md#文档变更分流)。`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和三组专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查由发布或手动打包调用。性能基准仍按需运行。
+CI 自动入口为 `ci.yml`：先运行分流自检及文件检查，纯文档改动到此结束；产品改动调用后续工作流，具体范围见 [CI 说明](../docs/implementation/CI.md#文档变更分流)。`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和三组专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查由发布或手动打包调用。人工性能录制与离线报告按性能指南执行。
 
 旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
 
@@ -49,7 +48,7 @@ Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别�
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、菜单入场中断、提示替换与详情反向切换、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
 | PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
-| 搜索框、卡片建议与 # 条件（`panel-search.tsx`、`home-search*.ts(x)`） | `node --import tsx --test tests/web/chrome.test.ts tests/web/search-state.test.ts tests/web/search-desktop.test.ts tests/web/home-search-motion.test.ts` | 四个文件都用合成面板对象；面板新增 `app.xxx()` 调用时，同步补齐各测试里的假对象，否则只在这里失败 |
+| 搜索框、卡片建议与 # 条件（`panel-search.tsx`、`home-search*.ts(x)`） | `node --import tsx --test tests/web/chrome.test.ts tests/web/search-state.test.ts tests/web/search-refresh.test.ts tests/web/search-desktop.test.ts tests/web/home-search-motion.test.ts` | 这些文件都用合成面板对象；面板新增 `app.xxx()` 调用时，同步补齐各测试里的假对象，否则只在这里失败 |
 | 读完上推、详情工具胶囊收起 | `node --import tsx --test tests/web/chrome.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts` | wheel 节奏、停顿回位、到底与胶囊归属；合成计时器，不代表触控板真机手感 |
 | 阅读展开与触摸归属 | `node --import tsx --test tests/web/motion-sheet.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成尺寸、触摸、计时器和绘制帧：按住不展开、松手展开、圆角裁剪与安全区衔接、反向中断、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
 | 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、旧隐藏偏好兼容和生成组件包的主题环境；不代替真机 |

@@ -51,6 +51,7 @@ try {
 					.map((animation) => animation.finished.catch(() => {})),
 			);
 		});
+		// @wu-test type=behavior | scope=card dragging and AI dock | protects=prevent drag previews from leaving the pointer, remaining after cancellation, or changing source cards | debt=flaky
 		for (const multiple of [false, true]) {
 			await page.evaluate((multiple) => {
 				window.__app.selected.clear();

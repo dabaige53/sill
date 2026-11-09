@@ -106,6 +106,7 @@ function fixture() {
 	};
 }
 
+// @wu-test type=boundary | scope=system reminder enablement | protects=Request permission only after explicit enablement and wait for worker activation
 test("permission is requested only by an explicit enable; worker must activate first", async () => {
 	const f = fixture();
 	try {
@@ -131,6 +132,7 @@ test("permission is requested only by an explicit enable; worker must activate f
 	}
 });
 
+// @wu-test type=boundary | scope=system reminder account switching | protects=Ignore a stale permission response after account changes
 test("late permission response cannot enable a switched-away and restored account", async () => {
 	const f = fixture();
 	try {
@@ -149,6 +151,7 @@ test("late permission response cannot enable a switched-away and restored accoun
 	}
 });
 
+// @wu-test type=behavior | scope=system reminder deduplication | protects=Avoid duplicate notifications and close notifications that are no longer eligible
 test("repeat checks deduplicate, and completed/ignored/snoozed cards close old notifications", async () => {
 	for (const item of [{ reminderDone: true }, { dismissed: true }, { snoozedUntil: 5000 }]) {
 		const f = fixture();
@@ -177,6 +180,7 @@ test("repeat checks deduplicate, and completed/ignored/snoozed cards close old n
 	}
 });
 
+// @wu-test type=boundary | scope=system reminder delivery | protects=Remove a late notification after completion or account switch
 test("late showNotification is removed after completion or an account switch", async () => {
 	for (const switchAccount of [false, true]) {
 		const f = fixture();
@@ -202,6 +206,7 @@ test("late showNotification is removed after completion or an account switch", a
 	}
 });
 
+// @wu-test type=boundary | scope=system reminder click | protects=Open only a currently eligible card for the current account
 test("notification clicks require the current account and a still-eligible card", async () => {
 	const f = fixture();
 	try {
@@ -222,6 +227,7 @@ test("notification clicks require the current account and a still-eligible card"
 	}
 });
 
+// @wu-test type=behavior | scope=system reminder delivery failure | protects=Report notification failure without recording successful delivery
 test("a failed worker or rejected notification reports failure without marking delivery", async () => {
 	const worker = new EventTarget() as EventTarget & { state: string };
 	worker.state = "redundant";
@@ -244,6 +250,7 @@ test("a failed worker or rejected notification reports failure without marking d
 	}
 });
 
+// @wu-test type=boundary | scope=reminder worker notification click | protects=Focus only a window that accepts the notification account and card
 test("notification worker focuses only a window that accepts the account and card", async () => {
 	const handlers = new Map<string, (event: any) => void>();
 	const focused: string[] = [];
@@ -284,6 +291,7 @@ test("notification worker focuses only a window that accepts the account and car
 	assert.deepEqual(focused, ["current-account"]);
 });
 
+// @wu-test type=boundary | scope=system reminder availability | protects=Avoid reporting reminders enabled when permission is denied or the page is embedded
 test("denied permission and embedded pages do not report reminders as enabled", async () => {
 	const f = fixture();
 	try {
@@ -301,6 +309,7 @@ test("denied permission and embedded pages do not report reminders as enabled", 
 	}
 });
 
+// @wu-test type=integration | scope=system reminder deduplication | protects=Persist deduplication across page services without sharing it across accounts
 test("deduplication survives a new page service and is scoped to the account", async () => {
 	const f = fixture();
 	try {
@@ -324,6 +333,7 @@ test("deduplication survives a new page service and is scoped to the account", a
 	}
 });
 
+// @wu-test type=behavior | scope=fallback notification errors | protects=Expose notification failure and permit retry
 test("fallback Notification errors expose feedback and permit a later retry", async () => {
 	const f = fixture();
 	try {
@@ -344,6 +354,7 @@ test("fallback Notification errors expose feedback and permit a later retry", as
 	}
 });
 
+// @wu-test type=boundary | scope=reminderWorkerReady | protects=Stop waiting when a worker never activates
 test("a worker that never activates fails within a bounded wait", async (context) => {
 	context.mock.timers.enable({ apis: ["setTimeout"] });
 	const worker = new EventTarget() as EventTarget & { state: string };

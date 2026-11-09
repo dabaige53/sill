@@ -7,6 +7,7 @@ import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 
+// @wu-test type=behavior | scope=mail card and detail | protects=Show the complete sender and a separate date
 test("mail keeps its full sender in detail and gives the date a separate element", () => {
 	Store.state = Store.fresh();
 	const card = {
@@ -39,6 +40,7 @@ test("mail keeps its full sender in detail and gives the date a separate element
 	}
 });
 
+// @wu-test type=behavior | scope=card summaries | protects=Limit card-face summaries while preserving full detail summaries
 test("card summaries have a text bound while every detail but the photo viewer retains the full summary", () => {
 	Store.state = Store.fresh();
 	const summary = "结论🙂".repeat(60);
@@ -101,6 +103,7 @@ test("card summaries have a text bound while every detail but the photo viewer r
 	}
 });
 
+// @wu-test type=behavior | scope=task and reminder cards | protects=Show the correct type, schedule and task items
 test("task and reminder types and time placement do not depend on item count or source name", () => {
 	Store.state = Store.fresh();
 	const due = Date.parse("2026-11-01T10:00:00+08:00");
@@ -157,6 +160,7 @@ test("task and reminder types and time placement do not depend on item count or 
 		}
 });
 
+// @wu-test type=behavior | scope=task card lists | protects=Show all items in existing long task lists
 test("legacy long lists display all items without a hidden-count notice", () => {
 	Store.state = Store.fresh();
 	const card = {
@@ -178,6 +182,7 @@ test("legacy long lists display all items without a hidden-count notice", () => 
 	}
 });
 
+// @wu-test type=behavior | scope=card date fallback | protects=Use creation time rather than update time when publication time is absent
 test("insertion fallback carries no label, a dotted style, and never uses the update time", () => {
 	const card = {
 		id: "date",
@@ -204,6 +209,7 @@ test("insertion fallback carries no label, a dotted style, and never uses the up
 	assert.equal(published.querySelector(".card-time.is-added"), null);
 });
 
+// @wu-test type=behavior | scope=detail summary | protects=Show the summary switch only when a long summary exists
 test("a long summary adds the Sill switch, and the summary follows the info rows before the body", () => {
 	Store.state = Store.fresh();
 	const pr = {
