@@ -59,4 +59,12 @@
 
 剩余标记改用当前允许的 debt 名称，保留原问题；标签替换不计为改写。历史 D 编号与原处置原因保留在原清剿记录中。
 
-本轮未改产品实现、数据库迁移或 CI 配置。助手任务更新场景移入 `tests/e2e/helpers/cloud-agent-task.ts`，原入口继续调用，保持主脚本在文件大小上限内。实际完成：82 个 TypeScript 文件和 15 个 Swift 文件格式化、语法解析通过，`git diff --check`、`npm run files:check` 通过。语法解析不检查类型或运行结果。未运行程序测试、类型检查、构建、浏览器、Mac 窗口或 CI，尚不能给出可合并结论。
+本轮未改产品实现、数据库迁移或 CI 配置。助手任务更新场景移入 `tests/e2e/helpers/cloud-agent-task.ts`，原入口继续调用，保持主脚本在文件大小上限内。实际完成：82 个 TypeScript 文件和 15 个 Swift 文件格式化、语法解析通过，`git diff --check`、`npm run files:check` 通过。语法解析不检查类型或运行结果；后续 20 文件 LSP 复查见下节。未运行程序测试、完整项目类型检查、构建、浏览器、Mac 窗口或 CI，尚不能给出可合并结论。
+
+## 2026-11-09 LSP 诊断
+
+- 问题与状态：测试事务辅助函数的两处类型错误已修复，并通过 LSP 复查。
+- 环境与触发：`tests/server/supabase-postgres.ts` 使用 `Promise.withResolvers`；编辑器诊断两次返回 `Property 'withResolvers' does not exist on type 'PromiseConstructor'`。报告涵盖 20 个 TypeScript 文件，其余文件状态为 passed，包含部分警告。
+- 定位依据：项目 `tsconfig.json` 的 target 为 ES2022、lib 为 ES2023；新增辅助函数使用的 Promise 静态方法超出当前类型库。语法解析通过不能证明类型可用。
+- 处理情况：仅将两个等待信号改为普通 Promise 构造器及对应 resolve/reject 回调，保留事务暂停、提交与错误传递；项目编译配置保持原值。
+- 验证与后续：已按原报告的完整 recheck.command 通过 typescript-language-server 复查全部 20 个文件，每个 status 均为 passed，错误 0、警告 27、未完成 0；改动文件自身没有诊断。格式、语法、差异、文件管理与文件大小检查均通过。完整复查输出保存于 `/private/tmp/sill-continuation-20261109/lsp-recheck.json`。本结果只覆盖这 20 个文件；程序测试、完整项目类型检查、构建与 CI 另行验证。

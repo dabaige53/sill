@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-09 | PostgreSQL 测试类型 | Promise.withResolvers、PromiseConstructor、ES2023、supabase-postgres.ts、LSP | [测试事务辅助函数类型库不兼容](2026-11-08-local-task-consolidation/README.md#2026-11-09-lsp-诊断) |
 | 2026-11-08 | 发布流程 | Database migration and stored-card compatibility have not been verified、SILL_DATABASE_VERIFIED_COMMIT、production environment、仓库级变量、publish 失败 | [发布核对变量设到仓库级不生效](2026-11-08-release-1.2.38/diagnosis-verified-commit-scope.md) |
 | 2026-11-08 | Web 浏览器测试 | cancel restores the drawer position、Real touchCancel、web / browser (motion)、偶发失败、手机抽屉 | [手机抽屉 touchCancel 用例偶发失败](2026-11-08-release-1.2.38/diagnosis-touch-cancel-flake.md) |
 | 2026-11-08 | Web / Mac 数据与加载 | 操作卡顿、搜索慢、读长文每 5 秒停顿、整库投影、深拷贝基线、Markdown 重复解析、阅读时长、zod 进包、包体、定时整库下载、写入前整库读取、X-Sill-Revision、unchanged | [Web 与 Mac 整库处理与加载优化](2026-11-08-workspace-performance/README.md) |

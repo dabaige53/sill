@@ -49,30 +49,37 @@ async function transaction(statement: string) {
 		["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1", "-U", "postgres"],
 		{ stdio: ["pipe", "pipe", "pipe"] },
 	);
-	const ready = Promise.withResolvers<void>();
-	const result = Promise.withResolvers<string>();
+	let signalReady!: () => void;
+	let failReady!: (reason?: unknown) => void;
+	const ready = new Promise<void>((resolve, reject) => {
+		signalReady = resolve;
+		failReady = reject;
+	});
+	let complete!: (output: string) => void;
+	let fail!: (reason?: unknown) => void;
+	const result = new Promise<string>((resolve, reject) => {
+		complete = resolve;
+		fail = reject;
+	});
 	const marker = "sill_transaction_ready";
 	let out = "",
 		err = "";
 	p.stdout.on("data", (data) => {
 		out += data;
-		if (out.includes(`\n${marker}\n`)) ready.resolve();
+		if (out.includes(`\n${marker}\n`)) signalReady();
 	});
 	p.stderr.on("data", (data) => (err += data));
-	p.on("error", result.reject);
-	p.stdin.on("error", result.reject);
+	p.on("error", fail);
+	p.stdin.on("error", fail);
 	p.on("close", (code) => {
-		if (code) result.reject(new Error(err || out));
-		else result.resolve(out.replace(`\n${marker}\n`, "\n").trim());
+		if (code) fail(new Error(err || out));
+		else complete(out.replace(`\n${marker}\n`, "\n").trim());
 	});
-	result.promise.then(
-		() => ready.reject(new Error("Transaction ended before its ready signal")),
-		ready.reject,
-	);
+	result.then(() => failReady(new Error("Transaction ended before its ready signal")), failReady);
 	p.stdin.write(`begin;${statement}\n\\echo ${marker}\n`);
-	await ready.promise;
+	await ready;
 	return {
-		result: result.promise,
+		result,
 		commit() {
 			p.stdin.end("commit;\n");
 		},
