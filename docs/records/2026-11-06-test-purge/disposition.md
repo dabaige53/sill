@@ -1,6 +1,5 @@
 # 测试处置清单
 
-证据基准：`9bc97021757889ff041fcc5ec96b4f94b11bcd3b`。文件行号均指删除前源码，可用 `git show 9bc97021757889ff041fcc5ec96b4f94b11bcd3b:<文件>` 查阅。参数化注册按一处定义计数；浏览器脚本与独立检查脚本按独立检查场景计数。REWRITE 表示风险保留，未消除的写法问题写入 debt；不表示全部改写完成。
 
 | 文件:行号 | 用例名 | 处置(DELETE/REWRITE/KEEP) | 命中 D 规则 | type | protects | 理由 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -84,8 +83,6 @@
 | apps/apple/DesktopTests/PerformanceBenchmarks.swift:36 | testReaderCommands3000 | DELETE | D7,D9 | — | — | 只采集指标，无性能通过阈值。 |
 | apps/apple/DesktopTests/PerformanceBenchmarks.swift:37 | testScopeSwitch300 | DELETE | D7,D9 | — | — | 只采集指标，无性能通过阈值。 |
 | apps/apple/DesktopTests/PerformanceBenchmarks.swift:38 | testScopeSwitch3000 | DELETE | D7,D9 | — | — | 只采集指标，无性能通过阈值。 |
-| apps/apple/DesktopTests/PerformanceBenchmarks.swift:118 | testFeedScroll3000 | DELETE | D7,D9 | — | — | 只采集指标；正确性断言不构成性能要求。 |
-| apps/apple/DesktopTests/PerformanceBenchmarks.swift:149 | testPanelOpenClose | DELETE | D7,D9 | — | — | 只采集指标；关闭回调断言不构成性能要求。 |
 | apps/apple/DesktopTests/PerformanceTraceTests.swift:8 | recordsAndStopsWithoutContent | REWRITE | D6 | behavior | Exclude user content and prevent duplicate or stale spans | 保留隐私与跨会话风险；避免依赖完整事件顺序。 |
 | apps/apple/DesktopTests/PerformanceTraceTests.swift:44 | samplesResources | REWRITE | D9 | integration | Record resource samples and main-thread delays | 固定等待和阻塞主线程易波动；用可控采样触发与时钟。 |
 | apps/apple/DesktopTests/SelectionTests.swift:9 | shiftExtendsInFeedOrder | KEEP | — | behavior | Extend selection in feed order | 防止范围选择包含错误卡片。 |
@@ -185,8 +182,6 @@
 | scripts/check-contracts.ts:69 | public MCP argument samples satisfy input schemas | KEEP | — | boundary | Prevents published argument examples from violating their tool input schemas | 69–74 行按样例 operationId 找到工具，并验证 arguments。 |
 | scripts/check-contracts.ts:75 | public MCP response samples satisfy success or error schemas | KEEP | — | boundary | Prevents published success or error examples from violating response schemas | 75–80 行按响应状态选择成功或错误 Schema，并验证 response。 |
 | scripts/check.ts:15 | home top edge exists | DELETE | D6 | — | — | 15–16 行用正则匹配构建后的 CSS 字符串，检查特定选择器存在。 |
-| scripts/check.ts:18 | home top edge tint declaration | DELETE | D6 | — | — | 18 行匹配 CSS 声明字符串，不能证明实际显示效果。 |
-| scripts/check.ts:19 | home top edge mask declaration | DELETE | D6 | — | — | 19 行匹配 mask-image 声明字符串，不能证明实际显示效果。 |
 | scripts/check.ts:20 | standalone page has no external script or stylesheet | DELETE | D4 | — | — | 20–21 行与 scripts/build.ts:37–39 检查同一构建结果中的外部脚本和样式表。 |
 | scripts/check.ts:23 | standalone page has exactly three nonempty scripts | DELETE | D6 | — | — | 23 行固定脚本数量和非空文本，绑定打包结构。 |
 | scripts/check.ts:25 | standalone inline scripts parse | DELETE | D4 | — | — | 25 行只用 Node Script 重新解析构建脚本；构建入口已处理并生成脚本，未检查产品行为。 |
@@ -219,7 +214,6 @@
 | tests/e2e/browser-capture-layout.ts:175 | 手机设置和页面切换 | REWRITE | D9,D6 | behavior | prevent settings content from being obscured or the wrong page appearing during navigation | 依赖固定等待和动画数量；应检查用户可见结果。 |
 | tests/e2e/browser-capture-layout.ts:200 | 预览开合动画 | REWRITE | D9,D6 | behavior | prevent previews from opening at the wrong position or displaying incorrect text after closing | 直接检查关键帧和内部时长，并使用固定等待；改为可见位置与结束状态。 |
 | tests/e2e/browser-capture-layout.ts:255 | 手动采集与拖放不创建卡片 | REWRITE | D7 | boundary | prevent unsupported drag and drop from creating content | 重载后检查 example.com/drop，但本场景没有投放该文本；应检查实际投放内容。 |
-| tests/e2e/browser-card-actions.ts:25 | 预览、收藏、备注和任务焦点 | REWRITE | D7 | behavior | prevent bookmark, note, or task actions from losing state or focus | 第 90 至 97 行先手动聚焦标题再断言焦点，不能证明操作自动恢复焦点；其余断言保留。 |
 | tests/e2e/browser-card-actions.ts:101 | 稍后提醒与通知 | KEEP | — | behavior | prevent snooze state from being lost after reload or reminders from appearing twice | 使用受控时钟，检查重载、通知和阅读状态。 |
 | tests/e2e/browser-card-actions.ts:141 | 提醒忽略、完成和恢复 | KEEP | — | behavior | prevent dismissed reminders from becoming unrestorable or completed reminders from disappearing from search | 覆盖详情和搜索之间的状态变化。 |
 | tests/e2e/browser-card-actions.ts:172 | 键盘完成和恢复提醒 | KEEP | — | behavior | prevent keyboard actions from opening the card, marking it read, or losing focus | 检查键盘操作后的状态与焦点。 |
@@ -281,9 +275,7 @@
 | tests/e2e/cloud-operations-browser.ts:386 | 会话过期清除搜索、详情和 AI 草稿 | KEEP | — | boundary | Hide expired account drafts | 分别覆盖详情和 AI 视图，并检查界面、状态和写入。 |
 | tests/e2e/cloud-recovery-browser.ts:127 | 现有卡片不提供手动正文编辑 | DELETE | D4 | — | — | 同一风险已由 cloud-browser.ts 第 139 至 144 行和 cloud-operations-browser.ts 第 179 至 181 行检查。 |
 | tests/e2e/cloud-recovery-browser.ts:132 | 手动创建保存超时重放 | DELETE | D1,D2 | — | — | 依赖 capture 和 cloud-title；apps/web/cloud-entry.ts 第 180 行直接忽略 capture，该入口已不支持。 |
-| tests/e2e/cloud-recovery-browser.ts:156 | 手动创建草稿遇到 401/403 | DELETE | D1,D2 | — | — | 依赖已停用的 capture 和 cloud-editor；不能把这段作为当前草稿恢复覆盖。 |
 | tests/e2e/cloud-welcome-browser.ts:135 | 登录页与窄屏布局 | REWRITE | D9 | behavior | prevent cards from appearing before login or login controls from overflowing on narrow screens | 第 141 行固定等待；改为等待登录页稳定。 |
-| tests/e2e/cloud-welcome-browser.ts:167 | 密码登录及失效链接 | REWRITE | D9 | integration | prevent password login from failing to submit or expired links from lacking feedback | 第 167 行固定等待；使用状态等待。认证接口为受控响应，不代表真实身份服务。 |
 | tests/e2e/cloud-welcome-browser.ts:188 | 空工作区与刷新偏好 | KEEP | — | integration | prevent a capture entry from appearing in an empty workspace or preference writes from being lost | 检查界面及受控服务端状态。 |
 | tests/e2e/cloud-welcome-browser.ts:212 | 卡片列表布局、滚动和详情 | REWRITE | D9 | behavior | prevent horizontal overflow, blocked scrolling, or details that cannot be closed | 第 222 行固定等待；改为等待布局稳定。 |
 | tests/e2e/cloud-welcome-browser.ts:241 | 设置入口与数据区域 | KEEP | — | behavior | prevent removed controls from returning or data settings from overflowing | 检查入口、文案、平台布局和滚动区域。 |
@@ -304,7 +296,6 @@
 | tests/e2e/gesture-performance-browser.ts:41 | 滚动后首页顶部收起 | REWRITE | D9 | behavior | prevent pointer focus from keeping the header visible during scroll | 第 42 行固定等待；应等待页面准备完成。 |
 | tests/e2e/gesture-performance-browser.ts:58 | 隐藏导航时打开关闭卡片 | REWRITE | D9 | behavior | prevent opening a card from moving the feed or revealing hidden navigation | 第 86 行固定等待 800ms；应控制观察窗口并检查位置和导航。 |
 | tests/e2e/gesture-performance-browser.ts:104 | 拖动关闭时卡片与首页稳定 | REWRITE | D6,D9 | behavior | prevent drawer dragging from resizing content or moving home controls | 保留高度及可见位置检查；移除固定等待、260ms 动画内部断言和 DOM 节点身份断言。第 130 至 145 行及指标采集供后续测量使用，不能随场景直接删除。 |
-| tests/e2e/gesture-performance-browser.ts:203 | 拖动与关闭性能采集 | KEEP | — | — | preserve diagnostic measurements and traces | 这是无阈值采集工具，输出耗时、布局指标和 trace，不作为 performance 测试通过，也不删除。 |
 | tests/e2e/gesture-performance-browser.ts:233 | 浅深色下详情开关保持首页位置 | REWRITE | D9 | behavior | prevent home controls from shifting when details open or close | 第 238 行固定等待；应等待详情稳定后比较位置。 |
 | tests/e2e/gesture-performance-browser.ts:246 | 键盘后滚轮输入的关闭 | REWRITE | D9,D6 | behavior | prevent mixed keyboard and wheel input from skipping the reader exit | 第 250 行固定等待；当前只检查 dialog 在关闭瞬间仍打开，需补充可观察的退出和最终关闭。 |
 | tests/e2e/gesture-performance-browser.ts:256 | 阅读完成后退出详情 | REWRITE | D9,D6 | behavior | prevent completion feedback from being skipped before detail closes | 多次固定等待并要求动画精确时长；改为检查完成提示出现及最终关闭。 |
@@ -332,7 +323,6 @@
 | tests/e2e/local-browser.ts:64 | 助手写入与页面收藏同步 | KEEP | — | integration | prevent agent writes or page bookmark changes from being lost between clients | 检查助手创建可见、页面收藏写回、远端备注与偏好更新。 |
 | tests/e2e/local-browser.ts:91 | 页面备注写回 | KEEP | — | integration | prevent a note edited in the page from being lost to the shared workspace | 检查保存后的服务端备注。 |
 | tests/e2e/local-browser.ts:100 | 并发回包和备注冲突 | KEEP | — | integration | prevent a delayed save from replacing the edit baseline or overwriting a newer note | 受控请求门闩制造并发；检查远端备注和本地冲突草稿。 |
-| tests/e2e/local-browser.ts:147 | 刷新和桌面卡片宽度 | REWRITE | D6,D11 | behavior | prevent refresh from breaking the feed or cards from overflowing their grid | 第 150 行使用此前读取的 value，不能证明刷新后数量；第 157 行复制列宽计算。应重新读取刷新结果并检查可见布局。 |
 | tests/e2e/local-browser.ts:163 | 双页面更新、删除和重启 | KEEP | — | integration | prevent deleted cards from returning after another page refreshes or the server restarts | 检查双页面同步、删除、重启持久化和旧来源字段保留。 |
 | tests/e2e/local-browser.ts:190 | 本地浏览器异常 | KEEP | — | integration | prevent uncaught page errors from passing silently | 共享异常检查供整个连续流程使用。 |
 | tests/e2e/material-density-browser.ts:102 | 分页数据准备 | KEEP | — | integration | prevent pagination scenarios from starting with the wrong visible card count | 第 117 行检查测试数据前提，由两个分页场景共用；不是独立产品行为。 |
@@ -445,7 +435,6 @@
 | tests/server/cloud-app.test.ts:71 | sidebar and thread entries use scoped cloud resources and disappear on revocation | REWRITE | D11 | integration | Prevent revoked clients from opening workspace resources and preserve supported entry points | 资源正文期望调用了生产转换函数；应改用独立预期，同时保留权限检查。 |
 | tests/server/cloud-workspace.test.ts:9 | workspace atomic operations, state validation, old API, replay and owner boundary | KEEP | — | integration | Prevent partial writes, stale overwrites, replay conflicts and cross-owner access | 覆盖数据库事务和旧接口与工作区之间的状态一致性。 |
 | tests/server/cloud-workspace.test.ts:264 | workspace request schemas reject forged server metadata and unknown state | KEEP | — | boundary | Reject forged revision metadata and unknown item state | 保护外部写入边界。 |
-| tests/server/cloud-workspace.test.ts:281 | oversized workspace batches stop before validating every operation | REWRITE | D6 | boundary | Reject oversized batches without exposing validation work to unbounded input | 当前只检查错误数量，不能证明未逐项校验；应以可观察成本或明确性能要求验证。 |
 | tests/server/cloud-workspace.test.ts:293 | workspace HTTP uses the same validation, session and receipt boundary | KEEP | — | integration | Prevent cross-owner HTTP operations and preserve idempotent receipts | 覆盖 HTTP 身份、来源、输入和重试边界。 |
 | tests/server/cloud-workspace.test.ts:393 | hiddenActions migration: public preferences write, validation and atomic rollback | KEEP | — | integration | Preserve preferences and roll back invalid migration-era writes | 共享 helper 实际执行迁移前后公开接口和回滚检查。 |
 | tests/server/consent-policy.test.ts:35 | minimal existing-card read consent stays scoped and cannot list/create | KEEP | — | boundary | Prevent a card-scoped read grant from listing or creating cards | 保护最小授权范围。 |
@@ -481,7 +470,6 @@
 | tests/server/login-continuation-page.test.ts:90 | email completion sends only a session hint and leaves host continuation to the original tab | KEEP | — | behavior | Avoid navigating the email tab into the host authorization flow | 检查发送的消息和两种跳转结果。 |
 | tests/server/login-page.test.ts:9 | login switches email and reset intent without sending a password, and reports real responses | KEEP | — | behavior | Send the selected login intent without leaking the password | 执行页面脚本并检查请求和用户可见结果。 |
 | tests/server/login-page.test.ts:59 | password setup retains its dedicated endpoint and minimum length | KEEP | — | boundary | Require the password setup endpoint and minimum length | 保护密码设置入口及长度限制。 |
-| tests/server/login-page.test.ts:70 | auth typography uses valid units and keeps secondary links below the primary action | DELETE | D6 | — | — | 直接匹配 CSS 常量和 DOM 内部结构，不能证明实际排版效果。 |
 | tests/server/login-page.test.ts:82 | generated password-only login board returns only local demo receipts | KEEP | — | behavior | Prevent the design board from sending credentials to a network service | 执行演示页面并检查无网络请求及提示。 |
 | tests/server/mcp-guidance.test.ts:28 | skill recipes cover current card kinds and every writable field | REWRITE | D11 | integration | Keep published skill examples usable with current card and operation schemas | 样例解析与字段文档检查有价值；末尾用生产转换函数生成期望 JSON Schema，属于自证，应移除该断言或使用独立约定。 |
 | tests/server/mcp-guidance.test.ts:79 | agents may leave out summary only on short kinds, quotes and short notes | KEEP | — | boundary | Require summaries for applicable cards while allowing documented exceptions | 检查卡片类型和短笔记长度边界。 |
@@ -572,7 +560,6 @@
 | tests/server/supabase-rpc.test.ts:177 | snapshot pagination is frozen; update/deletion land in next incremental batch | DELETE | D1,D2 | — | — | 整个子用例依赖旧私有草稿 RPC 和前序子用例创建的旧格式数据；随父用例删除。 父测试使用已退役的私有草稿接口，全部子测试随父测试删除。 |
 | tests/server/supabase-rpc.test.ts:213 | event queued is not complete; wrong assignee denied; result and content atomic | DELETE | D1,D2 | — | — | 整个子用例依赖临时授权的旧私有草稿 RPC 及前序状态；随父用例删除。 父测试使用已退役的私有草稿接口，全部子测试随父测试删除。 |
 | tests/server/supabase-rpc.test.ts:285 | expired cursor fails explicitly; no grants or secrets added to public schema | DELETE | D1,D2 | — | — | 整个子用例检查旧草稿安装状态和前序私有接口创建的游标；随父用例删除。 父测试使用已退役的私有草稿接口，全部子测试随父测试删除。 |
-| tests/server/supabase-rpc.test.ts:309 | RPC success projections validate against checked-in V1 schemas | DELETE | D1,D2 | — | — | 先把旧草稿返回的正文数组自行转换为字符串，再用当前 schema 校验；这不是当前接口的真实响应，不能证明接口兼容。 父测试使用已退役的私有草稿接口，全部子测试随父测试删除。 |
 | tests/server/supabase-snapshots.test.ts:7 | session creates no cursors; shared snapshots have bounded count, bytes, age and cleanup | DELETE | D1,D2 | — | — | setupBoundary 只安装旧草稿，整个用例依赖草稿数据库状态，并执行旧清理和账户初始化脚本；不能代表当前迁移后的数据库。 |
 | tests/server/workspace-performance.test.ts:7 | conditional workspace reads retain authorization and return full state when revisions differ | KEEP | — | integration | Prevent conditional reads from bypassing authorization or returning stale state | 检查未变化、未授权和版本不同的响应。 |
 | tests/server/workspace-performance.test.ts:36 | static PWA shell revalidates without downloading unchanged code and changes its tag on release | KEEP | — | integration | Return an empty 304 for unchanged shell content and refresh changed releases | 检查响应状态、正文和缓存标识；这是行为测试，不声称测量性能。 |
@@ -764,7 +751,6 @@
 | tests/web/gesture-rebound.test.ts:96 | phone content follows a real touch and releases immediately at touchend | REWRITE | D5,D6 | behavior | prevents content from remaining displaced after a touch ends | 108 行检查触摸位移；110–111 行只检查模拟动画调用和弹簧参数。 |
 | tests/web/gesture-rebound.test.ts:117 | holding still at the content edge expires release velocity instead of replaying the last movement | REWRITE | D5,D6 | behavior | prevents a stationary release from pushing content outward again | 127–138 行直接调用内部轨道并检查替身 velocity；应通过触摸与可见回弹结果验证。 |
 | tests/web/gesture-refresh-continuity.test.ts:5 | desktop wheel refresh keeps cards following and owns the edge until their return finishes | REWRITE | D5,D6 | behavior | prevents cards from remaining displaced after a wheel refresh | 17、29–30 行检查卡片位移恢复；21–27 行依赖模拟动画对象和手动完成动画。 |
-| tests/web/gesture-refresh-continuity.test.ts:36 | regrabbing preserves the drawn offset while the indicator retains its original heading anchor | REWRITE | D5,D6 | behavior | prevents cards from jumping or an old return from overriding a new pull | 68–75 行检查接续位置和旧动画不能覆盖新手势，但 51–55 行直接操纵模拟动画内部值。 |
 | tests/web/gesture-refresh-continuity.test.ts:82 | release preserves velocity and restores content while the real request controls only the indicator | REWRITE | D5,D6 | behavior | prevents cards from remaining displaced or loading feedback ending before the request | 110–119 行检查卡片归位及请求完成前后的反馈；102–108 行绑定模拟弹簧参数。 |
 | tests/web/gesture-refresh-feedback.test.ts:5 | a fast refresh applies its result immediately while loading and the completed check stay readable | REWRITE | D5,D6 | behavior | prevents refresh feedback from delaying results or disappearing before it can be read | 17–19 行的 applied 由替身直接设置，20–40 行检查内部状态和固定计时；应检查真实结果应用及用户可见反馈。 |
 | tests/web/gesture-refresh-feedback.test.ts:47 | a new pull can interrupt completed-request feedback without an old timer showing success | KEEP | — | behavior | prevents stale success feedback from replacing a new pull | 53–62 行分别在 loading 和 success 阶段开始新手势，检查最终处于 pulling 且没有再次刷新。 |
@@ -893,7 +879,6 @@
 | tests/web/pwa-launch-motion.test.ts:104 | motion tokens are read from the stylesheet once and inline overrides stay live | DELETE | D6 | — | — | 检查读取次数和内部缓存策略，没有独立用户失败结果。 |
 | tests/web/pwa-launch-motion.test.ts:127 | launch placeholders stay empty first, then draw inert card shells | KEEP | — | behavior | Show inert placeholders without exposing login controls during boot | 防止加载占位卡片被误操作。 |
 | tests/web/pwa-launch-motion.test.ts:137 | cloud launch keeps the boot view until the first session check settles | DELETE | D6 | — | — | 整个用例只读取并匹配源码字符串，没有执行会话检查或启动界面。 |
-| tests/web/react-renderer.test.ts:34 | keyed React updates preserve the focused card while escaping untrusted titles | REWRITE | D3 | integration | Preserve focus during card updates and escape untrusted titles | 焦点保护有价值；转义部分使用测试自造 React 元素，不能证明产品卡片安全。 |
 | tests/web/react-renderer.test.ts:58 | panel replacement disposes nested roots and resets uncontrolled draft fields | REWRITE | D6 | integration | Remove old panel content when switching panels | 当前用自造组件检查根节点实现；应通过实际面板检查旧内容清理。 |
 | tests/web/react-renderer.test.ts:81 | switching player surfaces saves the outgoing position before the next player initializes | DELETE | D5,D10 | — | — | 使用自造 Player 和 effect 验证 React 生命周期，未调用产品播放器；实际播放器切换由 media-playback 用例覆盖。 |
 | tests/web/reader-outline.test.ts:43 | mouse and keyboard outline navigation finish before the handler returns | KEEP | — | behavior | Navigate to the selected heading without opening an external link | 检查鼠标和键盘跳转、当前位置及嵌入宿主中的内部链接。 |
@@ -983,7 +968,6 @@
 | tests/web/toggle-motion.test.ts:26 | reversing a switch retargets its current progress | REWRITE | D5,D6 | behavior | Reverse the switch from its current visible position | 当前主要检查动画替身内部对象及参数，应检查反向后的可见状态。 |
 | tests/web/visibility-motion.test.ts:8 | task press moves only its mark, resumes from the drawn scale, and cancels without a click | REWRITE | D6 | behavior | Cancel pointer feedback without triggering a task click | 保留取消操作和键盘可用性，移除固定动画帧及调用次数。 |
 | tests/web/visibility-motion.test.ts:49 | sliding glass chrome does not start an opacity animation and restores visibility | REWRITE | D6 | behavior | Restore the correct visible state after chrome moves | 保留显示状态，删除动画帧属性检查。 |
-| tests/web/visibility-motion.test.ts:71 | desktop header restores and retargets after scrolling without opacity tracks | REWRITE | D6 | behavior | Keep the header visible after a rapid hide and show | 保留旧动画完成不能隐藏新状态的风险，删除固定帧和时长。 |
 | tests/web/visibility-motion.test.ts:101 | notice fades before hiding and disables clicks from the first frame | KEEP | — | behavior | Disable interaction immediately while a notice exits | 检查退出过程中不可交互，结束后隐藏。 |
 | tests/web/visibility-motion.test.ts:121 | Web styles use Motion except documented material, outline and Vaul-owned transitions | DELETE | D6 | — | — | 通过正则约束 CSS 源码写法，不能直接证明用户行为。 |
 | tests/web/visibility-motion.test.ts:154 | fast hide/show cancels stale completion and repeated state does not restart | KEEP | — | behavior | Keep the latest visible state after rapid hide and show | 检查旧完成回调不会覆盖新的显示状态。 |

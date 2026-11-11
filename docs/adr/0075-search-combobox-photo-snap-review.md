@@ -10,9 +10,7 @@ Web 搜索使用用户指定的 [Combobox](https://lab.xevrion.dev/lab/combobox)
 
 工具栏停顿恢复等待按用户要求从 650ms 改为 450ms，使用 `rest-show`。下滚 28px、上滚 14px、收起 240ms、恢复 420ms 不变。该改动用于 Web/PWA 共用工具栏。
 
-照片标题和按钮使用 ink，说明使用 muted，背景使用 canvas，清除覆盖主题的 fixed-white 样式。横向直接跟手、纵向手势放行、首尾不循环。释放时使用最近的指针速度，暂停后不沿用旧速度；快速反向操作依据释放方向吸附。采用项目试验弹簧 `motion.photoSnapSpring`：mass 1、stiffness 300、damping 32。它不是 Motion Carousel 的已核实原始参数；参考案例完整还原仍待用户确认。不按固定时长承诺停止，不横向拉伸图片，不增加付费依赖。
 
-播客仍为待定。本轮不修改播客布局或参数，也不将现有实现标为用户认可。
 
 ## 边界与验证
 

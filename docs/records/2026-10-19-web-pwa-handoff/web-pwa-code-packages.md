@@ -61,7 +61,6 @@
 
 - `npx biome lint apps/web` 在交接时约 900 条警告，大多是显式 `any`。按文件逐步收紧：先 `data/store.ts`、`interactions/panels.ts`，再 `views/app.ts`。
 - 不为消除警告改行为；不在一次 PR 里改超过三个文件的类型。
-- 不把「零错误」写成「零警告」。
 
 ### C6 云端迁移验证（代码）
 

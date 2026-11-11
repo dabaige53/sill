@@ -49,7 +49,7 @@ CI Hook 指 [package.json](../../package.json) 中的 npm 检查命令，不是�
 - main push 比较事件的 before/after，覆盖一次推送中的全部提交。
 - 纯文档只运行一个轻量 Job：不安装 npm 依赖，执行分流自检和 `npm run files:check`，检查目录、导航与适用的文档链接。产品测试、浏览器、数据库和 Swift 检查不分配 Runner。
 - 非文档改动运行 Web、集成、数据与授权策略检查。Apple、共享契约、设计、素材、Apple 测试、Mac 构建/格式脚本、根配置和 CI 配置触发 Mac；其他已知非 Apple 目录保留原来的平台范围，未知目录运行全部检查。
-- 无法取得差异或差异为空时运行全部检查。重命名按删除旧路径、新增新路径判断，不能把源码移入 docs 后误判为纯文档。
+- 无法取得差异或差异为空时运行全部检查。重命名按删除旧路径、新增新路径判断。
 - 手动运行 `Sill CI` 默认 `full=true`，强制运行全部检查；关闭它时按最近一笔提交判断，便于验证或重跑该提交的分流。发布入口始终全量。
 
 分流规则的测试在 [ci-changes.test.ts](../../tests/server/ci-changes.test.ts)，每次 CI 都先执行；覆盖纯文档、混合提交、产品技能正文、全局配置、未知目录、缺失差异、PR 共同祖先和源码重命名。判断或文件检查失败时，CI 保持失败，不将其当作正常跳过。
@@ -79,7 +79,6 @@ Mac 检查与打包使用共享 [Swift 缓存 Action](../../.github/actions/swif
 
 缓存保存 `apps/apple/.build`，排除 config、security、构建号计数和生成的 String Catalog。恢复和保存使用构建前计算的同一个 key。缓存命中不跳过格式检查、Swift 测试、构建或 DMG 验证。
 
-Swift 仅在检查通过、未精确命中且属于默认分支或手动运行时保存。主分支 Mac 检查建立 debug 缓存；主分支手动 DMG 构建可建立 release 缓存。工作分支手动运行只验证该分支的保存与恢复，不表示主分支缓存已经建立。合并、主分支运行和发布仍遵守各自授权边界。
 
 Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托管 Runner。各工作流默认只有 `contents: read`，发布 Job 单独保留 `contents: write`。
 
@@ -87,9 +86,8 @@ Linux 使用 `ubuntu-latest`，Mac 使用 `macos-26`，均为 GitHub 标准托�
 
 CI 入口按 PR 编号分组，新推送取消旧运行。五类复用检查保留各自分组；其他事件按调用工作流和提交 SHA 分组，不主动取消正在执行的运行。组名包含被调用工作流的固定前缀和调用方名称，避免子任务取消调用方，或与发布中的复用任务共用分组。
 
-发布沿用 `sill-release` 分组和 `cancel-in-progress: false`。这一设置不等于无限排队，也不构成人工上线审批。
 
-Web 浏览器分组在 [ci-browser.ts](../../scripts/ci-browser.ts) 维护；`--list` 只输出分组。矩阵关闭 fail-fast，各组独立 Runner，组内保留全部入口执行后的统一失败结果。各组独立上传截图、耗时 JSON 和按脚本入口计数的 JUnit，不把入口数当作内部断言数量。云端浏览器步骤保留构建和 Chromium 安装成功后继续检查的条件。Swift 测试保留未取消即继续运行的条件。其他步骤沿用 GitHub Actions 的前序成功条件。
+Web 浏览器分组在 [ci-browser.ts](../../scripts/ci-browser.ts) 维护；`--list` 只输出分组。矩阵关闭 fail-fast，各组独立 Runner，组内保留全部入口执行后的统一失败结果。各组独立上传截图、耗时 JSON 和按脚本入口计数的 JUnit。云端浏览器步骤保留构建和 Chromium 安装成功后继续检查的条件。Swift 测试保留未取消即继续运行的条件。其他步骤沿用 GitHub Actions 的前序成功条件。
 
 ## 触发与构建去重
 
@@ -99,6 +97,6 @@ Web 浏览器分组在 [ci-browser.ts](../../scripts/ci-browser.ts) 维护；`--
 
 ## 维护与验证
 
-新增检查先维护 package.json 入口，再接入相应工作流，并更新本文。修改编排时比较前后的检查命令、事件、条件、测试文件与失败退出方式；自动审计不能展开的汇总入口需要逐项核对。
+新增检查先维护 package.json 入口，再接入相应工作流，并更新本文。修改编排时比较前后的检查命令、事件、条件、测试文件与失败退出方式；自动审计无法展开的汇总入口需要逐项核对。
 
 本地先做差异和文件检查，交付前执行 `npm run files:check`。推送和真实 Actions 验证另行取得授权；没有远端运行结果时，不宣称 CI 已通过或已有提速收益。运行耗时和当次验证结果保存到事件记录，不持续追加到本说明。

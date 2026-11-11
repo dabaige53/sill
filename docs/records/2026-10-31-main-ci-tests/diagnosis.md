@@ -38,7 +38,6 @@ GitHub Actions 对 main 和基于 main 的 PR 运行。本地用 `npm run test:c
 
 ## 分页场景中途重置超时（2026-10-31）
 
-状态：测试修正已通过 CI；不能据此认定产品分页故障。
 
 - 环境：PR #87、提交 `92dd6eb`，Web 检查 `41161850850`。`pagination-keeps-card-focus` 在 `page.waitForFunction` 等待“回到顶部且卡片数量为 40”时超时。
 - 最小复现：插入 33 张卡；聚焦原卡标题、滚动加载至 42 张后，同一页面立即回顶、把 `pageLimit` 从 80 强制改回 40、重绘，再等待顶部。

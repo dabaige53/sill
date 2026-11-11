@@ -50,5 +50,3 @@ Worker 通过现有账号的内容更新接口发布，保留线上 bindings、c
 - 宿主 MCP 成功创建、读取一张明确标记的临时合成笔记。丰富字段更新被连接器旧 schema 在请求到达服务端前拒绝；再次读取确认原卡片仍为 revision 1。随后删除该临时卡片，返回 deleted=true / revision 2，再读为 not_found。
 - 当前 Codex 已发现 1.2.0 skill，但工具参数仍是旧版。需要刷新原 Sill App 的工具定义后，再验收丰富字段创建和修改；本次没有重建 App、换连接或绕过宿主参数校验。
 - 发布前后数据库安全检查结果一致：仅有既有的[泄漏密码保护未启用](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)提示。本次不修改账号策略。
-
-源码和线上发布不是同一个状态。回退 Worker 或插件不能自动回退数据库迁移；不删除已经保存的新字段，不恢复旧字段白名单来掩盖问题。其他历史 P1 不属于本次修复验收。

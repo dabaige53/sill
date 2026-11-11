@@ -27,7 +27,6 @@ manifest 只读检查使用本机登录页、仓库 manifest 与 PNG，没有真
 
 320px 深色键盘提示：[改前](before-320-dark-keyboard.png) / [改后](after-320-dark-keyboard.png)。
 
-像素比较见 [layout-comparison.json](layout-comparison.json)：320、390 的主页与普通详情，以及 1440 的普通详情，变化像素为 0。1440 主页有 15 个卡片圆角边缘像素的颜色差，单通道最大差 3；未观察到布局变化，不把这一张写成完全逐像素相同。全部截图单个文件小于 2 MB。
 
 ## 检查
 
@@ -44,7 +43,3 @@ manifest 只读检查使用本机登录页、仓库 manifest 与 PNG，没有真
 ## 设计同步与遗留
 
 先读线上 README，再通过 [线上 Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb) 的手册编辑器追加 U1 规则，重新读取文件确认原文完整保留，再同步到仓库。仅追加触控、键盘提示和状态栏规则，没有改品牌资产或设计变量。按现有生成脚本更新了 `components/bundle.css`；线上组件 CSS 尚未发布，须在 Merge Danger 标明。
-
-[线上设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 的 37 号画板保留原稿。本次新的键盘与窄屏提示截图在 PR 证据中，尚未补入线上画板；这项差异写入 Merge Danger，不能声称画布已更新。品牌绘法是否统一留到 U2；192/512 与 maskable 资产未经用户确认不生成。
-
-登录页只补状态栏元数据；登录页整体深色样式留在 U6，不把本次元数据检查表述为登录页完整深色验收。Mac 未改。

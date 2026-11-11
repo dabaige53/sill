@@ -1,6 +1,5 @@
 # F11 content/settings backup verification
 
-历史资料：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
 Base: amended F10 commit `cd0ac1b1a486a5c27b8389e4732ce4eb3af849f5`, tree `17efc03312f48e1829d1cb7a4ea4c3885a0ddb99`.
 

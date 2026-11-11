@@ -1,6 +1,5 @@
 # 桌面分栏后的云端位置检查（U5）
 
-2026-10-19。U5 用户选择 B 后，实际桌面分栏占正常排版高度；共享云端检查仍要求 main 顶部小于等于 1px，导致 CI 两次 boundary 失败。属于本次获准布局变化与旧测试前提的冲突，不是基础已有失败。不跳过、禁用或放宽断言，不改产品实现。Mac 未改。
 
 - [CI 失败](ci-failed.log) 与 [push 失败](ci-push-failed.log)：`content starts at viewport top`，出现在云端工作台和欢迎页。
 - 先在基础 `9e803f7` 重新构建云端并复跑：[云端页 1/1](base-cloud.log)、[欢迎页 2/2](base-welcome.log) 通过。

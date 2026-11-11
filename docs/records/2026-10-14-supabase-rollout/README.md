@@ -6,7 +6,6 @@
 
 - `server/cloud/http.mjs`：已有用户邮箱 magic link 的官方 SDK PKCE 流程、固定路径的 PKCE verifier 绑定回调、HttpOnly/Secure/SameSite=Lax 会话 cookie、同源写请求检查、登出、HTTP 内容 CRUD/事件接口。
 - `server/supabase-auth.mjs`：官方 SDK 验签，额外核验 issuer、audience、expiry、nbf、role、非匿名用户；网页登录拒绝 OAuth client token，agent bearer 必须有独立资源 audience 和 client_id。授权不读取 user_metadata。
-- `server/supabase-repository.mjs`：四个固定业务 RPC 与一个 session_info RPC，携带当前请求的用户 JWT；不使用 service_role，不访问裸表。
 - `web/cloud-entry.js`：单独构建的登录工作台；列表、新建笔记、编辑标题/正文/已读、删除、刷新/退出。CAS 冲突保留草稿；结果未知时复用原幂等键与原请求核对；没有 token 或卡片的 localStorage 持久化。原本地网页构建不变。
 - `server/cloud/worker.mjs` 与 `deploy/cloud/wrangler.jsonc`：请求级 Cloudflare 适配。`npm run build:cloud` 只在本地打包，配置中没有生产环境值或部署命令。
 - 新增 CI `Sill authenticated data` 真正运行 SDK/JWT/SQL/HTTP、Docker PostgreSQL 并发测试和桌面/手机浏览器流程。
@@ -39,7 +38,6 @@
 
 专用角色 NOLOGIN/NOSUPERUSER/NOBYPASSRLS/NOINHERIT、不拥有任何表、不授给 authenticated；网关固定空 search_path、row_security=on，不接受身份/SQL/表名/授权参数。内部函数继续执行 owner RLS 和 caller/scope/resource/audience 校验。anon/PUBLIC 对 Sill 对象无权限。不得把此角色改成表所有者或授予 bypassrls。授权表修改与 workspace 创建仅供管理员 bootstrap。
 
-private schema 必须继续不列入 Data API exposed schemas。即使误暴露，authenticated 没有裸表 ACL；可执行网关仍校验业务权限。真实项目仍需检查既有 views、GraphQL、generic RPC 与角色继承，确保不存在其他间接旁路。本地 ACL 测试不能替代对真实 PostgREST/GraphQL 的网络验收。
 
 bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 workspace 及 `user:<uuid>` 行，scopes 最小为 content:read/content:write/content:delete，resources=['*']、audience='authenticated'。事件按需单独增加。禁止客户端自行注册 workspace 或授予权限。OAuth grant 另需已批准 client_id、独立资源 audience、精确 scopes/resources；不能为获得列表而擅自扩大为 '*': 当前资源受限 client 的整库列表明确拒绝。
 
@@ -55,9 +53,7 @@ bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 worksp
 
 1. 在独立 Supabase 环境验证真实 Auth 邮件回调白名单、PKCE、token claims、五个 RPC 与 REST/GraphQL 拒绝矩阵。数据库操作者权限必须足以创建专用角色并转移函数所有权；已在 PostgreSQL 17.11 非超级用户安装角色下验证；执行角色已移除 auth schema 依赖，安装回归无 auth GRANT OPTION；安装者仅需既有 auth.users 外键和 bootstrap 的普通权限。
 2. 用户审阅四份 SQL 和此权限差异，确认已有用户、最终 HTTPS 域名、数据导入范围、保留/清理策略后，才考虑生产应用。没有本次授权的生产 SQL 或 Auth 配置操作。
-3. 当前只保留 HttpOnly access cookie，refresh token 不持久化；到期重新登录。草稿与未知结果的原请求仅存当前页面内存，离开页面会提示但没有持久恢复队列；重新登录/刷新后必须先读取核对，不能把旧意图当作新建再次提交。登出清理 cookie，并请求撤销上游会话；已签发 access JWT 仍可能有效直到到期，不能声称即时撤销。浏览器 JS/XSS 仍能发同源请求，HttpOnly 不等于消除 XSS 风险。
 4. 共享快照数量/字节/有效期限制及按请求过期清理已补齐；空闲时管理员定期清理、过期回执/tombstone 隐私清理、特殊卡片与旧 item/state 的完整适配尚待完成。当前网页以笔记/通用内容字段为最小范围；不支持的来源、收藏、导入等明确提示未接通。
-5. `/mcp` 默认关闭返回503；新增本地官方 SDK Streamable HTTP 与七契约工具，需明确配置启用才工作。另一任务的七工具 stdio MCP 文件未推送、此分支不可见，未集成也未验收；更早提到的 27 个 MCP 文件同样未包含。本地 transport/discovery 已测试；真实 OAuth resource audience 支持、同意/撤销与客户端联调仍需后续实现，不能把 HTTP bearer 接口称作已上线 MCP。
 6. Supabase changelog/markdown 文档在该环境被访问策略阻止；已通过连接器检索官方 PKCE/Auth/RLS 文档，但未声称完成 changelog 全量复核。
 
 本次最终生产动作、首次邀请唯一邮箱账号、精确回调 URL 与安装者权限前提请以 [生产动作审查](../2026-10-14-production-actions-review/README.md) 为准。

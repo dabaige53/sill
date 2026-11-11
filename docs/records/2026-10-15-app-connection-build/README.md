@@ -20,7 +20,6 @@
 
 共同 App ID：`asdk_app_6ad0d805d3e88191a1c8902cf66af046`。观察到的 App 版本 ID：`asdk_app_v_6ad0d805d3f08191a485523d41cde5f3`，管理页状态为 `DEVELOPMENT` / `dev mode`。
 
-连接 App 只解决 App 工具与页面的授权。它不会自动安装另一个插件中的 Skill，也不会将组合插件的图标、文案同步到 App 自动生成的插件。两个版本号不需要一致。
 
 ## 完整连接调整步骤
 
@@ -28,7 +27,6 @@
 
 1. 从插件页面或平台结果取得准确插件 ID，不用名称猜测。
 2. 先读取文件列表，再按列表读取清单、`.app.json` 和 Skill；检查图标是否存在。保存当前 release ID，更新时防止覆盖其他版本。
-3. 区分包、App、OAuth 客户端、服务端部署和实际已安装对象。搜索结果为空不能证明按 ID 可访问的对象不存在。
 4. 本次1.1.3包内文件快照见 [release-source.json](../2026-10-15-plugin/release-source.json)。App 自动生成插件只有 `.app.json` 与 `.codex-plugin/plugin.json`，没有 `skills/`。
 
 ### 2. 检查 MCP 服务准备情况
@@ -37,13 +35,11 @@
 2. 检查受保护资源元数据：`https://sill-web-preview.scs1213-temp-email.workers.dev/.well-known/oauth-protected-resource/mcp`，资源和受众均为上述 MCP 地址。
 3. 检查授权服务器发现文档，取得真实授权与令牌地址。本文记录的公开发现结果为HTTP200，不读取令牌。
 4. 检查 `tools/list`、`resources/list` 和页面资源读取；授权不足时不公开用户内容。确认页面构建产物被打入 Worker，不能只注册入口名称。
-5. 入口声明参数见后文。服务代码有声明，只能证明服务准备，不能替代宿主安装与渲染验收。
 
 ### 3. 通过 MCP 注册自定义 App
 
 按本次用户提供的实验步骤，先通过 ChatGPT 的自定义应用创建入口添加 MCP 地址，选择 OAuth，取得实际生成的 App ID。此前初次创建表单的逐项点击、原始请求和完整 OAuth 表单导出没有保存在本轮证据中；不得把下面的已核对参数称为创建表单的完整原始导出。
 
-创建后记录 App ID、App 版本 ID、平台生成的插件 ID和回调。不要自行拼造 App ID，不因创建结果未返回 ID 就反复新建副本。本次实际回调是 `https://chatgpt.com/connector/oauth/ufi0fWkbCET5`，与服务端登记一致；新 App 不保证仍使用这个回调。
 
 ### 4. 让现有组合插件引用 App
 
@@ -130,7 +126,6 @@
 | `OAUTH_CONSENT_ENABLE` | 字符串 `true` |
 | `OAUTH_CLIENT_IDS` | JSON数组，须包含当前客户端；不覆盖或猜测其他现有客户端 |
 
-权限允许列表保存在数据库，不由插件 scope 文本自动创建。网页登录不等于批准 OAuth；OAuth 身份权限也不等于卡片授权。
 
 ## 页面资源与入口参数
 
@@ -185,7 +180,6 @@
 | composerIcon / composerIconDark | `./assets/sill-line.svg` / `./assets/sill-line-dark.svg` |
 | Skill | `skills/sill/SKILL.md`；完整内容保存在平台快照 |
 
-以上组合插件参数不代表当前 App 自动生成插件的配置。后者清单的 displayName、description为 `sill`，category为 `Other`、capabilities为空、defaultPrompt为null，author与developerName为 `App developer`，没有 Skill 和独立图标资产文件。不能将组合插件文件直接覆盖该 App 管理的配置。
 
 ## 本地构建命令与产物
 
@@ -211,11 +205,9 @@ node scripts/build-cloud-worker.mjs --minify
 | 授权验证 | `npm run test:oauth` | 本轮42项通过 |
 | 页面协议专项 | `npm run test:cloud-app` | 可用于后续修改检查；本次五项scope修复没有重新运行此套件 |
 
-构建不部署、不注入环境变量、不注册 App，也不会安装 Skill。部署与插件发布是独立动作，当前请求只补记录，未运行这些发布动作。
 
 ### 本地插件构建的已知差异
 
-根目录 `.app.json`、`plugin.json`、`deploy/sill/release.json` 及 `scripts/build-plugin.mjs` 仍指向旧 App `asdk_app_6ad03f09b6048191a8826a236ac9097d`。`deploy/cloud/chatgpt-client.json` 也仍记录旧 App 与三项scope，`deploy/sill/new-cloud-release.json` 记录更早的1.1.1；它们均不能当作当前成功连接的配置。
 
 当前 `npm run plugin:build` 会先构建本地页面，再调用旧身份校验脚本，输出 `dist/plugin/sill/`。它要求旧 App ID、旧包名、release记录和候选版本一致，并不是当前组合插件1.1.3的复现工具。因此本次没有调用它或发布其产物。
 

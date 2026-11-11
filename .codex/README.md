@@ -1,6 +1,5 @@
 # Codex 项目配置
 
-`hooks.json` 注册 `PreToolUse`，通过 `Bash` 匹配 Codex 的 shell 和 `exec_command` 调用。在 Codex 运行 `git commit` 前，`hooks/pre-commit.ts` 同时检查暂存版本和本地工作区。此配置不安装 Git hook，不影响用户在终端自行提交。
 
 首次使用或修改 hook 定义后，在 Codex CLI 的 `/hooks` 中审阅并信任本项目的 hook；未信任时 Codex 会跳过它。现有会话若未重新加载配置，重新进入项目会话后检查 `/hooks`。协议见 [Codex Hooks](https://learn.chatgpt.com/docs/hooks)。
 

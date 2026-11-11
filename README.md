@@ -12,7 +12,6 @@
 
 ![Sill 桌面工作台：多列卡片展示任务、日程、文章、照片和 PR](assets/screenshots/desktop-workspace.png)
 
-*2026-10-29 用户提供的本地示例截图，用于展示布局；不代表线上版本或外部服务连接状态。*
 
 ## 用 Sill 做什么
 
@@ -36,7 +35,6 @@ Mac 安装包目前供内部测试，采用临时签名且未经公证；以 Rel
 
 ## 数据与边界
 
-发布版使用服务器端账号数据。外部内容由助手整理后写入，Sill 不自动同步来源，也不提供 RSS 订阅或文件导入。卡片中的状态不代表外部操作已经完成；内置对话执行尚未实现。
 
 产品范围见 [PRODUCT.md](docs/agent/PRODUCT.md)，后续方向见[路线图](docs/plans/roadmap.md)。图标与截图的使用说明见[品牌素材](docs/implementation/brand-assets.md)。
 

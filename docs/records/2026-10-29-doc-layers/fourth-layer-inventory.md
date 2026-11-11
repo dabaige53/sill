@@ -107,7 +107,6 @@
 
 ## 事件记录
 
-保存当时事实、检查、发布结果与独有证据，不把历史结果改成当前结果。以下仅列文档入口，原事件目录内附件原位保留。
 
 - [Sill — 产品对话与需求演进记录](../2026-10-11-product-conversation/README.md) — `2026-10-11-product-conversation/README.md`
 - [Sill 本地版本](../2026-10-12-local-acceptance/README.md) — `2026-10-12-local-acceptance/README.md`

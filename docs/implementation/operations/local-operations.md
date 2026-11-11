@@ -13,7 +13,6 @@ Web 使用 React + TypeScript + Vite；macOS 保留 SwiftUI。5173 仅供开发�
 | `http://127.0.0.1:4318/#feed` | `npm start` 提供构建后的本地产品页面 | 修改源码后运行 `npm run build`，再刷新浏览器 |
 | `http://localhost:5173/#feed` | 另开终端运行 `npm run dev`，用于界面开发 | Vite 热更新；本地 API 仍需 4318 服务 |
 
-4318 不监听源码变化。服务正在运行、源码已合入，都不表示浏览器已加载最新构建。服务每次请求读取 `dist/web/index.html`，仅更新前端产物时无需重启服务；更新 `server/local/` 后需要重启。
 
 ```sh
 npm run build
@@ -46,7 +45,7 @@ npm start
 
 HTTP 同源入口：`GET /api/local/state`、`GET /api/local/capabilities`、`GET /api/local/open?id=...`、`POST /api/local/operations`。写入格式：`{operations:[...],expectedRevision?:number}`。CLI 默认使用 4318；隔离测试可用 `QG_LOCAL_PORT` 指定本机端口。
 
-同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。页面整卡保存和删除现在携带原卡片 `before`，新建携带 `before:null`；服务端比较当前卡片，不匹配则拒绝整批操作。行内编辑期间不吸收轮询的新卡片作为编辑基准；备注和批量标签编辑也保留原始字段，包括原本没有值的字段。其他保存请求返回时不能更新这些编辑基准，无关的阅读状态可以独立合并。CLI 旧调用保持兼容，未提供条件的调用仍没有并发保护。失败的页面修改会提示，并把草稿留在浏览器 `sill-unsynced` 中；重新读取最新版本后由 AI 协助合并。
+同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。页面整卡保存和删除现在携带原卡片 `before`，新建携带 `before:null`；服务端比较当前卡片，不匹配则拒绝整批操作。行内编辑期间不吸收轮询的新卡片作为编辑基准；备注和批量标签编辑也保留原始字段，包括原本没有值的字段。无关的阅读状态可以独立合并。CLI 旧调用保持兼容，未提供条件的调用仍没有并发保护。失败的页面修改会提示，并把草稿留在浏览器 `sill-unsynced` 中；重新读取最新版本后由 AI 协助合并。
 
 卡片由 AI 通过本协议创建与修改。卡片内的 `sources` 记录内容出处；兼容数据中的顶层 `sources` 不参与产品操作。
 
@@ -56,7 +55,6 @@ HTTP 同源入口：`GET /api/local/state`、`GET /api/local/capabilities`、`GE
 
 ## 卡片字段
 
-字段字典见[跨端数据约定](../../../contracts/README.md)，当前版本与可写字段以 `capabilities` 返回为准。正文为 Markdown；阅读时长估算与 `reading.add` 的实际计时分别处理。个人备注使用 `item.patch.note`，标签属于卡片字段，修改时使用带 `before` 的 `card.upsert`。不兼容数据的处理另行确认，不因校验失败自动清空用户数据。
 
 PR 使用独立的 `pullRequest` 快照；播客音频地址、带时间点的章节和文字稿、邮件附件（`files`）见字段字典。播放位置写入 `item.patch.values.playbackPosition`，以秒为单位，不改变阅读进度或已读状态。
 

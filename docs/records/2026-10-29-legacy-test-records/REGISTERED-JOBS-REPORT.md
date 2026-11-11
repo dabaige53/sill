@@ -1,6 +1,5 @@
 # F09 registered jobs verification
 
-历史资料：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
 The implementation contains two fixed, local read-only operations and six owner-only tools. Worker configuration defaults disabled; the example remains disabled. Tests use temporary stores, synthetic credentials/cards, injected clocks and explicit fixture runs. No real user schedule, connector call, AI request, credential grant, deployment or external communication was activated.
 

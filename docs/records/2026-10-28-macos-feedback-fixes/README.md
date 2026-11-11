@@ -8,7 +8,6 @@
 - [动效验证清单](animation-checklist.md)：搜索点击、引用移除、叠卡收起和预览/全屏交接。
 - [ADR 0084](../../adr/0084-macos-feedback-layout-and-reader.md)：本轮尺寸与结构决定。
 
-原[62项功能状态](../2026-10-28-macos-parity-implementation/function-status.md)与[41项动效状态](../2026-10-28-macos-parity-implementation/animation-status.md)保留。本轮清单是增量纠正，不把旧记录改成新一轮验收结果。
 
 ## 原因与处理
 

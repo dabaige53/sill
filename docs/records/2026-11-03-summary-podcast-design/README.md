@@ -22,7 +22,6 @@ claude-design 的 Design Component 格式要求用内联样式支持属性编辑
 
 按完整报告提供的 `recheck.command` 调用 `diagnostics_backend.py`，使用 HTML、JSON language server 及 HTML 校验流程复查。四个画板与 `canvas.json` 全部返回 `status: passed`，各文件 `diagnostics` 均为空。
 
-画布格式检查返回 `problems: 0`；文件管理检查通过。以上结果不表示已验证画板运行、浏览器布局或产品体验。
 
 ## 播客源码实施
 

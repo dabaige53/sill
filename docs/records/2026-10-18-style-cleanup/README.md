@@ -27,11 +27,9 @@
 
 普通 CSS 的 `transform: none` 无法压过 Web Animations API 中正在执行的位移。静态截图没有暴露这个差异。新增检查在原样式 `1a17b52` 上 17/17 通过，在 `2258858` 上 14 项通过、3 项失败：入场中打开卡片菜单、系统和应用减少动态效果切换。
 
-`a72de59` 在 `MotionEngine.animate` 的位移关键帧中读取元素自身的 `--motion-managed-transform`。打开菜单或启用减少动态效果时，样式可立即固定该元素；透明度、时间和暂停状态不变。移除状态后恢复同一动画。每个元素重置该变量，菜单本身仍可独立入场。不增加 AppController 公开方法，不取消动画或另建监听器。
 
 相同检查修复后 17/17 通过。保留 [基础通过日志](active-animation-base.log)、[整理后失败日志](active-animation-regression.log)、[修复后通过日志](active-animation-fixed.log)。没有跳过、禁用或放宽断言。
 
-真实 CSS 核对覆盖 3 种模式的 42 组状态，包括直接和嵌套拖动、工具条收起及可见性延迟、遮罩、导航镜片和刷新进度。属性语义一致，见 [逐项对比](priority-comparison.json)。CSS 会重复短时长列表以匹配属性数；对比按此规则展开列表，不把计算样式字符串的重复写法算作行为差异。
 
 保留的 6 处 `!important` 都有内联样式来源：空卡片的 left/top/width（布局）、手机人像 width/height（avatar）、刷新旋转期间的 stroke-dashoffset（手势进度）。原因写在相邻注释中。
 
@@ -53,7 +51,6 @@
 
 `npm test` 包含文件管理、契约、构建、源码、类型及 Node 三组检查，均通过。`npm run lint:web` 通过。最终相关浏览器：基础 23、抽屉 11、动效材质 17、密度 6、无障碍 13、PWA 触控 10、搜索 2、多选 28，加上 `9e18fc5` 的刷新反馈 2 项，共 112 项通过。使用本机预装 Chromium，没有下载浏览器。真机、Safari 未检查，生产未部署。
 
-源码提交 `9e18fc5` 的 CI 有一次推送检查在 `cloud-operations-browser.ts:437` 等待已保存状态超时，见 [原始失败](ci-cloud-operations-timeout.log)。同一提交的 PR 对应检查通过；[基础提交本机复跑](cloud-operations-base.log) 和 [当前提交本机复跑](cloud-operations-current.log) 均通过，各 1 项。此前 C3 也记录过同一位置的超时，但本次根因仍未定位，不能据此断言无关。没有改测试或放宽断言。最终提交 CI 另以 PR 的检查记录为准。
 
 先更新仓库原则和手册，再修改实现；本次不改变画板布局、图标或文案。生成命令 `node design-system/scripts/generate.ts design-system .` 已运行，组件 CSS 重建，组件 JS 和 69 个图标不变。`window.__app` 的 103 个公开方法签名不变。Mac、iOS 原生代码未改。
 

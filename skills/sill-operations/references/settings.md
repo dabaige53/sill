@@ -33,7 +33,6 @@
 | `archiveAfter` | `3d / 7d / never`。旧的自动收起设置。现在读过或完成的卡片一直留在主页，只有明确归档才移走 |
 | `hiddenActions` | 卡片动作 ID 数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`。Web/PWA 不按它隐藏动作；Mac 端尚未同步，可能仍按旧值隐藏 |
 | `reduceMotion`、`reduceTransparency` | boolean。旧设置，客户端不展示或应用 |
-| `aiLocal` | boolean。保留字段，不代表存在内置助手 |
 
 设备上的设置不在账号偏好里，助手改不了：系统提醒开关、通知权限、存放位置。
 

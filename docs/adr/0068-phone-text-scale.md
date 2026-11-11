@@ -14,10 +14,8 @@
 - 手机预览正文使用阅读页正文 `reader-body` 17，放大前后字号一致。阅读页正文不乘手机倍数。
 - 导航、标签页、工具条和按钮不变，保留 320 宽下已调好的工具胶囊。
 - 桌面 Web 与 Mac 的字号不变。设置仍是一份，存在账号里，不改数据结构。
-- 暂不按设备类型分别保存设置，也不跟随 iOS 系统字号。确有需要时另行决定。
 
 ## 影响
 
 - 设计变量 `text-phone-scale`；手册[基础](../../design-system/handbook/foundation.md#字体)「手机起点」与预览正文；设计印记 `phone-text-scale`。
 - Web：`tokens.css`、`appearance.css`。摘要仍按行数截断，每张卡显示的字数略少，信息流略长。
-- Mac 不使用手机宽度，不适用；原生 iOS 没有阅读界面。见[界面对账表](../implementation/design/ui-alignment.md)。

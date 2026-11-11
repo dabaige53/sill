@@ -21,7 +21,6 @@
 - 打开 Xcode 后复跑已能进入 XCUITest 场景，首次系统认证错误未再出现；未修改 DevToolsSecurity 或全局安全策略。
 - 实际联调修复配置路径传递、沙盒通知与就绪文件写权限问题。后续复跑被 Xcode 文件窗口和 Codex Computer Use 浮层打断，已停止。原生 UI 三个场景尚未完成端到端验证。
 - 用户澄清要后台自动化后，默认 `npm run perf:macos` 改为无窗口 XCTest 基准；UI 自动化改为显式 `ui` 模式，不继续启动。人工 App 追踪保留。
-- 只生成本地产物，不部署，不发布线上设计；不运行浏览器测试。
 
 
 默认后台入口复验通过：`npm run perf:macos -- --output /private/tmp/sill-background-default-1021` 返回 0，两项 XCTest 场景完成，提取 12 组官方指标；本次未启动 UI 自动化。

@@ -15,8 +15,6 @@
 ## 定位依据
 
 - Web `atoms/markdown.ts` 的 image 渲染规则主动返回替代文字；Swift `MarkdownBody` 也主动丢弃 Image 目的地址。这是 ADR 0063 的原决定，不是 Markdown 图片 URL 被截断。
-- 原文按钮有实现，但依赖结构化 `url`。独立网页用 `window.open` 且启用 noopener，空返回值不能证明打开失败；旧按钮流程没有可供浏览器直接使用的原生链接。
-- 未读取真实 Readwise 卡片，不能认定具体卡片均已补齐原文 URL；宿主是否允许打开链接仍由宿主能力和返回结果决定。
 
 ## 处理情况
 

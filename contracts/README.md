@@ -1,6 +1,5 @@
 # 跨端数据约定
 
-更新：2026-10-28。现行约定为 5.0.0；产品版本独立管理。5.0.0 按 [ADR 0086](../docs/adr/0086-card-fields-and-block-recipes.md) 精简为 30 个字段，不兼容旧字段，也不转换旧数据。详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）。
 
 - `card.ts`：已实现的本地卡片结构。结构严格，拒绝未知字段和已删除字段，不修改原输入。
 - `local.ts`：已实现的本地状态和批量操作。
@@ -10,7 +9,6 @@
 - `mcp-guidance.ts`：每个 MCP 工具的用途与传输规则；运行时工具发现和导出目录共用，版本取自 card.ts。导出响应只携带该工具用到的定义。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `fixtures.json` 与 `media-fixtures.json`：按核心字段、媒体与图片拆分的合法和非法合成样例；Node 通过 `card-fixtures.ts` 合并，Swift 读取两份文件，每个写入端执行同一批样例。
-- `design/`：接口设计材料，不表示未实现的接口已上线。
 - `design/openapi-source.json` 保存人工维护的接口说明与路由；Schema 仍来自 `cloud.ts`。`scripts/export-design.ts` 合成原路径的 `design/openapi.json`，不要直接修改生成文件。
 
 JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务校验在 TypeScript 和 Swift 中执行，不能仅用结构检查代替。
@@ -27,7 +25,6 @@ JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务�
 | summary | 最多 10000 字纯文本；卡面摘要和照片说明，只用于信息流卡面和搜索结果 | 所有类型 |
 | body | 最多 500000 字的 Markdown（CommonMark）字符串；详情里唯一的文字内容，要点写成列表；原始 HTML 按文字显示，图片不加载，链接只接受 http、https、mailto | 所有类型 |
 | url / time / tags / related / priority | 原文地址、卡片时间（毫秒）、最多 100 个标签、最多 100 个关联卡片 ID、0–10 优先级 | 所有类型 |
-| sources | 最多 11 个 {name, kind}；只记录内容从哪里来，不表示连接 | 所有类型 |
 | authors | 最多 20 个 {name, url?}；原文作者、发布方或邮件发件人，第一个作者显示为发件人；作者不是来源 | 文章、笔记、邮件、媒体、摘要、建议、文件 |
 | publishedAt | 日期 YYYY-MM-DD 或带时区的 ISO 时间；原文发布、邮件发送或照片拍摄时间，非 Sill 系统时间 | 所有类型 |
 | form | 只有 `quote`；按金句展示 | 笔记 |
@@ -39,7 +36,6 @@ JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务�
 | media / duration / audioUrl | video 或 podcast、0–86400 秒总时长、HTTP(S) 音频地址；音频只在播放时读取，不采集或同步 | 媒体 |
 | chapters | 最多 10000 个 {start, title}；start 为 0–86400 秒，严格递增，不超过已知 duration | 媒体 |
 | transcript | 最多 10000 个 {start, text}；start 规则同章节；text 最多 20000 字 | 媒体 |
-| pullRequest | 必填 PR 快照对象，字段见下文；不连接 GitHub，不代表实时状态 | pr |
 | state | 只用于写入个人状态，例如 note 和 playbackPosition；不属于卡片内容 | 所有类型 |
 
 PR 必填字段为 `repository`（owner/repo）、`number`（正安全整数）、`state`（draft/open/merged/closed）与 `observedAt`（带时区的 ISO 记录时间）。可选字段为 `headBranch`、`baseBranch`、`reviewRequested` 和 `additions/deletions/changedFiles`。未知统计省略；已知为零才写 0。

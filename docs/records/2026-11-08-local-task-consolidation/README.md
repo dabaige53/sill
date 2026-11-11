@@ -40,7 +40,6 @@
 - 所有被删除的本地任务提交均已包含在统一分支。
 - 5 份 stash 的内容去向已确认；未发现需要补回的有效独有源码。
 - 项目措辞清理为独立提交 `bf8aa49c`，涉及 152 个文件、300 处目标表达。文案汇总与相关画板从源文件生成，跟踪文件中的目标表达已清零。
-- 未运行程序测试、类型检查、发布构建、浏览器或 Mac 窗口自动化。远端查询确认统一分支的本地提交尚不存在于 GitHub，无法取得对应检查结果；未触发 CI。原任务的历史验证记录不能代替本次合并后的验证。
 
 ## 2026-11-09 未完成项补齐
 
@@ -65,6 +64,5 @@
 
 - 问题与状态：测试事务辅助函数的两处类型错误已修复，并通过 LSP 复查。
 - 环境与触发：`tests/server/supabase-postgres.ts` 使用 `Promise.withResolvers`；编辑器诊断两次返回 `Property 'withResolvers' does not exist on type 'PromiseConstructor'`。报告涵盖 20 个 TypeScript 文件，其余文件状态为 passed，包含部分警告。
-- 定位依据：项目 `tsconfig.json` 的 target 为 ES2022、lib 为 ES2023；新增辅助函数使用的 Promise 静态方法超出当前类型库。语法解析通过不能证明类型可用。
 - 处理情况：仅将两个等待信号改为普通 Promise 构造器及对应 resolve/reject 回调，保留事务暂停、提交与错误传递；项目编译配置保持原值。
 - 验证与后续：已按原报告的完整 recheck.command 通过 typescript-language-server 复查全部 20 个文件，每个 status 均为 passed，错误 0、警告 27、未完成 0；改动文件自身没有诊断。格式、语法、差异、文件管理与文件大小检查均通过。完整复查输出保存于 `/private/tmp/sill-continuation-20261109/lsp-recheck.json`。本结果只覆盖这 20 个文件；程序测试、完整项目类型检查、构建与 CI 另行验证。

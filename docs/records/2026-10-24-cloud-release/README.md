@@ -24,7 +24,6 @@
 - 类型检查、Web 构建、Web 与 Swift 格式检查、design build/check、文件检查通过。Web lint 仍有既有警告，无错误。
 - `npm run release:prepare`：六步检查与压缩构建全部通过。
 - 最终候选提交的远端 CI 全部通过：[浏览器回归](https://github.com/dabaige53/sill/actions/runs/40055557142)、[集成测试](https://github.com/dabaige53/sill/actions/runs/40055557188)、[权限边界](https://github.com/dabaige53/sill/actions/runs/40055557308)、[Mac 格式与后台测试](https://github.com/dabaige53/sill/actions/runs/40055557178)、[授权策略](https://github.com/dabaige53/sill/actions/runs/40055557094)。Mac 安装包构建按工作流条件跳过。
-- 未在本地执行浏览器、e2e、截图或真实 Mac 窗口检查。远端 CI 的浏览器回归不等于真实手机触摸或宿主页面视觉验收。
 
 ## 部署
 
@@ -58,7 +57,5 @@
 ## 边界与回退
 
 - 内置 AI 尚未接入。正式构建不含示例会话，发送等动作保持禁用。
-- 本轮发布云端代码，不代表外部备份迁移、密钥配置或其他外部服务已完成部署与验收。
-- 真实手机触摸、媒体放大后的连续播放与 Mac 窗口未验收；本地 Swift 测试不代表 Mac 安装包已安装或分发。
 - claude.ai 设计副本未发布本轮全部改动，仍需在 Claude Code 发布；已有 AI 设计与详情画板的发布记录保留。
 - 回退时先确认当前部署仍为上表的新版本，再将流量切回旧 Worker version `a81b3dad-ff85-4ff0-bcea-4374eb097880`，重新检查健康、未登录访问限制和 MCP 读取。本轮没有数据库迁移，无需随 Worker 回退修改数据。

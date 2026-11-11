@@ -1,6 +1,5 @@
 # F10 registered WebAssembly v1 verification
 
-历史资料：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
 Base: F09 commit `7e8988a194d55bf5f1a49558cd96139e51a35761`, tree `ef0ec1e5905be94ecd13850828b47e6340ec1329`.
 

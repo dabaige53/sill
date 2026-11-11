@@ -23,7 +23,6 @@
 
 通过 localhost 渲染画板，17 张图片全部载入；页面错误、损坏图片和外部请求均为 0。原始测量见 [补充前](before-render.json) / [补充后](after-render.json)。重新运行组件和图标生成脚本，69 个图标及组件包没有变化。证据文件均小于 2 MB，不含真实账号、浏览器存储或凭据。最新提交检查与 CI 以 PR 为准。
 
-本次先补充仓库模式约束，再更新本地画板。没有访问或发布 claude.ai Artifact，没有使用 Mobbin 或其他 claude.ai 独有工具；`design-system/design-system.json` 未改。原记录中的线上手册操作是工具限制前的历史，不代表本次访问或同步线上。
 
 线上未同步：`design-system/boards/CardDetail.dc.html`、`design-system/boards/index.html`、`design-system/boards/canvas.json`、`design-system/boards/card-detail/u1-*.png`。原 U1 的 `design-system/components/bundle.css` 也仍未同步，由用户另行处理。
 

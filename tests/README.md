@@ -1,6 +1,5 @@
 # 测试目录
 
-更新：2026-11-06。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agent/test.md) 确认授权、范围和结果边界。
 
@@ -15,11 +14,9 @@
 | Apple 数据与桌面状态 | `apps/apple/Tests/`、`apps/apple/DesktopTests/` | `npm run test:macos` |
 | 性能报告 | `apple/performance-report.test.ts` | `npm run test:performance-report` |
 
-`npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试及 Docker Postgres。报告解析不需要 Xcode。`scripts/check.ts` 检查独立页面的静态图片地址。
 
 CI 自动入口为 `ci.yml`：先运行分流自检及文件检查，纯文档改动到此结束；产品改动调用后续工作流，具体范围见 [CI 说明](../docs/implementation/CI.md#文档变更分流)。`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和三组专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查由发布或手动打包调用。人工性能录制与离线报告按性能指南执行。
 
-旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
 
 Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别在同名 Swift 文件中；共用合成后端、样例与观察辅助在 `apps/apple/DesktopTests/WorkspaceTestSupport.swift`。套件名和测试入口保持。
 
@@ -47,24 +44,18 @@ Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别�
 | 内容保真与阅读密度 | `npm run build && npm run test:material-density` | 合成卡片：中等桌面列宽、紧凑五列上限、任务焦点、摘要原文、长要点与任务换行；1320px、390px、320px，截图在 `artifacts/material-density/` |
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、菜单入场中断、提示替换与详情反向切换、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
-| PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
 | 搜索框、卡片建议与 # 条件（`panel-search.tsx`、`home-search*.ts(x)`） | `node --import tsx --test tests/web/chrome.test.ts tests/web/search-state.test.ts tests/web/search-refresh.test.ts tests/web/search-desktop.test.ts tests/web/home-search-motion.test.ts` | 这些文件都用合成面板对象；面板新增 `app.xxx()` 调用时，同步补齐各测试里的假对象，否则只在这里失败 |
-| 读完上推、详情工具胶囊收起 | `node --import tsx --test tests/web/chrome.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts` | wheel 节奏、停顿回位、到底与胶囊归属；合成计时器，不代表触控板真机手感 |
-| 阅读展开与触摸归属 | `node --import tsx --test tests/web/motion-sheet.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成尺寸、触摸、计时器和绘制帧：按住不展开、松手展开、圆角裁剪与安全区衔接、反向中断、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
 | 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、旧隐藏偏好兼容和生成组件包的主题环境；不代替真机 |
 | 卡片操作显示兼容 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；设置中无动作隐藏开关，旧隐藏偏好不影响工具栏；文章三视图同一字段和末尾备注框，不修改来源卡片 |
 | 主页五分栏 | `npm run build && node tests/e2e/home-tabs-browser.ts` | 320/390/1440 浅深色与 1920 宽屏；桌面对齐、五个筛选结果、单个当前项、搜索条件隔离、切换后恢复阅读位置且导航保持可见、来源卡片不变 |
 | 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、轻阈值与取消、快速请求保留反馈、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
-| 手势布局与关闭性能 | `npm run build && node tests/e2e/gesture-performance-browser.ts` | 合成手机正文、CPU 4 倍限速；固定内容尺寸、关闭期间布局和绘制、返回后工具条与导航状态；不代表真机帧率 |
 | 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、无复制回退、外链确认与明确拒绝后的草稿恢复；不发送真实对话 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
-| 外部备份与恢复 | `node --import tsx --test tests/server/backup*.test.ts tests/web/backup-transport.test.ts` | 合成 WebDAV/R2、MCP 权限、AES 绑定、不可变快照、原子恢复、版本冲突及未知回执，不连接真实网盘 |
 | 设备提醒 | `node --import tsx --test tests/web/system-reminders.test.ts`；`node tests/apple/run.ts --filter SystemReminderTests` | 模拟权限、通知事件、调度和账号生命周期，不投递系统通知 |
 | 图片与播放器策略 | `node --import tsx --test tests/web/image-assets.test.ts tests/server/media-policy.test.ts tests/server/player-policy.test.ts tests/server/cloud-app.test.ts` | HTTPS 图片与 MCP 资源策略，实际媒体及真实宿主另验 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
 | 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产；多选按钮与持久化场景由 `e2e/helpers/cloud-selection-operations.ts` 提供，原入口统一执行 |
 | Mac | `npm run test:macos` | SillKit 数据层与桌面状态检查，再校验 `dist/macos/Sill.app` 签名；先运行 `npm run build:macos` |
-| 格式与类型 | `npm run lint`、`npm run typecheck` | 只读；默认规则警告不代表已实现全仓 strict |
 | Postgres | `npm run test:supabase:postgres` | 需要可用 Docker；使用合成容器数据，不连接生产 |
 
 `hiddenActions` 的迁移前拒绝、迁移后保存、非法批量回滚由 `server/helpers/hidden-actions-migration.ts` 共用断言验证。`server/cloud-workspace.test.ts` 在 PGlite 运行，Postgres 入口加载相同迁移并调用同一断言。本机没有 Docker 时写明「未执行」；CI 结果另记，不代替生产迁移部署。

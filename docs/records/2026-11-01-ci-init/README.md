@@ -7,7 +7,6 @@
 - 将工作流内的 Web 验证、浏览器集合、共享卡片专项、Swift 测试、授权策略及版本检查接入 package.json。已有 npm 检查入口继续复用。
 - 新增共享 setup action，保留各 Job 的 Node 24/26、npm 安装参数和缓存开关。
 - 为五类 PR 检查增加旧运行取消；补齐任务超时。Mac 路径清单加入共享 setup action。
-- 运行说明维护在 [CI.md](../../implementation/CI.md)。不配置分支保护或必需检查，不修改测试、生产审批和发布先检查后打包的顺序。
 
 ## 基线
 
@@ -19,8 +18,6 @@
 
 ## 静态验证
 
-- workflow_audit.py 已生成前后清单。该工具把 workflow_call 映射为调用事件，不能代替 YAML 的实际事件与条件核对。
-- compare.py coverage 在接受五个旧浏览器任务名称到汇总入口的映射后通过，无阻断或警告。脚本分类数从 21 变为 18，不代表实际检查数量减少。
 - 对照 Git 基线逐条验证：12 个浏览器命令、顺序、失败状态累积和最终退出完全一致；Web 验证及共享卡片专项命令一致。所有新增 ci:* 命令通过 shell 语法检查。
 - 手工核对共享 setup 的安装模式、缓存开关、Node 版本，以及工作流的 Job id、条件、权限和发布依赖。Mac 的工具链信息输出移到依赖安装之后。
 - git diff --check 与 npm run files:check 通过。
@@ -61,7 +58,6 @@
 
 恢复与保存的 key 传递按 [actions/cache 官方策略](https://github.com/actions/cache/blob/main/caching-strategies.md)核对，并检查了项目所用 [v4 restore 元数据](https://github.com/actions/cache/blob/v4/restore/action.yml)。不为本次缓存改动同时升级所有 Action 主版本。
 
-缓存阶段五类首次 PR 检查全部成功：[Web](https://github.com/dabaige53/sill/actions/runs/41380244807)、[集成](https://github.com/dabaige53/sill/actions/runs/41380244818)、[数据](https://github.com/dabaige53/sill/actions/runs/41380244833)、[Mac](https://github.com/dabaige53/sill/actions/runs/41380244873)、[授权策略](https://github.com/dabaige53/sill/actions/runs/41380244856)。Web 报告再次确认 12 个唯一成功入口。提交级等待 213 秒，其中 Web 161 秒、Mac 213 秒；这是冷缓存首次 PR，不能把时间变化全部归因于缓存。
 
 同一提交在工作分支手动运行，检查冷缓存保存与热缓存恢复：
 
@@ -74,7 +70,6 @@ debug 缓存约 728 MB，恢复 Action 用时 13 秒；release 缓存约 601 MB�
 
 ## 待验证
 
-主分支新缓存与 Linux npm 精确命中需要合并后建立和验证；工作分支手动缓存不代表主分支已具备缓存。尚无足够同类成功样本报告稳定 P50/P95 或长期缓存容量变化。遵循项目检查通过后停止的规则，不为凑样本重复运行完整回归。
 
 未在本地运行完整测试、构建或界面自动化，未安装 actionlint 或本地 Git hook。未合并、修改分支保护、删除缓存或部署产品。Actions 仍提示现有 v4 Action 的 Node 20 运行时弃用；本轮没有改变这些 Action 的主版本。
 

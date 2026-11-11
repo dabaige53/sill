@@ -33,5 +33,3 @@
 ## 恢复与验证边界
 
 五份原始 stash 分别保存为 `/private/tmp/sill-consolidation-20261108/stashes.bundle` 内的 `refs/heads/stash-0` 至 `refs/heads/stash-4`。已检查 bundle 完整性及五个提交引用。仓库中的 stash 在完成上述核对后清理。
-
-本次结论来自源码与历史核对，不能代替程序验证。最终分支尚无 GitHub Actions 检查结果；原测试精简记录中的 258 个待改写用例仍作为原任务欠账保留，未列为本次新完成内容。

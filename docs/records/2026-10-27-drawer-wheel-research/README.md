@@ -12,7 +12,6 @@
 
 ## 已确认的问题
 
-1. **滚轮回位时的状态不等于画面。** 80ms 静默后，代码先把 `distance` 设为 0，再让抽屉和背景花 500ms 回位。回位途中，如果收到反向滚轮，代码在读取抽屉实际位置前就因 `distance` 为 0 而放行该事件；因此抽屉可能还在回位，内容已经开始滚动。同方向新输入会读一次前景的计算位置，但后景按公式重算，源码不能保证两层连续。见 [滚轮处理](../../../apps/web/interactions/phone-drawer.tsx#L163)。
 
 2. **根背景有两个写入者。** Sill 在滚轮处理中写背景的 `transform`、`transition` 和圆角变量；同时 `shouldScaleBackground` 让 Vaul 在打开时保存背景的整段 `style.cssText`，并在关闭时恢复整段样式。后一次恢复会覆盖保存之后对同一元素做的样式修改。这是源码可确认的所有权冲突；它是否造成用户看到的那一次卡顿，不能仅凭源码断定。见 [Sill 的背景写入](../../../apps/web/interactions/phone-drawer.tsx#L143) 和 [Vaul 样式快照及恢复](../../../node_modules/vaul/dist/index.mjs#L416)、[Vaul 背景处理](../../../node_modules/vaul/dist/index.mjs#L715)。
 
@@ -33,8 +32,6 @@
 
 ## 关闭链路和证据边界
 
-- 现有前景退出、Vaul 的背景恢复和嵌套父层恢复都使用约 500ms 和相同的缓动曲线。Vaul 的退出关键帧只指定终点，起点由当前计算值补齐；不能据此说它一定先回到打开位置，也不能把 500ms 本身认定为卡顿根因。按键、指针和滚轮的**开始时机及样式所有权**仍可能不同。见 [Vaul 退出关键帧](../../../node_modules/vaul/style.css#L207) 和 [CSS 关键帧起点](https://www.w3.org/TR/css-animations-1/#keyframes)。
 - Vaul 的 `onAnimationEnd` 在状态变化后由 500ms 定时器调用，并非监听浏览器真实的动画完成事件。Sill 用它触发卸载与恢复页面；因此这个回调是时间约定，不能单独证明所有图层已完成绘制。见 [Vaul 定时器](../../../node_modules/vaul/dist/index.mjs#L881) 和 [Sill 回调](../../../apps/web/interactions/phone-drawer.tsx#L238)。
-- 手机预览不走 Sill 的普通 `lockPageScroll`；Vaul/Radix 在模态遮罩上管理滚动。Sill 另将背景固定在视口内，关闭后卸载组件，恢复固定定位，再执行延迟的阅读内容刷新。Safari 中 Vaul 还会恢复 `body` 定位和滚动。源码能确定这些步骤存在，但不能证明它们是此处卡顿的原因。见 [打开和关闭](../../../apps/web/views/app-surfaces.ts#L110)、[背景恢复](../../../apps/web/interactions/phone-drawer.tsx#L59)、[刷新](../../../apps/web/interactions/reading-feedback.ts#L4)、[Vaul Safari 恢复](../../../node_modules/vaul/dist/index.mjs#L806) 和 [Radix 滚动锁](../../../node_modules/@radix-ui/react-dialog/dist/index.mjs#L112)。
 - 浏览器 `wheel` 可以来自鼠标或触控板，增量的单位和数值随设备、系统与浏览器变化；某些事件不可取消。静默间隔不能可靠区分手指已离开、惯性仍在继续或下一次输入。较新的 [Pointer Events Level 4 工作草案](https://www.w3.org/TR/pointerevents4/) 定义了 `WheelEvent.momentum`，但本研究没有核实各浏览器的实现，不能将其当成跨浏览器可用的准确松手信号。另见 [MDN wheel 事件](https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event)。
 - 实际卡顿是否由样式覆盖、浏览器重排、滚动恢复、内容刷新或其他原因造成，以及修改后的手感是否符合要求，仍未验证。本记录不将源码推断写成设备上的测量结果。

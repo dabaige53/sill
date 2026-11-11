@@ -56,11 +56,9 @@
 
 示例 ID、版本、幂等键须换成实际值。`changes` 只发送修改字段；`state` 合并子字段。数组整体替换，先保留不需改动的元素；嵌套对象也整体替换，例如改 `pullRequest.checks` 时保留其他快照字段。没有变化就不写入。字段不接受 `null`；要移除字段时用 `card.upsert` 整卡替换。空数组、空文本还须满足卡片规则。
 
-不要把读取结果中的 `id`、`revision`、`created_at`、`updated_at`、`deleted` 等服务端字段塞进 `changes`。未知卡片字段会被拒绝。
 
 ## 原子批量操作
 
-`sill_applyOperations` 的参数为 `{idempotency_key, body:{operations, expectedRevision?}}`。一次最多 5000 项，整个请求最多 512 KiB；超过限制先报告，不能把要求一起完成的清空操作拆成可能只完成一半的多个请求。所有项一起成功或一起回滚。调用方须能读取整个工作区，每项还须有相应写入或删除权限。
 
 | 操作 | 参数与条件 |
 | --- | --- |
@@ -135,7 +133,6 @@
 | `dismissed` | boolean | 隐藏提醒或时效提示 |
 | `reminderDone` | boolean | 提醒完成 |
 | `lastReminderKey` | string，最多 200 字符 | 上次提醒标识 |
-| `lastNotifiedAt` | number，0–8.64e15 | 上次通知时间；记录不代表通知执行器存在 |
 | `readAt` | 同上 | 阅读时间 |
 | `restoredAt` | 同上 | 恢复时间 |
 | `done` | boolean | 兼容完成状态；任务卡与 `taskDone` 同步，提醒卡与 `reminderDone` 同步 |
@@ -146,13 +143,11 @@
 
 ## 阅读记录
 
-`reading.add` 原子累加工作区阅读秒数，单次 0–86400 的整数，总值不能超过 10000000。读取快照核对结果；回执不明时同键同参数重试，不换键重复累加。偏好字段与 `preferences.patch` 的取值见 [设置与备份](settings.md)。
 
 ## 账号条件
 
 宿主页面从 `sill_open_workspace` / `sill_open_cards` 的结果取得稳定 `userId`；浏览器可从 `/auth/session` 取得账号与有效 scopes、工作区读取/写入标志。数据工具可选传 `expected_owner`，HTTP 可选带 `X-Sill-Owner`。条件必须等于实际鉴权账号，否则返回 forbidden，读取与写入均不执行。普通 AI 调用可不传，仍须正常授权。
 
-重试旧请求时保留原账号条件；当前账号不同就停止，保留内容供原账号恢复或复制，不把草稿、阅读累加或未知结果重放到新账号。
 
 ## 冲突、权限与未知结果
 
@@ -160,7 +155,6 @@
 | --- | --- |
 | 明确成功 | 核对返回快照；单卡写入后按 ID 重读，确认实际字段 |
 | `revision_conflict` | 重读，保留他人更新，仅重新应用用户要求；合并后使用新幂等键 |
-| 超时、断线、回执不明 | 保留原键、目标及完整参数；可读取核对，仍不确定时同键同参数重试，不换键重复创建或累加 |
 | `idempotency_conflict` | 检查是否误用旧键配不同请求；不要盲目重试 |
 | `not_found` | 区分不存在、已删除或当前范围不可见；不自动另建替代卡 |
 | `invalid_request` | 读 `error.issues` 中的 `path` 与 `message`，按提示修正对应字段后用新幂等键提交；不删字段凑通过。卡片规则代码见 [排障](diagnosis.md#卡片规则代码) |
@@ -170,9 +164,7 @@
 | `unavailable` | 服务暂时不可用；读操作可稍后重试，写操作按「回执不明」处理 |
 | 工具缺失或参数不接受字段 | 检查部署与当前连接定义；不静默丢字段并声称完整保存。见 [排障](diagnosis.md) |
 
-批量成功回放返回原快照，可能早于后续编辑；需要最新状态时另读 `sill_getWorkspace`。大工作区优先使用 `compact:true` 和逐卡读取；批量回执被宿主截断时，按本批目标 ID 重新读取确认，不能声称完整快照已经比对。错误的文本与 `structuredContent.error` 保存相同错误码；宿主若只显示 `INVALID_ARGUMENT`，先读取目标核对结果并报告连接器错误信息丢失，不猜原因或换键重试。单卡删除仍支持 `{id,idempotency_key,body:{expectedRevision}}`。
 
-当前没有 Webhook 投递器、内置助手或可靠执行器；批量操作不接受事件 `metadata`，不能用它伪造事件结果。
 
 ## 卡片字段
 

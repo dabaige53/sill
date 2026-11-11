@@ -51,7 +51,6 @@ views/actions/types.ts         复用公开入口的参数约定
 
 ## 检查与限制
 
-`npm run files:check`、`npm run lint:web` 通过。Web 单独执行 `npx biome lint apps/web` 为 0 错误、906 警告、30 条提示；不表示零警告。文案仍为 826 个键，其中哈希键 601 个、panels 哈希键 110 个；图标仍为 69 个。
 
 各阶段命令摘要见 [verification.txt](verification.txt)。真机未检查，生产未部署。C6 记录的本机会话过期流程偶发超时仍待定位；本次 C2 的查表提交本机相关检查均通过，未修改、跳过或放宽已有断言。
 

@@ -14,7 +14,6 @@
 - 合成数据校验结果：带 HTTP(S) `url` 的创建、修改、批量写入都能通过；`meeting {name,url}` 能通过。会被拒绝的有：`url` 为 `mailto:`（字段规定只收 HTTP(S)）、`sources[].url`、`link` 等未定义字段，以及创建时缺少 `summary`（`agentCardIssues`，2026-10-30 新增）。这些拒绝都会在 MCP 错误的 `issues` 中写明路径。
 - 数据库按整张卡片 JSON 保存，读取时原样返回（`supabase/migrations/20261028120000_sill_card_fields_v5.sql` 的 `content_json`）；Web `cloudCard` 和 `Store` 不删除 `url`。
 - 2026-10-31 清理提交 `ff5fadfb` 只删除了未使用的 `cloudCardState`，与链接无关。
-- 跳转：Web 用 `openCardLink`（`apps/web/services/agent-handoff.ts`）检查 http、https、mailto 后打开。在宿主中改由宿主打开，宿主未声明 `openLinks` 时提示“当前宿主不能打开此链接”，不退回到浏览器打开。Mac 用 `ExternalLink.open`。没有链接时，“去原文”“回复”按钮显示为禁用。“加入”只在会议开始前 15 分钟到结束之间、且有 `meeting` 时出现；设计手册和卡片技能文档写的是 10 分钟，两者不一致。
 
 推测（未证实）：宿主未提供 `openLinks` 导致无法跳转；助手写入被拒后删掉链接重试，导致卡片没有 `url`。
 
@@ -49,7 +48,6 @@ reason: INVALID_PARAMETERS
 
 保持内容和真实链接不变，改用已授权的批量 `card.upsert`，同样在 `body.operations[0].card.url` 被拒。随后 Google Drive 文件元数据写入在 `body.url`、`body.files[0].url` 同时触发同一 pattern 错误。两个来源均没有删除 URL 后重试。
 
-预期：普通 HTTPS 来源链接可通过公开 schema 校验并保存。实际：3 次调用在连接器参数校验层被拒，尚未取得 Sill 成功回执。不是“目标网站打不开”的证据，也不是服务器已保存后丢字段的证据。
 
 本地仅对当前生成 schema 的同一正则做 Node 匹配检查，真实 HTTPS 地址可匹配。未运行完整测试。已证实公开调用链与当前正则预期不一致；转义、schema 变换、缓存版本或连接器校验实现何者造成问题仍未确认，不能仅凭报错指定根因。
 
@@ -75,7 +73,6 @@ reason: INVALID_PARAMETERS
 
 2026-10-31：正式流程 `41170154789` 成功并实际部署，原宿主刷新工具后，以原完整载荷和原幂等键重试 Readwise 引文成功。重新读取正文、作者、来源、标签与 URL 一致；相同请求再次返回相同 ID，没有重复创建。日历 URL、Drive 顶层及 files URL、GitHub PR URL 也成功保存并读取。Readwise 来源按钮弹出正确地址，确认后进入对应 highlight 页面。
 
-上述已测路径结果：通过。修正是完整匹配 `^https?:[/][/].+$`；宿主内部正则实现仍未独立证实，不把推测写为已确认根因。第 78–79 次调用补充确认带来源链接的批量新建及单卡读回通过，其余类型按钮不能由此代替。完整过程见[发布记录](../2026-10-31-production-acceptance/release.md#1221-实际发布与复验)；前文保留原诊断和失败尝试。
 
 ## 嵌入式文章目录误开外链
 
@@ -86,7 +83,6 @@ reason: INVALID_PARAMETERS
 - 实际：ChatGPT 弹出“打开外部链接？”；目标为当前沙箱页面的 #reader-section-3。未打开该外链。原始截图保存在任务私有目录 article-outline.png，不提交用户内容。
 - 原因：目录组件已 preventDefault() 并完成滚动，但文档级 appInputMethods.click 没有检查事件是否已处理；锚点解析成绝对 HTTPS 地址后又进入宿主外链路径。
 - 处理：文档点击入口跳过已经取消默认行为的事件；保留正文内部卡片路由与未处理外链。回归沿用真实 ReaderLayout 目录、鼠标和键盘事件，并接入文档点击入口，断言滚动完成、hash 不变、宿主外链调用为零。
-- 1.2.22 正式流程全部通过并部署，原宿主刷新工具后复验：目录不弹外链确认框，页面 hash 保持阅读页；稳定布局下鼠标与 Enter 选择对应章节和高亮均正确。普通正文 GitHub 链接仍弹出正确外跳确认。此误开外链问题结果：通过。首次定位偏差另记，不把未显示封面或首次加载失败归为本问题。
 
 ## 全屏初次目录定位偏差
 

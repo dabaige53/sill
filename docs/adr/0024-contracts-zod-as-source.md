@@ -1,6 +1,5 @@
 # contracts 中的 zod 定义是契约唯一来源
 
-2026-10-16，已确认，尚未实施。数据结构只在 `contracts/` 中用 zod（TypeScript）定义一次：服务端和 Web 端直接引用这份定义，Web 端只引用类型，不把 zod 打入浏览器包；脚本导出 JSON Schema 到 `contracts/` 并提交，CI 检查导出结果与 zod 定义一致；Apple 端用 swift-openapi-generator 在构建时从导出的 JSON Schema 生成类型，生成代码不提交。三端都按宽容读取写代码：不认识的字段原样保留并在写回时带上，不认识的卡片类型显示为通用卡片，不报错也不丢数据。原因：MCP tools 已直接使用 zod 定义；放在 `contracts/` 符合 ADR 0023 的依赖方向，服务端和 Web 端不必互相引用；宽容读取防止一端新增字段时其他端丢数据或显示错误。
 
 ## Considered Options
 

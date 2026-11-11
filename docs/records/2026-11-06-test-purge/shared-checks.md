@@ -13,7 +13,6 @@
 | tests/e2e/motion-material-browser.ts:102 | 动效场景共享执行器 | KEEP | — | integration | prevent page errors or unexpected external requests from passing silently | 执行器被两个子模块共用，并统一检查页面异常及外部请求。 |
 | tests/e2e/navigation-recovery-browser.ts:15 | 导航恢复共享执行器 | KEEP | — | integration | prevent failed fixture writes or browser errors from passing silently | 第 33、42 行分别检查测试数据写入和页面异常；两个子模块共用。 |
 | tests/e2e/search-browser.ts:95 | 搜索场景共享执行器 | KEEP | — | integration | prevent page errors or unexpected external requests from passing silently | 两个宽度共用隔离测试数据和异常检查。 |
-| tests/e2e/selection-browser.ts:54 | 选择状态和数据共享断言 | KEEP | — | behavior | prevent cancelled selection gestures from changing cards or losing selection | unchanged 被多个子场景调用；第 57 行调用次数仅作辅助，不能替代实际数据断言。 |
 | tests/e2e/selection-browser.ts:59 | 拖动目标准备 | KEEP | — | integration | prevent gesture scenarios from using a missing or invisible target | point 检查测试前提并由后续辅助函数共用。 |
 | tests/e2e/selection-browser.ts:72 | 长按并开始拖动 | REWRITE | D9 | integration | prevent gesture scenarios from proceeding before selection and drag are active | 第 80 行固定等待；beginLift 被两个子模块共用，改写时保留接口。 |
 | tests/e2e/selection-browser.ts:104 | 拖动副本的内容与交互隔离 | REWRITE | D6 | behavior | prevent drag previews from exposing duplicate interactive controls or incorrect card content | 保留内容一致、不可交互和对辅助技术隐藏；第 107 至 113 行要求具体 DOM clone 层级，属于实现细节。 |

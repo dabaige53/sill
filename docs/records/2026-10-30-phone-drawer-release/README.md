@@ -5,9 +5,7 @@
 ## 范围
 
 - 用户明确要求合并修复并发布新版本，产品版本由 1.2.18 升至 1.2.19。
-- 沿用现有云端 Web/PWA、MCP 页面和 Worker 身份；Tag 发布流程同时生成 Mac arm64 内部测试包，不安装到本机，不更新插件技能包，不执行数据库迁移。
 - 修改手机抽屉的背景绘制边界、退出圆角和正文绘制层；保留布局、内容、滚动位置、节点、动效时长与手势阈值。诊断与处理见[抽屉逐帧记录](../2026-10-29-card-state-flash-release/diagnosis-phone-drawer.md)。
-- 工作区已有 `.agents/skills/` 删除和 `.gitignore` 修改不属于本次发布，不提交或覆盖。
 
 ## 用户体验确认
 
@@ -20,7 +18,6 @@
 - 源码修复 `706081ee`、测试适配 `c421f56c` 已推送至 `codex/fix-phone-drawer-paint`。
 - 修复分支的[集成检查](https://github.com/dabaige53/sill/actions/runs/41010190863)、[云端数据与浏览器检查](https://github.com/dabaige53/sill/actions/runs/41010190806)、[授权检查](https://github.com/dabaige53/sill/actions/runs/41010190727)通过。最终合并及 Tag 的检查另行记录，不用旧运行替代新版本证据。
 - 本地只做文件、差异和格式等轻量检查；程序测试、Web 与 Mac 构建由 GitHub Actions 执行，不使用本地重建产物。
-- iPhone/PWA 尚未逐帧复录验收；自动检查不表示原录屏中的所有白帧已在设备上消除。
 
 ## 数据兼容与回退基准
 

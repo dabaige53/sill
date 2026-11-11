@@ -7,7 +7,6 @@
 - Web 和 Mac 均在设置分组末尾新增「关于」，显示当前版本和仓库、版本下载、使用说明、问题反馈入口。
 - Web 读取根 `package.json` 的版本；Mac 优先读取当前安装包的版本和构建号，SwiftPM 调试环境使用从根版本生成的值。
 - 链接和图标名统一维护于 `design-system/product-links.json`，Mac 构建插件生成 `ProductInfo`。四个 GitHub 目标在本次检查中均返回 HTTP 200。
-- 关于页不受工作区载入状态禁用，不触发账号写入。
 
 ## 备份与恢复
 

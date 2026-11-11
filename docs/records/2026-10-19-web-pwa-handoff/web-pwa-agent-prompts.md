@@ -25,7 +25,6 @@
 ```text
 你在 Sill 仓库（dabaige53/sill）工作。先完整阅读 docs/guides/web-pwa-ui-handoff.md、AGENTS.md、docs/agent/code-standards.md、docs/agent/file-management.md 和 tests/README.md。
 
-任务：完成交接文档中的工作包 [C1]（只做这一个）。目标是行为不变的代码优化，不改界面设计。
 - C1：逐个找出列出的浏览器测试失败的根因并修复。先在基础提交上复现，再修，再证明同一测试通过。不跳过、不禁用、不放宽断言。
 - C2–C5：先确认测试覆盖，再小步移动；移动和改写分开提交；每次提交后运行 npm test 和相关浏览器测试；改前改后截图对比，界面不能变化。
 - C6：在有 Docker 的环境运行 npm run test:supabase:postgres，并为 hiddenActions 补用例。
@@ -88,12 +87,10 @@
 - 行为和界面都不变。移动和改写分两次提交。
 - 改前先确认测试覆盖；没有覆盖就先补测试。
 - 每次提交后运行 npm test 和相关浏览器测试；整理样式时截 390、320、1440 的主页、详情、设置，改前改后逐张对比，有差异就撤回或说明。
-- 浏览器测试失败时先在基础提交上复跑，判断是不是本次引入。不跳过、不禁用、不放宽断言，不用空提交触发 CI。
 - 不改 window.__app 的公开接口；确需改时同步改测试并在 PR 说明。
 
 # 不可违反的约束
 - 交接文档第 5 节「不做的事」全部适用。
-- 不使用任何 claude.ai 独有的工具：不读取、不发布线上 Design System 和设计画布（claude.ai Artifact），不调用 claude.ai 连接器（包括 Mobbin 连接器），不创建 Artifact。按 AGENTS.md 的仓库内规则：先改仓库里的原则和规范，再改实现；design-system/design-system.json 的线上资产记录不改。每个改了设计的 PR 在 Merge Danger 列出线上未同步的文件。
 - 所有用户可见文字放 design-system/copy/zh-Hans.json；文档用 80% ASD-STE100 风格的简体中文。
 - 不改 Mac、iOS 原生代码；改到同一功能时在 PR 里写「Mac 未改」。
 - 不提交 token、真实账号内容、浏览器存储；单个证据文件不超过 2 MB。

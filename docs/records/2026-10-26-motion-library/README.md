@@ -1,4 +1,3 @@
-历史资料：2026-10-27 用户要求删除动画工作台。以下保留历史使用说明与证据，不表示入口仍存在。
 
 # 动画工作台
 
@@ -8,17 +7,14 @@
 
 `npm run design -- build` 构建设计，`npm run boards` 提供 [本地工作台](http://127.0.0.1:4310/motion/)。
 
-左边是动画目录和配置面板，右边是预览。配置面板用「参数 / 检查 / 源码」页签切换；各区独立滚动，参数与预览之间可拖动调整宽度。窄窗口保留横向工作区，不把配置叠到预览下方。
 
 30 个稳定 ID 对应真实产品局部 UI。Web 可预览 29 项，手机可预览 24 项；不适用的视口显示占位。列表使用真实卡片，详情使用真实抽屉与阅读层，媒体使用真实播放器。只挂载当前动画所需范围，不加载整个应用。支持按钮触发的效果提供「播放动画」；拖动、刷新和滑动直接手动操作。
 
 参数立即更新，短暂合并连续输入后重载独立 iframe。调试值按动画 ID 和视口保存在本机 `sill-motion-preview-drafts-v3`。切换「默认 / 调试」可比较；「恢复默认」只清除此项调试值。「重置示例」保留参数、恢复示例状态。导出文件标记 `design-preview-only`，不写回共享设计变量或生产源码。
 
-收藏和检查仍保存在独立的 `sill-motion-review-v1`。检查结果针对设计演示，不代表产品已通过。源码页只展示设计演示代码。产品组件作为只读依赖参与示例构建，画廊代码不接入产品入口。
 
 ## Motion 参考
 
-已映射的模式在预览底部附上具体官方预览页，链接集中在 `references.ts`。这些是模式参考，不表示复制了官方源码，也不表示与产品实现完全相同。部分官方示例源码需 Motion+，公开预览入口仍在对应页面。
 
 - [Sheet Modal](https://motion.dev/examples/react-sheet-modal)
 - [Shared layout animation](https://motion.dev/examples/js-shared-layout-animation)
@@ -36,28 +32,21 @@
 | `design-system/motion/workbench/` | 设计工作台、真实局部 UI 的示例适配、参数与文案 |
 | `design-system/scripts/motion-library.ts` | 只构建设计资源到 `dist/design/motion/`；工作台与产品样式分开加载 |
 
-新增动画复用相关产品 UI，只展示必要的卡片或控件。参数默认值读取产品设计变量；调整值只在独立 iframe 内覆盖，不修改文件，不接回产品。抽象演示的旧调试记录保留在 v2 存储键，真实 UI 参数另存在 v3。
 
 画廊不维护自动测试代码。维护时只做类型检查、设计构建和文件检查；页面内的人工检查记录仍保留。
 
-本次浏览器视觉、指针/触摸、Safari 和 PWA 真机未验证；静态渲染和构建不能证明稳定帧率。设计只更新仓库，未发布到线上。
 
-以下为 PR #71 合并时的产品源码盘点与旧画廊接入记录，保留历史基准。其中“可预览”与数量描述属于当时的产品组件画廊，不代表本次浏览器验收结果。
 
 ## 合并后的逐项盘点
 
 ### 范围与结论
 
-PR [#71](https://github.com/dabaige53/sill/pull/71) 已合并，主分支合并提交为 `e95bd3506a722916d9b0b65f047c23e77055d1e1`。本表核对该版本的 30 个稳定 ID，并注明当前工作区尚未提交的手机修复。画廊数量不等于所有独立动画调用数量；此前按交互归并的 28 类不能与这里直接加减。
 
 - 30 个目录条目：Web 桌面可预览 29 项，手机 Web 可预览 24 项。交集 23 项，桌面独有 6 项，手机独有 1 项。
-- 按条目的主要播放路径：27 项经过项目自建 MotionEngine；2 项直接调用 Motion；1 项直接调用浏览器 Web Animations API。分类不把跟手更新和原生滚动误算成另一套动画库。
-- 手机 Web 与安装后的 PWA 共用代码；手机 iframe 没有真实设备安全区、浏览器栏、系统键盘和触摸惯性的完整条件，不能据此认定 PWA 真机通过。
 - 此次完成源码与调用链盘点，没有对 30 项逐一执行浏览器视觉或性能测试；没有 FPS、掉帧率或响应延迟实测数据。
 
 ### 30 项清单
 
-“可预览”表示画廊接入了局部产品组件，不表示视觉验收通过。源码列为目录登记的入口，补充路径见备注。
 
 | ID / 名称 | Web | 手机/PWA | 播放路径 | 产品实现入口 | 核对结果与关注点 |
 | --- | --- | --- | --- | --- | --- |
@@ -79,7 +68,6 @@ PR [#71](https://github.com/dabaige53/sill/pull/71) 已合并，主分支合并�
 | `reader.gesture` · 阅读右滑与读完上推 | 可预览 | 可预览 | MotionEngine | [gesture-preview.ts](../../../apps/web/interactions/gesture-preview.ts) | 读完上推与阅读返回；跟手更新不应强制变成定时动画。播客已排除右滑关闭。 |
 | `feedback.toast` · 提示出现与关闭 | 可预览 | 可预览 | MotionEngine | [app-feedback.ts](../../../apps/web/views/app-feedback.ts) | 显示、进度与退出；手势可滑走，时钟暂停行为独立于运动。 |
 | `notice.offline` · 离线提示 | 可预览 | 可预览 | MotionEngine | [app-card-actions.ts](../../../apps/web/views/app-card-actions.ts) | 状态驱动的提示显隐；示例事件不证明真实网络恢复。 |
-| `notice.new-content` · 新内容提示 | 可预览 | 可预览 | MotionEngine | [app-card-actions.ts](../../../apps/web/views/app-card-actions.ts) | 新内容提示显隐；不代表来源同步功能。 |
 | `drag.selection` · 长按选择与拖动 | 可预览 | 可预览 | MotionEngine | [drag.ts](../../../apps/web/interactions/drag.ts) | 选择拖动逐帧跟手，选择反馈走共用动画。 |
 | `drag.ai-target` · 卡片放入 AI 上下文 | 可预览 | 可预览 | MotionEngine | [drag.ts](../../../apps/web/interactions/drag.ts) | 目标弹簧缩放走 Motion；循环脉冲动画化 inset，有绘制成本风险。仅加入上下文，不执行 AI。 |
 | `refresh.pull` · 下拉刷新 | 可预览 | 可预览 | MotionEngine | [gesture-pull.ts](../../../apps/web/interactions/gesture-pull.ts) | 原生输入归属、拖动阈值与请求状态决定反馈；转圈走 Motion，跟手逐帧更新。 |
@@ -96,7 +84,6 @@ PR [#71](https://github.com/dabaige53/sill/pull/71) 已合并，主分支合并�
 
 1. `ai.dock-collapse`：将浏览器原生播放调用接入共用封装，保留当前几何计算、取消与草稿状态。这是把过渡播放统一到 Motion 的直接缺口。
 2. `media.scroll-collapse`：为 MotionEngine 增加可暂停、由滚动设置进度的时间线能力后再接入；保持同一时刻只有一组播放器可操作。
-3. `reader.outline`：如需统一入口，应覆盖数值滚动和完成/取消回调；不把滚动强行改成元素位移。
 4. `drag.ai-target`：核验脉冲的 inset 绘制开销，再决定是否改为独立图层缩放。
 5. `detail.navigate`：优先测长正文与图片详情复制、快速连续进退的首帧耗时；不能只调短动画时长。
 

@@ -18,8 +18,8 @@
 
 ## 开启邮件功能
 
-1. 在 Supabase 控制台 Authentication → Emails 配置自定义 SMTP。默认发信服务只发给项目成员且有严格频率限制，不能用于正式找回。
-   发件地址必须是已在发信服务验证过的自有域名，不能用 `workers.dev` 或个人邮箱域名。配置后在 Authentication → Rate Limits 按需调整每小时发信上限。
+1. 在 Supabase 控制台 Authentication → Emails 配置自定义 SMTP。默认发信服务只发给项目成员且有严格频率限制。
+   发件地址必须是已在发信服务验证过的自有域名。配置后在 Authentication → Rate Limits 按需调整每小时发信上限。
    找回和登录都使用 Magic Link 模板；可改成中文，但须保留 `{{ .ConfirmationURL }}`。
 2. 在 Authentication → URL Configuration 的允许回调中保留 `<APP_ORIGIN>/auth/callback` 与 `<APP_ORIGIN>/auth/callback?client=macos`。
 3. 在 Worker 设置中新增普通变量 `EMAIL_LOGIN_ENABLE=true`，按[快速发布](release-runbook.md)的方式保留其他绑定。

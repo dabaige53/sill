@@ -1,6 +1,5 @@
 # F08 verification
 
-历史资料：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
 This feature adds explicit ordinary preferences to the existing settings record and recommendation rules. It makes no external calls, creates no credentials, and infers no sensitive interests. Existing tool names and old settings snapshots remain compatible.
 

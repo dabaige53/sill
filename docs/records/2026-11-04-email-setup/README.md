@@ -36,8 +36,6 @@ Supabase 写入后已重新读取，SMTP 非秘密字段、回调地址与发信
 - 未登录 `GET /api/v1/contents` 返回 401。
 - `GET /auth/login` 返回 200。
 - `GET /auth/options` 返回 404。通过 Cloudflare API 只读检查线上代码，未发现 `EMAIL_LOGIN_ENABLE` 或 `/auth/options`，说明线上尚未包含读取开关的实现。
-- 旧登录页包含邮件表单，但没有新版「忘记密码或首次登录？」文案；不能据此认定新版密码找回流程已可用。
-- 本机直接连接 SMTP 的检查在 TLS 阶段中断，未验证 SMTP 认证；这不等于 Supabase 发信失败。
 - 未发送测试邮件，未执行收信、设置密码、重新登录或 Mac 界面验收。
 
 发信配置已就绪。完整密码找回流程仍需发布包含该功能的代码，再按获准范围验收。

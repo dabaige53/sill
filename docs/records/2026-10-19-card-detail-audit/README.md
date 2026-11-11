@@ -29,6 +29,5 @@
 
 合并基准 `npm test` 通过：共享约定 36、Web 192、服务端 92，失败 0，含 `files:check`。相关抽屉浏览器 11 项通过。36 页截图没有页面异常或外部请求。Web lint 为 0 错误、515 警告、30 条提示；文案键 826 个，哈希键 491 个、panels 哈希键 0 个；图标 69 个。日志摘要与哈希见 [检查](checks.json)。最终提交检查与 CI 以 PR Evidence 为准。
 
-没有新增测试：现有 `detail-toolbar.test.ts` 覆盖邮件单一回复、分组、隐藏操作，`panels.test.ts` 覆盖卡片类型与播客内容，`agent-handoff.test.ts` 覆盖阅读和照片页交接；本次不修改这些行为，也不把已知设计差异写成通过断言。
 
 真机、Safari 未检查。云端生产页面与真实宿主未检查。没有访问线上 Design System 或画布，`design-system/design-system.json` 未改。U4 没有新增线上未同步文件；合入的 U1 本地画板及截图仍按 [U1 记录](../2026-10-18-pwa-board/README.md) 由用户处理。

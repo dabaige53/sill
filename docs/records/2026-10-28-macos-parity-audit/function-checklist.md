@@ -1,6 +1,5 @@
 # Web ↔ Mac 功能验证清单
 
-本表逐项比较当前 Web 桌面与 Mac 的功能、内容和位置。基准为 `f285b0af` 加本次工作区的未提交修改；产品版本1.2.8。它是2026-10-28的源码核对和待执行验收记录，不代表这些项目已通过运行验证。
 
 每项依次记录 Web 行为、Mac 行为、差异和操作验收。所有表内的**运行验证均为未执行**，只有U01有用户截图观察；截图的具体构建版本未知。编号只在本记录内使用，不替代长期跨端检查清单编号。
 
@@ -23,13 +22,10 @@
 | F07 提醒动作后的详情/选中 | 任意提醒操作移除该卡选中；只有 reminder 的 complete/restore 保留预览，其余关闭详情；随后按路径刷新。 | 当前 reminder 闭包对 complete/restore/snooze/dismiss 一律保留详情与选中，且未执行对应刷新分支。延后/忽略后的所在页面和批量数量不同。 | 确定差异 | P1 | Web `apps/web/views/app-feed-updates.ts:138`；Mac `apps/apple/macOS/Shell/DesktopView.swift:432`、`apps/apple/macOS/Model/Workspace.swift:386` | 分别在预览/选中状态执行完成、恢复、延后、忽略，详情去留与选中数量逐项匹配Web。 |
 | F08 叠卡形成规则 | 同来源 article/media，排除 agent/capture，最近1小时且未读，数量>5；筛选时不成栈。 | 同样按>5、1小时、来源、未读构栈，filtering 时不启用。 | 源码一致待实测 | P2 | Web `apps/web/services/feed-policy.ts:12`、`apps/web/views/feed.tsx:43`；Mac `apps/apple/macOS/Model/FeedPolicy.swift:83`、`apps/apple/macOS/Model/Feed.swift:422` | 同一数据中5张不成栈、6张成栈，筛选后展开为独立卡片。 |
 | F09 叠卡宽度变化后的阈值 | 每次 deckParts 读取当前 offsetWidth，拖动/松手阈值与当前卡宽一致。 | StackTile.width 仅在 GeometryReader.onAppear 保存一次，窗口改变卡宽后不更新；30%/35%阈值与离场距离继续使用旧宽。 | 确定差异 | P2 | Web `apps/web/views/app-stacks.ts:111`；Mac `apps/apple/macOS/Feed/FeedView.swift:199`、`:301`、`:316` | 显著调整窗口宽后，翻页阈值始终为当前卡宽的30%（手拖）/35%（横滚）。 |
-| F10 叠卡纵向拖动判定 | 移动6px后检查横纵方向；纵向超过横向1.2倍放弃翻页。 | 只检查 abs(dx)>=6，没有纵向优先拒绝；纵向拖动dx不足6时松手仍调用openStack。斜拖可能翻页，纵拖可能意外展开。 | 确定差异 | P2 | Web `apps/web/views/app-stacks.ts:35`；Mac `apps/apple/macOS/Feed/FeedView.swift:275` | 在叠卡上明显纵拖和斜拖，不展开也不翻页；明确横拖才进入翻页。 |
 | F11 阅读会话的已存进度恢复 | 首次打开全屏无当前会话位置时按已存progress恢复，>=.98从头；预览↔全屏保存本会话scrollTop。 | ReaderPage 只读 reader.positions[layer.id]，新Layer为新UUID，无持久progress→offset转换；新开会话从0。 | 确定差异 | P1 | Web `apps/web/views/app-panels.ts:261`、`apps/web/views/preview-controller.ts:38`；Mac `apps/apple/macOS/Reader/ReaderPage.swift:159`、`apps/apple/macOS/Model/Reader.swift:10`、`:317` | progress=.5关闭后再开全屏恢复中段，progress>=.98从头；会话内放大缩小按已保存位置衔接。 |
 | F12 嵌套阅读层的位置及返回 | 保存各卡scrollTop、photoIndex、focus/link；返回恢复父层位置和原链接焦点。桌面父层视觉用快照过渡。 | Mac保留所有Layer，滚动按layer UUID保存，下面层禁止点击/VoiceOver；没有父层链接焦点保存恢复逻辑。滚动保留有源码，焦点行为需系统实测。 | 待核实 | P1 | Web `apps/web/views/preview-controller.ts:38`、`:84`；Mac `apps/apple/macOS/Reader/ReaderOverlay.swift:21`、`apps/apple/macOS/Model/Reader.swift:125`、`apps/apple/macOS/Reader/PreviewSheet.swift:153` | 父层滚到中段→开关联卡→返回，原位置和原关联入口焦点均恢复。 |
 | F13 阅读层焦点进入与背景隔离 | showModal 后焦点设为modal-title；Tab/ShiftTab在对话框循环，背景inert。 | ReaderOverlay为普通ZStack；isModal是可访问性标记，未见标题defaultFocus/Tab循环/禁用背景焦点逻辑。旧CardTile保持FocusState。源码未建立同等保证，实际焦点路径待实测。 | 待核实 | P1 | Web `apps/web/views/app-surfaces.ts:120`、`:169`、`apps/web/views/app-input.ts:380`；Mac `apps/apple/macOS/Reader/ReaderOverlay.swift:16`、`:53`、`apps/apple/macOS/Reader/ReaderPage.swift:113`、`apps/apple/macOS/Feed/CardTile.swift:44` | 用键盘打开详情后焦点进入详情，连续Tab及ShiftTab不进入背景卡片；关闭回原入口。 |
 | F14 嵌套层阅读计时 | 全局tick仅当当前modalKind=reader且页面可见、近60秒有活动时每秒+1。 | 每个ReaderPage各有task计时，只检查sessionActive/应用active/系统idle，不检查top layer和当前面板；下层全屏仍挂载。全屏父层上开子层，可能重复累计；前层是预览或设置时父层仍计时。 | 确定差异 | P1 | Web `apps/web/views/app-capture.ts:178`；Mac `apps/apple/macOS/Reader/ReaderPage.swift:114`、`:185`、`apps/apple/macOS/Reader/ReaderOverlay.swift:21` | 任意层数下1秒最多记1秒，当前非全屏阅读或设置遮挡时按Web计时规则停止。 |
-| F15 短内容连续可见停留 | 1200ms后才标读；期间document.hidden一次即interrupted，不因随后回到前台补成完成。 | dwell只在1200ms结束时检查NSApp.isActive/window，不记录中途离开前台；离开后在期限前回来仍标读。 | 确定差异 | P2 | Web `apps/web/views/app-panels.ts:247`；Mac `apps/apple/macOS/Reader/ReaderScroll.swift:77` | 打开短文500ms→切应用→在1200ms前返回，不把这段中断停留算成连续读完。 |
-| F16 实际刷新阶段 | 请求开始即回位；真实refresh完成后才success；成功加载反馈至少300ms、成功hold400ms；失败可重试。 | 同样先回位再等待workspace.refresh完成，300ms/400ms反馈；失败分支也等待最短300ms，Web失败立即error。状态不表示外部来源同步。 | 确定差异 | P2 | Web `apps/web/interactions/gesture-refresh.ts:164`、`:202`；Mac `apps/apple/macOS/Model/FeedRefresh.swift:85` | 快速失败立即出现重试，成功仅在真实请求成功后出现，反馈等待不延迟数据合入。 |
 | F17 R快捷键的刷新反馈 | R调用gestures.refresh，进入同一loading/success/error圆环流程。 | R与⌘R直接workspace.refresh，只重建成员，不走FeedRefresh状态机，用户看不到同等刷新进度和成功反馈。⌘R是原生补充，R本身必须一致。 | 确定差异 | P2 | Web `apps/web/views/app-input.ts:488`；Mac `apps/apple/macOS/Shell/DesktopView.swift:317`、`apps/apple/macOS/App/SillApp.swift:175` | 按R与下拉刷新使用同一真实请求反馈阶段。 |
 | F18 核心鼠标/键盘打开与Esc层级 | 卡片Enter/Space打开；Esc按当前弹层/选择处理；Shift区间选，Command/Ctrl切选。 | 普通CardTile Enter/Space、Shift/Command选择、DesktopInteraction层级有对应实现；叠卡只有Return，没有Space（A05）。Mac选择Command符合平台。 | 确定差异 | P1 | Web `apps/web/views/app-input.ts:47`、`:472`、`:499`；Mac `apps/apple/macOS/Feed/CardTile.swift:30`、`:48`、`apps/apple/macOS/Shell/DesktopInteraction.swift:40` | 普通卡与叠卡分别检查鼠标、Enter、Space打开；连续Esc只退出最近一层，不穿透误改选择。 |
 | F19 来源加载占位的实际入口 | 当前正文已在设备，openCard调用Panels.reader(...false)；skeleton组件保留给将来来源获取，当前不会因打开正文而显示骨架。 | 当前ReaderContent直接显示已有正文，无来源获取流程和骨架入口。不能因Web保留组件就要求Mac显示假加载。 | 源码一致待实测 | P2 | Web `apps/web/views/preview-controller.ts:153`、`apps/web/interactions/panel-card.tsx:323`；Mac `apps/apple/macOS/Reader/ReaderPage.swift:38`、`apps/apple/macOS/Reader/ReaderContent.swift:51` | 现有正文打开即显示，不出现没有真实请求的加载占位。 |
@@ -40,8 +36,6 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U01 AI 引用条位置 | 引用容器位于输入栏上方8px；多行换行时向上占位，输入栏保持可用 | 用户截图中三条引用与输入占位文字重叠，已观察到位置错误。当前代码使用overlay和alignmentGuide，具体根因尚未运行定位；截图对应构建版本未确认 | 截图已观察 | P1 | 用户2026-10-28提供的第二张截图；`apps/web/styles/controls.css:550`；`apps/apple/macOS/Shell/AIDock.swift:228`；`apps/apple/macOS/Shell/FlowRow.swift:4` | 加入1、3条及跨两行引用，分别在宽/窄窗口、收起恢复后检查：引用底边距输入栏顶边8px，不盖住文字、加号或按钮 |
 | U02 AI 收起后的尺寸与位置 | 当前shell按输入栏右侧原位置收成60×60圆形，与底栏同一行 | Mac收成44×44，并向上移44px；收起位置、命中面积与Web不同 | 确定差异 | P1 | `apps/web/views/shell.tsx:150`；`apps/web/styles/controls.css:668`；`apps/apple/macOS/Shell/AIDock.swift:152`、`:197` | 在默认位置及拖动后收起，对比最终圆心、60×60尺寸和恢复后的原位置；旧文档锚点冲突见总览D02 |
-| U03 AI 水平移动边界与缩放窗口 | 可移动范围按当前实际宽度计算；位置用比例保存；窗口改变后保持相对位置；越界后反向立即跟手 | Mac始终按展开宽度640计算边界；保存像素偏移；越界使用整段translation，反向需走回超出距离。收起状态也只能在展开范围内移动 | 确定差异 | P2 | `apps/web/views/shell.tsx:160`、`:226`；`apps/apple/macOS/Shell/AIDock.swift:102`、`:198`、`:243` | 展开/收起分别拖至边界后反向，再缩放窗口：不留死区，不越界，相对位置一致；键盘步长另见A25 |
-| U04 AI 当前能力与草稿 | 当前入口只承接草稿和引用；没有可用的内置助手发送/语音服务 | Mac发送及语音同样禁用，保留草稿引用；模型/会话的预留代码不能当成已接入 | 源码一致待实测 | P1 | `apps/web/views/shell.tsx`；`apps/apple/macOS/Shell/AIDock.swift:4`；`docs/product/agent-mcp.md` | 输入中文、增删引用、收起恢复、多选交接：草稿保留，按钮状态真实；不把未实现发送列为Mac缺陷 |
 | U05 搜索框及候选排版 | 搜索宽315；前置图标16；候选40高、标题14、类型图标14和名称在右侧48宽列 | Mac宽315已接入；前置图标20；候选48高、标题15、图标18放左侧，右侧类型名无固定列。相同结果占高与排列不同 | 确定差异 | P2 | `apps/web/views/home-search-field.tsx:8`；`apps/web/views/home-search.tsx:116`；`apps/web/styles/form-controls.css:758`；`apps/apple/macOS/Shell/SearchField.swift:55`、`:289` | 同一查询显示8条、含长标题和不同类型，逐项比较图标位置、行高、标题字号、右列对齐；聚焦前后框宽不变 |
 | U06 搜索分组与无结果反馈 | #条件分“状态”“标签”标题；无结果仍显示明确提示；候选数量有可访问提示 | Mac直接平铺选项，无分组标题；options为空时整个列表不渲染，没有同等无结果提示 | 确定差异 | P2 | `apps/web/views/home-search.tsx:135`；`apps/apple/macOS/Shell/SearchField.swift:274` | 输入#、已有标签和不存在的词，分别比较分组名、选中勾、空结果文案及读屏数量 |
 | U07 搜索候选悬停与滚动 | 鼠标只移动高亮；键盘按需要将目标滚入可见范围 | Mac鼠标onHover改变hashIndex；统一onChange触发scrollTo。悬停也可能移动列表 | 确定差异 | P1 | `apps/web/views/home-search-motion.ts:62`；`apps/apple/macOS/Shell/SearchField.swift:311`、`:322` | 滚到候选中段，将鼠标移过可见行：列表不跳；方向键越出可见区域时才滚动 |
@@ -52,13 +46,11 @@
 | U12 登录失败后的输入保留 | 请求失败分支在清空密码前返回，用户可修改后重试 | Mac提交前立即清空password，网络/认证失败都要重新输入；行为不同 | 确定差异 | P2 | `server/cloud/login-page.ts:62`（submit）；`apps/apple/macOS/Shell/CloudLogin.swift:132` | 合成账号产生一次认证失败和一次网络失败，对比邮箱、密码显隐、错误文案及重试入口；先确定统一输入保留规则 |
 | U13 账号头像内容 | 根据当前账号name/email显示账号首字符 | Mac顶栏固定person图标，没有同等账号首字符 | 确定差异 | P2 | `apps/web/cloud-workspace.ts:61`、`:291`；`apps/apple/macOS/Shell/TopBar.swift:119` | 同一账号登录后比较头像字符、可访问名称和退出后的状态 |
 | U14 设置结构与尺寸 | 桌面、外观、快捷键、数据四组；左导航200，内容区固定规则；页面切换保留外框 | Mac四组和主要选项已接入；原生ScrollView与maxHeight布局的实际高度、滚动及切页稳定性未测 | 源码一致待实测 | P2 | `apps/web/interactions/panel-settings.tsx:51`；`apps/web/styles/panels.css:664`；`apps/apple/macOS/Settings/SettingsView.swift:53`、`:125`；`apps/apple/macOS/Shell/Panel.swift:65` | 四组逐页切换、缩窄窗口、修改设置后重开，核对标题/行序/选中值，外框不随短长内容跳动 |
-| U15 云端数据设置内容 | 云端页显示存储位置、导出、清空和退出各自的文案与行结构 | Mac额外显示使用量；导出、清空与退出采用不同文案/行结构，不能因功能名相近判内容一致 | 确定差异 | P2 | `apps/web/views/cloud-views.tsx:94`；`apps/apple/macOS/Settings/SettingsDataPage.swift:17` | 同一云端账号打开数据页，逐行比较标签、说明、按钮文字、可用状态与先后顺序；本地页另测 |
 | U16 备份配置必填校验 | 保存前由required阻止空必填项提交 | Mac保存按钮未检查所有必填字段，可提交空值后等待服务端返回 | 确定差异 | P2 | `apps/web/interactions/backup-settings.tsx:122`；`apps/apple/macOS/Settings/BackupSettingsView.swift:51`、`:174` | 各必填字段逐个留空，应在相同阶段指出具体缺项，不用真实凭据做空表单校验 |
 | U17 备份配置保存后的表单 | 成功后重置整个配置表单并刷新已保存摘要 | Mac只清空secret字段，其他输入仍留在表单中；成功后的页面内容不同 | 确定差异 | P2 | `apps/web/interactions/backup-settings.tsx:78`；`apps/apple/macOS/Settings/BackupSettingsView.swift:187` | 使用测试配置保存，比较字段清空范围、已保存摘要和再次编辑入口；不在本轮连接或更改真实备份 |
 | U18 系统提醒能力 | 浏览器环境按已实现权限/页面生命周期处理提醒 | Mac用系统通知调度，允许应用关闭后由系统送达。能力差异须按功能矩阵记录，不模拟浏览器限制 | 已约定平台差异 | P2 | `apps/web/services/system-reminders.ts:34`；`apps/apple/macOS/Notifications/SystemReminders.swift:26`；`docs/product/feature-matrix.md` | 分别记录允许/拒绝权限、重设提醒和关闭应用后的平台行为；卡片内提醒状态和时间含义一致 |
 | U19 登录页布局与焦点颜色 | 字段间距16；浮动标签focus变强调色、字段边框随focus变化，状态行预留24高 | Mac字段间距由8+12等组合；标签始终secondary、边框始终line；状态区按有无消息条件生成。错误出现时位置是否跳动待实测 | 确定差异 | P2 | `server/cloud/login-page.ts:11`；`apps/apple/macOS/Shell/CloudLogin.swift:32`、`:102`、`:155` | 空表单→聚焦→输入→提交→错误，逐阶段对齐标签/边框颜色、字段距离与状态区占位，整张表单不因提示上下移动 |
 | U20 分栏菜单、提示及遮挡 | 分栏菜单锚定展开按钮；提示与底栏独立；详情/菜单当前层处理输入 | Mac有ScopeMenu、Toast、FailureNotice；长菜单、提示叠加详情和窗口边缘的实际位置未验 | 待核实 | P2 | `apps/web/views/home-scope-menu.tsx`；`apps/apple/macOS/Shell/ScopeMenu.swift:72`；`apps/apple/macOS/Shell/Toast.swift:12`；`apps/apple/macOS/Shell/DesktopView.swift:105` | 在窗口左右边缘、打开详情和多选时分别展开菜单及提示；不挡主要操作，提示不推动AI栏，隐藏层不接收点击 |
-| U21 窗口、主题与文本完整性 | 桌面布局按窗口宽度换列，浅/深色保留语义颜色；长标题与缺图按各类型规则显示 | Mac用原生布局/玻璃和同源主题变量，但最小窗口、同列变宽、深浅切换及文字实际测量未验 | 待核实 | P1 | `apps/web/interactions/layout.ts`；`apps/web/styles/base.css`；`apps/apple/macOS/Feed/MasonryLayout.swift`；`apps/apple/macOS/Shell/TopBar.swift` | 用同内容同可用宽高对比最小/常用/大窗口与浅深色，卡片位置、行数、阅读宽度、工具留白均记录；不把标题栏系统高度算产品误差 |
 
 ## 3. 卡片内容与排版逐项差异
 
@@ -91,7 +83,6 @@ C09、C13为依据冲突，C23仅涉及不符合当前数据约定的内容；�
 
 ## 4. 12类卡片覆盖及逐张操作清单
 
-均已读取所列两端主要渲染源码，按标题、元信息、正文、字段和主要布局进行源码对照；“未发现新增差异”仅指这次所看代码，不代表像素、字体、滚动手感或所有数据组合已经验收。未打开界面。
 
 | 类型 | Web 已读取 | Mac 已读取 | 结果 |
 |---|---|---|---|
@@ -112,7 +103,6 @@ C09、C13为依据冲突，C23仅涉及不符合当前数据约定的内容；�
 共享正文代码额外检查 `apps/web/atoms/markdown.ts`、`apps/web/styles/overlays.css:313`、`apps/apple/macOS/Reader/MarkdownText.swift`；Markdown 解析的所有输入边界、视频网络行为及字号缩放下的实际视觉仍未通过运行验证。源码中的字段路径与顺序已检查，不能由此推断动效或真实渲染完全一致。
 
 
-使用同一账号与同一张卡片，分别在 Web 桌面和 Mac 检查；比较卡面、打开详情后的顺序及字段，并执行列出的轻操作。下列为空值与长字段准备数据，不代表已经运行；动作结果应检查卡片状态，外部链接仅确认目标一致。
 
 | 类型 / 同一输入 | 卡面与详情核对 | 轻操作 | 空值 / 长字段 |
 |---|---|---|---|
@@ -164,7 +154,6 @@ C09、C13为依据冲突，C23仅涉及不符合当前数据约定的内容；�
 
 ## 7. 长期跨端检查项目覆盖
 
-对应[跨端对齐检查清单](../../specs/cross-platform-checklist.md)的所有桌面适用项。这里“对应”表示已建立检查位置，不表示实测完成；L02、M01等明确保留未验证。
 
 | 长期编号 | 本次清单位置 | 核对范围 |
 | --- | --- | --- |

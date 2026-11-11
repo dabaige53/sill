@@ -1,6 +1,5 @@
 # 功能补齐状态
 
-沿用[原功能清单](../2026-10-28-macos-parity-audit/function-checklist.md)的62项编号。已补表示源码处理，不等于窗口验收通过。所有项目的跨端窗口验收仍为未执行；后台验证范围见[总览](README.md)。
 
 | 编号 / 检查项 | 状态 | 当前实现与边界 | 实现入口 |
 | --- | --- | --- | --- |
@@ -26,7 +25,6 @@
 | U01 AI 引用条位置 | 前批已补 | 引用独立放在输入表面上方8px，多行向上占位。 | [AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift) |
 | U02 AI 收起后的尺寸与位置 | 本次已补 | 折叠为原输入行右侧60×60气泡。 | [AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift) |
 | U03 AI 水平移动边界与缩放窗口 | 本次已补 | 按实际宽度限制边界，反向立即跟手，窗口变化保留相对位置。 | [AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift) |
-| U04 AI 当前能力与草稿 | 保留一致 | 保留草稿与引用，发送/语音仍禁用，不表示助手已接入。 | [AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift) |
 | U05 搜索框及候选排版 | 本次已补 | 315宽搜索、16图标、40高候选、14标题、右侧48宽类型列。 | [SearchField.swift](../../../apps/apple/macOS/Shell/SearchField.swift) |
 | U06 搜索分组与无结果反馈 | 本次已补 | 状态/标签分组、无结果文字、读屏候选数量。 | [SearchField.swift](../../../apps/apple/macOS/Shell/SearchField.swift) |
 | U07 搜索候选悬停与滚动 | 本次已补 | 悬停只换高亮；键盘单独请求滚入视口。 | [SearchField.swift](../../../apps/apple/macOS/Shell/SearchField.swift) |

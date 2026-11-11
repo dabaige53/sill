@@ -1,6 +1,5 @@
 # 旧实现测试报告
 
-本目录在 2026-10-29 归集已有报告；测试时间、版本和结果以各报告原文为准，不代表本轮重新执行。
 
 - [AGENT-ACCESS-REPORT.md](AGENT-ACCESS-REPORT.md)
 - [AI-PROVIDER-REPORT.md](AI-PROVIDER-REPORT.md)

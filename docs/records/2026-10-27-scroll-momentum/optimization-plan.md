@@ -4,7 +4,6 @@
 
 当前动量专项入口：[问题记录日志](README.md)；后续三组检查见[checklist](../2026-10-28-animation-review/checklist.md#滚动与动量专项后续检查)。下拉刷新已由用户在关联任务确认，并提交为 `5c383912`；历史试调参数不作为当前基线。
 
-状态：Web/PWA第一轮已实施。当前Web主页与普通详情原生回弹手感已获用户确认，其余链路与PWA观感待复核；Mac尚未同步。用户最新明确：“全部优化”指本方案中滚动、完成与回弹链路涉及的全部动画组件。下文先按组件列出本次范围，第1至9节给出详细措施、参数、文件归属和构建路径；第10、11节的42项盘点保留为额外参考，不作为本次整套产品改造的执行范围。源码盘点不表示改进已经实现或用户已经确认观感。最初方案编写时的 HEAD 为 `c9c0c707`；当前实现和确认状态以最新提交及下方实施记录为准。
 
 ## 本次范围：链路中的全部动画组件
 
@@ -13,15 +12,12 @@
 ### 首页下拉刷新
 
 1. 首页内容承载层 `main`：使用ui-lab参考的480／0.7连续阻力，拉够64px可见位移后释放才刷新；释放后以0.35秒、bounce 0立即回位。重抓接续当前位移；不增加加载留白或独立1000ms悬停计时。[gesture-refresh.ts](../../../apps/web/interactions/gesture-refresh.ts)
-2. 刷新进度环 `#pull-ring .pull-progress`：进度共用内容的64px可见阈值，保留原标题区域位置与样式。真实请求开始才旋转，后续惯性不重发请求，不迁移到示例布局。
 3. 刷新成功／失败图标 `.pull-check/.pull-retry`：圆环加载至少300ms、完成勾400ms后140ms退出，避免完成勾淡入与外层淡出同启。请求与结果合入不等待展示；错误立即保留可操作重试，不能当成功淡掉。
 4. 顶部Sill标题 `.home-heading/.home-mark`：刷新时持续保持可见；圆环不替换或盖住品牌，定位在开始操作时测量，不逐帧重新排版。[overlay-gestures.css](../../../apps/web/styles/overlay-gestures.css)
 
 ### 正文边缘回弹与读完完成
 
-5. 正文滚动视口 `.sheet-scroll/#reader-scroll`：保持尺寸与裁切边界稳定，普通滚动继续原生处理。接近边缘不等于确认新手势，惯性抵达底部不能自动标记完成。
 6. 正文内部运动层：Web桌面普通详情改试浏览器原生边缘反馈，取消该处自定义输入和位移；PWA继续600／48／1回位、160／0.15阻力与100ms速度窗口，停住后速度归零。读完上推独立处理，不与原生或普通回位叠加。[gesture-preview.ts](../../../apps/web/interactions/gesture-preview.ts)、[gesture-rebound.ts](../../../apps/web/interactions/gesture-rebound.ts)、[previews-components.tsx](../../../apps/web/interactions/previews-components.tsx)
-7. 读完进度／勾选圆片 `.push-ring`：120阈值、正文0.6跟随；进度转勾选不重播透明度，不先回位再关闭；取消、提交失败、关闭、切换详情都只有一个收尾路径。wheel达标何时关闭仍按第2节的待选输入约定处理。
 8. 详情工具栏 `.float-bar/.reader-head/.reader-edge/.sheet-head-tools`：上推期间按既定规则退出，完成后保持退出，不被650ms自动恢复唤回；取消时从当前帧恢复。工具栏不自行等待另一个固定毫秒数。[preview-controller.ts](../../../apps/web/views/preview-controller.ts)、[chrome.ts](../../../apps/web/interactions/chrome.ts)
 
 ### 抽屉、关闭和返回卡片
@@ -35,7 +31,6 @@
 ### 点击完成与背景列表
 
 14. 任务／提醒圆圈、任务行及完成计数：局部更新勾选、划线、颜色和计数，保持当前按钮、焦点、滚动位置及手势监听；不重建整个详情、不触发整层淡入，提醒抽屉继续打开。[app-card-actions.ts](../../../apps/web/views/app-card-actions.ts)、[app-feed-updates.ts](../../../apps/web/views/app-feed-updates.ts)
-15. 背景卡片网格、搜索背景结果和叠放层返回位置：刷新只合入实际变化，完成关闭后再执行必要列表更新；Web/PWA共用同一收尾规则。只局部改变时不整网格重画，不能用两个固定rAF间隔替代对重绘工作的控制。[reading-feedback.ts](../../../apps/web/interactions/reading-feedback.ts)、[app-feed.ts](../../../apps/web/views/app-feed.ts)
 
 ### 随滚动显示或隐藏的页面组件
 
@@ -46,9 +41,7 @@
 
 ### 共享释放规则影响的叠卡组件
 
-20. 叠卡当前张、前后相邻张 `.deck`：保留已认可的35%阈值与260ms落定；此次仅接入一致的wheel序列、取消及新输入接手，处理140ms回位等待与160ms不断续期的锁，不重做翻卡效果。[app-stacks.ts](../../../apps/web/views/app-stacks.ts)
 
-以上20条按组件或同一组件的交接阶段列出，不表示新增20个产品功能。公共输入换算、意图判断、动画取消、惯性屏蔽、数据写入与延后刷新是共同支撑层，不额外制造一套产品动画编号。
 
 ### 本次的参数和执行边界
 
@@ -88,7 +81,6 @@
 
 项目 package.json、当前安装依赖与参考案例均为 Motion `12.23.24`。本轮已确认的差异在输入路径、速度传递、动画对象和等待规则，不需要先升级库。
 
-案例输入是按住把手拖动，使用 pointerdown / pointermove / pointerup；项目当前操作是触控板滚动，使用 wheel。标准 WheelEvent 提供增量和单位，没有系统级手指结束及惯性阶段字段。因此只能保证复用视觉物理，不能把 wheel 适配称为案例输入的完全1:1还原。[W3C UI Events](https://www.w3.org/TR/uievents/#interface-wheelevent)
 
 本轮Web/PWA按用户启动优化的要求采用以下输入约定，Mac仍单独沿用原生事件阶段：
 
@@ -98,7 +90,6 @@
 4. 触摸或鼠标拖动的读完上推：保持“达标完成、实际松手关闭”，不用固定毫秒停留。
 5. wheel仍需估计输入结束。刷新使用独立80ms静默及连续衰减判断，普通边缘回弹保留40ms；刷新在释放时判断是否拉够，读完完成保留达标执行，不给真实请求追加展示停留。
 
-2026-10-27用户反馈「一下拉就刷新」后，下拉刷新已修正为第2项的拉够后释放规则；读完上推仍采用第3项。wheel释放是估计，不承诺与pointerup一样精确；不以调整弹簧代替输入判定。
 
 ## 3. 实现结构
 
@@ -117,14 +108,11 @@ pointer / touch / wheel
 
 建议只增加两个职责明确的模块：
 
-- `apps/web/interactions/gesture-input.ts`：wheel 单位换算、输入序列与边缘意图。它不写卡片数据，不操作动画，不把 wheel 猜测成确定的“鼠标”或“触控板”。
-- `apps/web/interactions/gesture-rebound.ts`：参考案例的阻力公式、当前位移、释放速度及单次回弹。它不决定刷新或已读业务，不接管整页滚动。
 
 沿用当前控制器分别承载刷新、读完和抽屉逻辑。状态只保留执行所需的 idle、tracking、armed、running、settling；没有异步动作的回弹不需要全部状态。每次打开详情建立当前操作实例，关闭或替换时销毁监听与动画，不积累旧回调。
 
 各状态的动作：
 
-- idle：普通浏览器滚动，不写位移，不拦截事件。
 - tracking：确认由当前组件接手后直接跟随；每帧最多一次视觉写入。
 - armed：达到业务阈值；刷新等待释放，wheel以连续衰减或80ms静默估计，pointer/touch等实际释放；读完wheel按选定方案立即执行。
 - running：刷新请求或完成写入仅执行一次；后续惯性不重启请求、完成或动画。
@@ -132,7 +120,6 @@ pointer / touch / wheel
 
 ## 4. 参数源与完整建议值
 
-实施时把参数写入 `design-system/tokens/foundation.json` 的 motion 节，再通过现有导出生成 `design-system/tokens.json`；不要手改生成文件。当前只有部分参数存在。下列新增名称为建议名称，不表示已经导出。
 
 ### 4.1 普通边缘回弹：桌面原生反馈与手机参数
 
@@ -168,7 +155,6 @@ Motion 官方支持物理弹簧与初速度；设置刚度、阻尼、质量的�
 
 参考的 pointer 输入可逐行对齐上述案例。wheel 的 d 是事件增量累计，不能当成手指真实移动距离；估计的位移速度只用于视觉连续性，不对外声称恢复了原生手指速度。
 
-手机保留的弹簧起点参考[dabaige53/ui-lab的stacked-drawer](https://github.com/dabaige53/ui-lab/blob/main/src/lab/components/stacked-drawer.tsx)的380／38／1，随后调为600／48／1；用户仍反馈偏慢，不能视为通过，约快20%只是参数推算。Web当前试用参考改为[ui-lab网站](https://lab.xevrion.dev/)整页原生边缘反馈，不继续提高刚度。原motion.edgeSpring继续用于其他手势。详见[ADR 0079](../../adr/0079-content-edge-rebound.md)。
 
 ### 4.2 wheel 适配：需真实设备验证的起始参数
 
@@ -187,7 +173,6 @@ const wheelTail = {
 };
 ```
 
-这些值是建议试验值，不是从案例复制而来，也不是已验证最佳值。
 
 - deltaMode=0直接使用像素；=1按16px/行换算，先保留项目既有换算；=2按当前滚动视口尺寸换算。轴向判断先于拦截，水平区域不抢纵向、纵向区域不抢水平。
 - 40ms只用于未达标回位与旧尾段结束判断，不加到请求开始或完成关闭前。
@@ -232,16 +217,13 @@ const readFinish = {
 - 去掉请求开始前的等待和1000ms内容悬停；请求立即发起、数据结果立即合入。圆环展示独立使用300ms最短加载与400ms完成勾，避免真实请求过快时看不清反馈。
 - 实际请求未结束时圆环继续旋转；请求已完成则补足最短反馈时间，再显示完成勾，400ms后以既有fast 140ms淡出。新操作可中断旧反馈，展示不阻塞数据生效。
 - 如果请求在手指仍按住时已经完成，不强行把跟手内容拉回；真实松手后立即复位。这是等待用户输入，不是定时等待。
-- 展示计时只控制圆环，不锁住已完成的请求，也不把失败当成功。刷新仅操作 Sill 当前工作区，不声称外部来源已同步。
 - 读完勾选至少获得一次可绘制机会，再开始关闭；不设置额外固定展示毫秒数。数据写入或确认失败不得显示完成并关闭。
 - 卡片关闭保持 `motion.cardSpring`：mass=1、stiffness=274、damping=30；放大切换保持 `motion.expandedSpring`：1 / 274 / 27。回弹预设只控制普通边缘回位，不覆盖所有卡片动画。
-- 不动设置开关的0.32s / bounce 0.2，不把物理回弹参数应用到开关。
 
 ### 4.4 叠卡与工具栏
 
 - 叠卡切换阈值保留宽度35%，落定保留260ms `dur-deck`，无弹跳。未达标采用共享40ms释放判断，删除单独140ms等待。
 - 叠卡删除单独160ms不断续期的同向锁，改用当前序列只切一次及共享尾段识别；新主动操作能接手。
-- 当前收起240ms、普通详情恢复320ms、桌面顶栏／AI栏独立恢复420ms。全量盘点建议将普通恢复以420ms试验，详见第10节12／35；这是待验方案，不是已确认参数。停顿恢复650ms保留为独立规则，不阻塞刷新、完成、关闭，也不与业务等待串联。
 - 如果后续用户反馈650ms恢复本身偏慢，再单独调整，不借本轮一并修改。
 
 ## 5. 各链路的目标行为
@@ -259,7 +241,6 @@ const readFinish = {
 1. 分离 setPull、startRefresh、releaseVisual 三个动作，不在 paint 中决定何时请求。
 2. running期间只持有一个请求与当前视觉状态；不因惯性尾段再次请求。
 3. 仅在确认接手的边缘事件上 preventDefault，字段、水平滚动和正常页面滚动保持原生。
-4. PWA 下拉时保留 Sill 与主页结构，移除 `.home-heading.has-refresh .home-mark` 的隐藏规则或将圆环放到不替换标题的位置；不把品牌隐藏当成加载反馈。
 5. 取消180ms提交计时与上述三个展示停留；按钮、快捷键刷新独立核对，不让手势代码重复套用另一层等待。
 6. 无数据变化时不重新渲染全列表或重播首屏入场；有变化只合入实际变更并保留阅读位置。
 
@@ -286,7 +267,6 @@ const readFinish = {
 实施步骤：
 
 1. 打勾只更新当前任务行的勾选、颜色、划线与卡片计数；保留现有行和滚动容器节点。
-2. 不调用 renderContent 重建整个详情，不因一行任务状态变化触发 MotionEngine.fade(surface)。
 3. 提醒完成沿用当前已实现的局部圆圈更新及保持抽屉打开；把背后列表更新限制到当前卡片或关闭后处理。
 4. 不通过重建详情恢复焦点、滚动位置；节点不变时这些状态自然保留。原有手势监听继续有效。
 5. 已读、收藏、待办筛选导致当前卡片离开列表时，先维护已打开详情，再在合适的关闭节点应用列表变化；不让关闭目标在动画中途消失。
@@ -300,7 +280,6 @@ const readFinish = {
 4. 管理到现有动画取消生命周期中。不要继续保留一个绕过 MotionEngine 管理、面板关闭时仍可能运行的局部 animate。
 5. pointer 精确使用参考案例的速度、松手与单次弹簧；wheel只适配输入，不宣称手感数学上等同pointer。
 6. 手机抽屉继续按用户指定的Vaul后续方案。当前轮次只修已有释放等待，不新增第二套抽屉动画。手机实际touch路径不加入wheel的40ms。
-7. wheel模拟半屏展开优先明确的展开意图；如用“首次原生滚动开始就扩展”的方案，应取消120ms静默等待，同时验证正文位置稳定。该项是手机布局的wheel适配，不等于真实触摸已有120ms延迟。
 8. 叠卡使用当前手势序列一次提交与共享尾段识别，继续支持水平原生滚动区，不影响纵向信息流。
 
 ## 6. 文件路径与执行批次
@@ -337,7 +316,6 @@ const readFinish = {
 
 ### 批次4：跨端核对和收尾
 
-- Mac：`apps/apple/macOS/Reader/ReaderScroll.swift`、`Model/FeedRefresh.swift`及 `design-system/tokens/apple.json`。保留明确 ended/momentum 阶段，不把Web估算器复制进AppKit；按选定产品规则核对300ms、1000ms、480ms反馈停留。
 - PWA：与Web共用构建代码，单独验收真实触摸、窄屏wheel、独立安装三种情况；不能以桌面缩窄窗口替代真机。
 - 原生iOS：当前缺少对应完整界面，本轮登记缺失，不编造可验收入口。
 - 第一批共享输入完成后再接业务链路；共享 gesture-preview.ts、gestures.ts、tokens 由单个执行者修改，不让并行线程同时改同一文件。
@@ -353,7 +331,6 @@ const readFinish = {
 3. 刷新达标后等待释放；衰减尾段不继续增加进度或反复续期请求。读完完成不被后续16ms连续惯性延后。
 4. 刷新wheel以连续衰减或80ms静默估计释放，普通边缘回弹保留40ms；刷新达标才提交，未达标、单次大滚动、反向和打断不刷新。
 5. pointer/touch释放不走wheel计时器；释放速度单位为px/s，测得值进入同一次弹簧。
-6. 新方向或新主动输入立即解除旧屏蔽；保护不超过240ms，不能影响新详情。
 7. 当前任务完成时，详情滚动节点、任务按钮和焦点保持，未触发整层淡入。
 8. 完成后的列表更新在关闭后执行且只执行一次；叠放返回、搜索背景、筛选移除当前卡片都能完成收尾。
 9. 失败不显示完成；刷新并发保持单次；短请求不被最短展示时间拖住。
@@ -377,13 +354,11 @@ npm run typecheck
 - 先对照参考HTML的真实拖动，确认位移曲线、松手速度、回位和再次接手。
 - 再分别检查触控板、普通鼠标滚轮、鼠标按住拖动、真实手机触摸；包括慢拉、快拉、临界点、反向、连续第二次操作。
 - 记录输入达标、请求开始、结果、勾选可见、关闭首帧、列表更新的时间，直接验证等待是否删除。
-- 目标：刷新确认释放后、读完完成达标后，在同一事件轮次启动调用；视觉变化在下一个可绘制帧开始；没有额外180ms/120ms延迟。时间线须区分浏览器调度和主线程工作，不能声称绝对0ms端到端延迟。
 - 目标：输入控制器自身耗时不超过2ms作为初始检查线；60Hz一帧16.7ms、120Hz约8.3ms，记录是否有重复布局、整层渲染或超过50ms长任务。它们是待验证目标，不是已达标性能承诺。
 - 成功标准：无“满环后等一段才请求”，无“勾选出现后因惯性反复延后关闭”，无整层闪白／重复淡入；新主动操作不会被旧操作挡住。
 
 ## 8. 构建、产物与页面路径
 
-本节为实施时的完整顺序，不表示本次已执行构建。
 
 ### 8.1 Web 与PWA本地产品
 
@@ -405,7 +380,6 @@ npm run files:check
 - 构建入口：`scripts/build.ts`调用Vite，输出 `dist/web/index.html`。
 - 常驻产品入口：`http://127.0.0.1:4318/#feed`；Web/PWA共用这份本地构建，按设备、尺寸、独立显示模式走不同输入路径。
 - 4318不监听源码。已有服务时无需重启，刷新网页即可读取新构建；只有服务没启动时才执行 `npm start`，不要再占同一个端口。
-- 此轮不新增另一个演示工作台，不用5173页面替代4318验收，不修改用户数据。
 
 ### 8.2 云端构建
 
@@ -475,7 +449,6 @@ node tests/apple/run.ts
 
 ### 05 · 卡片菜单
 
-- 当前：Web/PWA产品卡片右键菜单和更多菜单已移除；拖动期间抑制系统contextmenu属于拖动处理，不能视为旧产品菜单残留。
 - 措施：复核右键与手机入口均不弹产品菜单；直接收藏、稍后读、任务等操作保留。完成删除后不为此项设计替代动画。
 - Mac：CardMenuLayer仍在，应列为对应取消要求的待办，不能标已删除。[CardMenuView.swift](../../../apps/apple/macOS/Feed/CardMenuView.swift)、[DesktopView.swift](../../../apps/apple/macOS/Shell/DesktopView.swift#L413)。
 
@@ -507,13 +480,10 @@ node tests/apple/run.ts
 ### 10 · 移出卡片
 
 - 当前：通用列表移出路径有140ms快照淡出；但取消收藏调用 refreshCard 直接重新渲染列表，没有经过retire。详情关闭又依赖来源卡片仍存在，存在“取消后来源消失”的链路缺口。[app-card-actions.ts](../../../apps/web/views/app-card-actions.ts#L14)、[app-feed.ts](../../../apps/web/views/app-feed.ts#L218)、[app-surfaces.ts](../../../apps/web/views/app-surfaces.ts#L187)。
-- 措施：统一“记录来源位置、更新局部状态、列表移出、详情关闭”的顺序；已打开详情不因取消收藏消失。返回目标不存在时明确淡出返回列表，不飞向失效卡片。保留140ms离场，不靠延长时长遮住整层更新。
-- Mac：移出140ms、其余位置220ms；检查收藏详情与原卡片移出交接，不能把Web重绘缺陷直接写成Mac已复现。[FeedView.swift](../../../apps/apple/macOS/Feed/FeedView.swift#L99)。
 
 ### 11 · 内容更新
 
 - 当前：列表以整卡textContent变化判定正文140ms淡入；详情比较innerHTML，变化后重建并淡入整个surface。云同步也可能走详情重建。[app-feed-updates.ts](../../../apps/web/views/app-feed-updates.ts#L78)、[app-capture.ts](../../../apps/web/views/app-capture.ts#L81)、[cloud-workspace.ts](../../../apps/web/cloud-workspace.ts#L226)。
-- 措施：保留已确认正文淡入；按真正变化的正文或版本触发，不把任务、收藏、标签、播放位置当成整个详情需要重开。媒体组件、滚动容器和焦点保留，缩小实际渲染范围。
 - Mac：正文fingerprint和列宽变化都可能触发ContentFade，核对是否重复淡入；尚未证明掉帧。[CardTile.swift](../../../apps/apple/macOS/Feed/CardTile.swift#L71)、[Motion.swift](../../../apps/apple/macOS/Design/Motion.swift#L77)。
 
 ### 12 · 阅读工具栏收起与恢复
@@ -526,7 +496,6 @@ node tests/apple/run.ts
 ### 13 · 卡片展开与收回
 
 - 当前：cardSpring为mass1、stiffness274、damping30；普通来源开合正文100ms延后再120ms淡入，工具120ms；取消、来源隐藏恢复和胶囊补偿已有管理。[motion-panels.ts](../../../apps/web/interactions/motion-panels.ts#L329)、[card-transition.ts](../../../apps/web/interactions/card-transition.ts#L38)。
-- 措施：保留Web已确认效果。优先修10／11的来源失效与整层更新，不统一删除这些已选定的内容揭示编排。核对快速打开关闭、反向接手及工具不闪回；不能把所有延迟都解释为滚轮问题。
 - PWA：归15的Vaul方案。Mac已有卡片几何过渡，按指定参考独立确认，不重新发明一套开合参数。[Reader.swift](../../../apps/apple/macOS/Model/Reader.swift#L87)。
 
 ### 14 · 关联详情进入与返回
@@ -544,13 +513,11 @@ node tests/apple/run.ts
 ### 16 · 阅读右滑与读完上推
 
 - 当前：上推120阈值、正文0.6跟随；wheel完成后用三次衰减或120ms估计释放，未达标180ms复位；Web关闭前还刷新列表。触摸有真实touchend。[gesture-preview.ts](../../../apps/web/interactions/gesture-preview.ts#L360)。
-- 措施：保留已确认上推方向，按第2节选择wheel执行时机；完成只一次，勾选与关闭连续，列表延后更新。未达标用唯一复位；已达标不先回弹再关闭。手机没有放大阅读正式入口时不安排右滑验收，不以源码存在为产品支持。
 - Mac：有明确ended／momentum阶段，并等待写入成功与释放都满足；离散鼠标轮才用120ms。保留明确阶段，分别检查真实写入与视觉交接，不复制Web估算器。[ReaderScroll.swift](../../../apps/apple/macOS/Reader/ReaderScroll.swift#L169)。
 
 ### 17 · 通用短提示
 
 - 当前：Web/PWA仍有ToastSurface、showToast及淡入200ms、淡出140ms、8px、3.2秒停留；部分错误持续显示。[app-feedback.ts](../../../apps/web/views/app-feedback.ts#L79)、[shell.tsx](../../../apps/web/views/shell.tsx#L352)。
-- 措施：按用户决定迁到通知中心／提醒承接，去掉浮动Toast和动画。当前不能声称通知中心已完整承接；先列明保存、同步、草稿、错误、权限和未知结果的去向，再移除入口、计时和暂停监听，不丢错误状态。
 - Mac：ToastLayer仍存在，200ms／140ms、8px、3.2秒；同步承接后取消浮动层。[Toast.swift](../../../apps/apple/macOS/Shell/Toast.swift)。
 
 ### 18 · 离线提示
@@ -599,12 +566,9 @@ node tests/apple/run.ts
 
 - 当前：文章／视频新布局先挂载，只有背景外框用expandedSpring 1／274／27变形；正文revealDetail(body,0)同帧开始120ms淡入，工具与目录未统一等待。这是内部组件早于外框的直接代码条件。[motion-panels.ts](../../../apps/web/interactions/motion-panels.ts#L370)。
 - 措施：旧内容保持过渡外观，先让新外框运动；在实际动画完成或选定进度节点揭示新工具、目录和媒体控件，不用sleep猜弹簧时长。可先采用完成回调后120ms内部淡入作为待验方案；快速反向从当前帧接手。视频全屏UI另需设计，不能靠延迟替代。
-- PWA手机／独立安装不支持该放大入口时标不适用；播客全屏按24移除。Mac已有几何独立过渡，核对内部出现时序，不能说已复现Web缺陷。[Reader.swift](../../../apps/apple/macOS/Model/Reader.swift#L110)。
 
 ### 26 · 阅读目录
 
-- 当前：Web点击已直接写scrollTop，指示条普通阅读时220ms移动；目录和正文使用各自absolute定位，仍需解决重叠。PWA窄屏主要靠CSS隐藏，不能推定所有standalone都不生成目录。[reader-layout.tsx](../../../apps/web/interactions/reader-layout.tsx#L58)、[reader-layout.css](../../../apps/web/styles/reader-layout.css#L24)。
-- 措施：保留点击即时定位和删除目录切换图标的决定；正文、目录使用明确双列与同一顶部基线，纳入25的全屏揭示。按产品平台条件不挂载PWA目录，不只藏按钮；不恢复平滑滚动。指示条可保留220ms待确认，不影响正文立即跳转。
 - Mac：目录切换按钮仍在，章节点击仍用220ms平滑动画；应同步删除切换按钮与即时定位。[ReaderPage.swift](../../../apps/apple/macOS/Reader/ReaderPage.swift#L81)。
 
 ### 27 · 多选条与AI／导航交接
@@ -616,13 +580,10 @@ node tests/apple/run.ts
 ### 28 · AI输入框折叠
 
 - 当前：220ms背景横向移动和scaleX，子内容淡入横移，CSS即时切display。手动toggle与sill:expand-ai自动恢复不共用尺寸捕获入口；快速切换会重新从透明开始。[shell.tsx](../../../apps/web/views/shell.tsx#L115)。
-- 措施：用户明确不认可当前变形，先统一手动、拖入、多选恢复的状态入口与当前帧接续。替代方向建议用原位淡出缩小到0.97、恢复入口淡入，不把长输入框横向压成气泡；建议140ms退出／220ms进入，仅作待选方案，不宣称设计已确认。新方案仍需保留恢复入口与输入内容。
 - Mac：无同一侧边恢复气泡，只有高度状态；不强行补一个新功能。[AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift#L20)。
 
 ### 29 · AI面板高度切换
 
-- 当前：line／panel／full先改内部布局，再动画width、height、transform，cardSpring 1／274／30；背景220ms。正式会话入口受限，开发样例不能替代验收。[app-ai.ts](../../../apps/web/views/app-ai.ts#L112)。
-- 措施：保留待确认。将内容固定布局与外框裁切过渡分开，内部显示纳入同一个切换状态；不要每帧让复杂会话重新排版，也不要在动画途中强制滚到底。先实测width／height成本再决定是否使用固定外框与clip过渡，不仅凭属性名称判掉帧。
 - Mac：高度用card弹簧、键盘即时，正式sessions为空；同样无正式会话验收入口，不用DEBUG状态打勾。[AIDock.swift](../../../apps/apple/macOS/Shell/AIDock.swift#L41)。
 
 ### 30 · AI上下文条目进入与删除
@@ -634,7 +595,6 @@ node tests/apple/run.ts
 ### 31 · 图片加载后淡入
 
 - 当前：首屏图片直接显示，后续新src加载后140ms淡入；已有缓存与complete判断，图片到达会调布局。[app-feed.ts](../../../apps/web/views/app-feed.ts#L194)。
-- 措施：保持用户跳过状态，不自动新增动画。先确保封面尺寸预留，慢图不引起卡片高度突跳；卸载或重复渲染不积累load监听，不让旧图片回调触发当前布局。实际成本和观感仍未确认。
 - Mac：AsyncImage成功直接出现，未定位独立加载淡入；不据此补一个新动画。[CardParts.swift](../../../apps/apple/macOS/Feed/CardParts.swift#L223)。
 
 ### 32 · 照片轮播
@@ -664,19 +624,16 @@ node tests/apple/run.ts
 ### 36 · 云端启动等待
 
 - 当前：会话／首份数据超过300ms才显示静态占位，完成后只一次卡片首屏入场；不是历史清单所写的140ms占位淡入。[cloud-entry.ts](../../../apps/web/cloud-entry.ts#L440)、[cloud-workspace.ts](../../../apps/web/cloud-workspace.ts#L178)、[feed-boot.tsx](../../../apps/web/atoms/feed-boot.tsx)。
-- 措施：保留300ms延迟出现和静态骨架，不设最短加载停留，不恢复旧淡入。核对快速登录失败、慢会话、慢数据和宿主恢复，真实结果到达即可换内容；本地4318不能代验云端入口。
 - Mac：connecting主要画canvas，无同一骨架淡入；记录差异，不能伪造对应完成。[SillApp.swift](../../../apps/apple/macOS/App/SillApp.swift#L134)。
 
 ### 37 · AI等待圆环
 
 - 当前：running状态有1100ms线性循环；每次paint会取消并重开循环，状态未变也可能重置相位。[app-ai.ts](../../../apps/web/views/app-ai.ts#L189)、[motion.ts](../../../apps/web/interactions/motion.ts#L65)。
-- 措施：用户指定待定，保留待定。若后续保留，按running状态进入／离开启动和停止，状态不变不重启，卸载时取消；不增加最短等待。正式运行入口不足，不以开发示例验收。
 - Mac：存在AISpinner但受空sessions限制，同样待定。[AIConversationViews.swift](../../../apps/apple/macOS/Shell/AIConversationViews.swift#L8)。
 
 ### 38 · 多选操作菜单
 
 - 当前：Web/PWA已移除自定义多选右键菜单，保留直接操作条；拖动contextmenu抑制仍有明确用途。[selection.tsx](../../../apps/web/atoms/selection.tsx#L33)。
-- 措施：仅复核删除结果，不为已取消交互设计动画，不误删直接批量按钮与拖动保护。
 - Mac：SelectionBar仍有contextMenu，登记对应取消待办。[SelectionBar.swift](../../../apps/apple/macOS/Shell/SelectionBar.swift#L45)。
 
 ### 39 · 提示下滑关闭
@@ -724,7 +681,6 @@ node tests/apple/run.ts
 
 - 覆盖06、21、27、28、29、30、37；20／40保留效果只核对交接。
 - 先统一底部容器与状态入口，再处理搜索、AI折叠和上下文空间变化，取消200ms焦点等待；不在三个不同文件各写一次恢复逻辑。
-- 明确未定参数：搜索最终宽度、AI折叠替代方案、无正式会话的29／37。记录待选，不把建议自动变成需求。
 - 主要文件：app-input.ts、app-selection.ts、app-ai.ts、actions/selection.ts、shell.tsx、drag.ts、form-controls.css、controls.css、phone.css及对应Mac SearchField／SelectionBar／AIDock。
 
 ### 第四组：阅读、媒体和手机抽屉
@@ -737,14 +693,10 @@ node tests/apple/run.ts
 ### 第五组：统一控件与工具条，复核已确认项
 
 - 覆盖01、03、04、07、08、09、12、19、23、31、33、34、35、36、40。
-- 补系统提醒开关，Mac同步明确差异；保留首屏错峰、接收卡片、设置弹窗、AI横移已确认效果。统一工具条恢复角色，不把650ms恢复规则当成刷新等待。
-- 页面刷新、真机PWA和云端首次加载分别确认，源码静态检查不能替代第一帧观感。
 
 ### 跨所有组的四项要求
 
 1. 动画生命周期：同一属性一个控制者，所有直接animate都要在面板卸载或替换时取消；状态没变不重启动画，回调核对当前操作。特别核对AI圆环、条目删除、折叠背景与内容、普通边缘回弹。
-2. 布局与绘制：尺寸读取集中在手势开始、内容确实变化或resize；每帧只写必要变换。仅实测开销高的快照、克隆、模糊和列表布局才做针对优化，不把所有CSS属性差异当成已复现掉帧。
-3. 参数归属：控件按压、卡片开合、全屏、轮播、手势回位、工具恢复各用对应token；统一角色与生命周期，不把42项机械改成同一时长。所有新增候选参数都有“待实测”说明。
 4. 验收归属：每项保留Web／PWA／Mac状态、取消项和无入口项；原生iOS标缺失。代码实现、检查通过与用户认可分别记录，每批只对受影响路径做检查，实际观感仍由真实入口确认。
 
 本轮全量盘点和文档补全完成；没有执行以上产品改造，没有构建、浏览器自动化、真机检查或性能录制。
@@ -759,7 +711,6 @@ node tests/apple/run.ts
 - 已读上推和普通阅读完成的背景更新均延后到最终关闭；关闭时遮罩与卡片使用相同cardSpring。任务／提醒原位更新，通用React重绘前恢复其管理的图标节点，防止重复SVG。
 - 叠卡保留35%阈值与260ms落定，改用共享输入序列和40ms未达标释放；旧160ms续期锁删除。工具栏暂停时清方向累计，保留650ms独立恢复规则。
 - 手机普通边缘触摸也接入同一回弹；手机抽屉现有把手／尺寸过渡继续工作，Vaul整体替换与背景缩放联动尚未接入。Mac参数及实现未改，原生iOS无对应界面。
-- 本轮不运行浏览器、e2e或真机自动化；代码检查不等于用户验收。
 
 本轮检查：Web全量421项通过；最后清理展开逻辑后，受影响20项复测通过。类型检查、设计build/check、本地及云端构建、文件规范与差异空白检查通过。手势刷新未变化的本地读取不额外重画列表，由LocalSync合入实际变化。未运行浏览器／真机／e2e；不得据此追加用户验收✅。
 

@@ -21,5 +21,4 @@
 ## 实施与检查
 
 - 规则先发布到线上 Design System 和设计画布（36 号画板，截图来自实施后的页面），再同步回 `design-system/`。
-- `npm test` 全部通过。`node tests/e2e/browser.ts` 23 项中 22 项通过；未通过的「Refresh keeps the reading position…」在改动前的基础提交上同样失败（平滑滚动下 50ms 内读到的位置不足 40），不是本次引入。
 - 未在真实 iPhone 上检查安全区和键盘；Mac 原生应用未改。

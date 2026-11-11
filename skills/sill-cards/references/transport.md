@@ -6,7 +6,6 @@
 
 ## MCP 参数怎么传
 
-通过宿主工具调用传原生 JSON 对象，不把整张卡片 JSON.stringify 后作为字符串传入。数字和布尔值不加引号；对象和数组保持结构。外层 `body` 是请求对象，内层 `body` 才是正文字符串。
 
 调用 `sill_createContent` 的合成格式示例：
 
@@ -60,7 +59,6 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 - 原文、邮件或照片的 `publishedAt`、文件 `modifiedAt` 为 YYYY-MM-DD 或带时区 ISO 时间；只有日期就保留日期。PR `observedAt` 必须是带时区 ISO 时刻。
 - `duration`、`chapters[].start`、`transcript[].start`、`state.playbackPosition` 和 `reading.add.seconds` 均为**秒**，用途彼此独立；`progress` 为 0–1 比例。
 - `sizeBytes` 是非负安全整数字节数，不传 "2 MB"。MIME 使用标准类型字符串，不用扩展名代替。
-- 单字段长度见 [字段字典](fields.md)；云端 HTTP/MCP 请求体还有 **512 KiB UTF-8 字节**上限，包含参数与 JSON 编码开销。多字节中文和转义会增加大小；500000 字的字段上限不保证一条请求能传完。
 - 超限会被拒绝。可减少无关字段，或拆成几张主题独立的关联卡片。数组和正文整体替换，没有追加或分片上传，不能靠连续 update 拼接超限正文。必须一起成功的操作不能拆批。
 
 ## 写入前后检查

@@ -4,17 +4,13 @@
 
 本文交给接手的 agent。它说明 2026-10-18 已定稿的手机主页（[ADR 0036](../../adr/0036-phone-home-density.md)）和卡片详情（[ADR 0037](../../adr/0037-card-detail-toolbar.md)）做到了哪里、还缺什么，以及怎样把 Web 本地页面和云端 PWA 的界面与代码做完整。文末附可直接使用的提示词。
 
-范围：`apps/web/`（本地页面与云端页面共用）、云端 PWA 的安装与外壳、相关测试与设计文档。不包括 Mac、iOS 原生端，不包括服务端新功能、Webhook、内置助手和外部来源。
 
-本轮按用户指定的仓库模式执行：只读取和修改仓库内设计文件；不访问、读取或发布 claude.ai Artifact，不使用 claude.ai 独有工具或 Mobbin 连接器。设计参考改用 3–6 个公开可访问的产品页面，或用户提供的截图。先更新仓库原则、ADR、手册与组件说明，再改实现和实际页面画板。`design-system/design-system.json` 的线上资产记录保持不变；PR 的 Merge Danger 列出线上未同步文件，由用户另行处理。下文历史记录中的线上操作只说明当时发生的事。
 
 ## 1. 开工前必读
 
 按顺序读，读完再动手：
 
-1. [AGENTS.md](../../../AGENTS.md)：产品约束。重点：Agent 优先，数据与状态操作要能通过 MCP 完成；保留既有轻操作；不接入外部来源；不新增复杂人工编辑器；不把本地打勾说成外部完成。
 2. [DESIGN.md](../../agent/DESIGN.md) 和 [设计手册](../../../design-system/README.md)：设计规则以手册为准。手册中与本次相关的章节：「手机主页」「预览与叠放」「图标」「底部导航与反馈」「动效」。
-3. [ADR 0032](../../adr/0032-design-online-first.md) 和 AGENTS.md「设计」一节。**本交接的工作一律只在仓库内进行，不使用任何 claude.ai 独有的工具**：不打开、不读取、不发布线上 Design System 和设计画布（claude.ai Artifact），不使用 claude.ai 的连接器（例如 Mobbin 连接器）。按 AGENTS.md 的仓库内规则：先更新仓库里的原则和规范（ADR、`design-system/README.md`、组件说明、`design-system/boards/`），再改实现。线上与仓库因此产生的差异，写进每个 PR 的 Merge Danger，由用户另行同步。
 4. [ADR 0036](../../adr/0036-phone-home-density.md)、[ADR 0037](../../adr/0037-card-detail-toolbar.md) 和两份讨论记录：[手机主页](../2026-10-18-phone-home-x-density/README.md)、[卡片详情](../2026-10-18-card-detail-capsule/README.md)。记录里有被否决的方案和原因，不要重新提出已否决的方案。
 5. [代码规范](../../agent/code-standards.md)、[文件管理规范](../../agent/file-management.md)、[PR 编写指南](../../agent/pr.md)。
 6. 设计画布 36 号历史画板 `design-system/history/MobileHome.dc.html`、37 号画板 `design-system/boards/CardDetail.dc.html`：定稿截图来自实际页面。
@@ -93,7 +89,6 @@
 - 一次只做一个工作包。设计类工作包先讨论，再改仓库里的原则和规范，再改代码。
 - 效果图：在真实页面上用 Playwright 叠加临时样式截图。环境已预装 Chromium 时用它的路径（`executablePath`），不要重复下载浏览器。效果图放 `docs/records/<日期>-<主题>/`，单个文件不超过 2 MB。
 - 本地页面：`npm run build` 后 `npm start`，端口 4318。云端页面：`npm run build:cloud`。
-- 不使用 claude.ai 独有的工具：不读、不发布线上 Design System 和设计画布，不调用 claude.ai 连接器，不创建 claude.ai Artifact。画板只改仓库里的 `design-system/boards/`。每个改了设计的 PR，在 Merge Danger 里列出「线上未同步」的文件，由用户另行处理。
 - 仓库交付：先改 ADR、手册和组件说明，再改实现并生成组件包与图标；实际截图写入 `design-system/boards/`，同时更新本地 `index.html` 与 `canvas.json`。线上资产记录不改；未同步文件逐项写入 PR 的 Merge Danger，由用户另行处理。
 - 文案：所有用户可见文字放 `design-system/copy/zh-Hans.json`；文档用 80% ASD-STE100 风格的简体中文。
 - 交付前运行 `npm run files:check` 和 `npm test`；按改动运行相关浏览器测试（见 [tests/README.md](../../../tests/README.md)）。
@@ -102,8 +97,6 @@
 
 - 不重新提出已否决的方案：卡片原地放大的详情、黑色主操作胶囊、「⋯」更多菜单、图标加文字、改成通栏列表、通栏标签栏。
 - 不在正文里加回色块按钮。
-- 不接入外部来源，不新增复杂人工编辑器，不把 API 字段做成表单。
-- 不把 Sill 内的完成、延后说成来源里已完成或已改时间。
 - 不跳过、不禁用、不放宽测试来变绿；不用空提交触发 CI。
 - 不改 Mac、iOS 原生代码；需要时另开事项。
 - 不提交 token、真实账号内容或浏览器存储。
@@ -117,7 +110,6 @@
 - 界面改动：改前、改后截图（390、320、1440，浅色和深色按需）。
 - 真机：设备与系统版本；没有真机就写「未检查」。
 - 仓库内的设计文件（手册、组件说明、画板、图标）是否已更新；Merge Danger 里列出线上未同步的文件。
-- 线上未同步的仓库文件清单；本轮不读取线上，不能声称当前两边一致。
 
 ## 7. 提示词
 

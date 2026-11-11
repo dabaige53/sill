@@ -17,7 +17,6 @@ Sill 侧配置已完成，授权入口检查通过；等待 Muse 发起真实授
 - 实际读取发行方的 OIDC 和 OAuth 发现信息：授权和令牌端点与接入方参数一致，
   支持 `authorization_code`、`refresh_token`、认证方式 `none`、
   PKCE `S256`，以及 `openid profile email offline_access`。
-  发现信息未公布 `registration_endpoint`，不能据此确认动态注册可用。
 - 修改前实际读取 Worker settings：MCP、OAuth 同意页均启用，客户端允许列表包含
   `d787a4ef-8028-4a58-a1f3-d9cd24db7f29` 和
   `5caffdc3-f450-4664-bd81-a65a16eace73`。数据库查询确认它们分别为
@@ -97,7 +96,6 @@ Worker 本次仅更新配置，沿用线上程序，未发布本地未提交源�
 用户要求新用户仅用自己的账号密码登录并授权，不人工配置每个账号的客户端策略。
 源码新增共享应用默认策略迁移 `20261103032753_shared_oauth_applications.sql`：
 已登记的 Muse 和 ChatGPT 固定回调提供公共默认策略，新账号默认只读自己的工作区。
-同意页读取时只初始化缺失的账号策略，不生成访问 grant，不覆盖已有权限、限制或停用状态。
 本机 Codex 回调不自动转为公共应用。
 
 回归覆盖账号密码登录后返回原授权页、首次接入未批准无权限、共用 Client ID 下两账号的独立批准、

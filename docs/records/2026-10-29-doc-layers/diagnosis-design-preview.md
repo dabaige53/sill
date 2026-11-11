@@ -19,7 +19,6 @@ stale: components/CheckItem/preview.html (run scripts/design-init.sh build)
 
 ## 处理情况
 
-文档整理只更新文档路径及相关生成定义，没有重建这两份产品预览。文件管理、文档链接与数据导出检查通过，不能据此认定设计预览检查通过。完整整理范围见[事件记录](README.md)。
 
 ## 验证与后续
 

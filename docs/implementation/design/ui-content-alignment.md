@@ -9,6 +9,6 @@
 | 长标签 | 标签在自身宽度内换行 | ReaderTags 的 FlowRow 按未限定宽度测量，单标签宽度缺少约束 |
 | PR 增删数量 | 窄空间可分行 | PullRequestContent.stats 仍为单行 HStack |
 | 手机操作胶囊 | 使用手机间距容纳触控区域 | 不适用 |
-| 抽屉与触摸 | 手机使用抽屉与方向判定；横向内容和媒体控件保留触摸操作 | 使用原生触控板路径，不能用 Web 触摸结果推断 |
+| 抽屉与触摸 | 手机使用抽屉与方向判定；横向内容和媒体控件保留触摸操作 | 使用原生触控板路径 |
 
 会议码、长标签与 PR 统计的 Mac 布局差异的实际视觉影响仍需窗口验证。源码入口为 `apps/apple/macOS/Reader/ReaderContent.swift`、`DetailRows.swift`、`PullRequestContent.swift`；FlowRow 的布局实现也需同时核对。手机流畅度以获准的真机结果判断。

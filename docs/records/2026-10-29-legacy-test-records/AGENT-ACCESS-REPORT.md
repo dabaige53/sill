@@ -1,6 +1,5 @@
 # F07 restricted-agent verification
 
-历史资料：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
 Scope: the existing single-owner server, with a finite external-agent card API. No live credentials, installed host applications, deployment, OAuth grant, external provider call or paid request was used. Tests use isolated temporary stores and synthetic process-local credentials.
 

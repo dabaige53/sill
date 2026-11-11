@@ -19,7 +19,6 @@ ebf49ff npm run test:browser PASS 23/23
 源码核对：公开方法 103；未移动方法 97；设置与详情方法体 5；动作名称 78、处理逻辑 72、职责分组 7。
 公开签名、构造函数、访问器、字段、其余方法及展示文件不变。
 
-npm run lint:web PASS（包含仓库其他范围的检查，不等于只查 Web）
 npx biome lint apps/web: 0 errors / 906 warnings / 30 infos
 copy keys 826 / hashed keys 601 / panels hashed keys 110 / icons 69
 

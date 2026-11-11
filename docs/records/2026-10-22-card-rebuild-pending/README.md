@@ -14,7 +14,6 @@
 - 约定升到 4.0.0：`body` 改为 Markdown 字符串，删除 `points`，`summary` 加说明；导出的 Schema、OpenAPI、MCP 工具说明已重新生成。
 - 旧数据读取时转换（Web `normalizeCard` 与 Swift `Card.normalize`）：正文数组按空行拼接、跳过空段落，要点转为正文开头的有序列表；两端共用迁移样例已加一条。
 - 云端迁移文件 `supabase/migrations/20261022120000_sill_markdown_body.sql`：正文改为字符串校验，读取时转换旧数据，拒绝 `points`。
-- Web 接入 markdown-it 14.1.0：不渲染原始 HTML，不加载图片，链接只放行 http、https、mailto；预览、全屏阅读、卡面摘要回退、搜索、编辑框、速记都改为单个正文；补了 Markdown 元素样式。
 - 技能文档 `skills/sill` 的字段说明与示例。
 - 通过的检查：`npm run test:contracts`（53 项）、`npm run test:server`（110 项）、`npm run typecheck`、`npm run build`、`npm run check`、`npm run files:check`、`tests/web/markdown.test.ts`（4 项）。
 
