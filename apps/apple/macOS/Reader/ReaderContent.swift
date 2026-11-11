@@ -75,12 +75,12 @@ struct ReaderContent: View {
         }
         head
         // Info rows (facts, time and place, people) lead; the summary follows them, then the body.
-        // Photos speak for themselves: no summary block in their detail (Web the same).
+        // Photos and schedule details do not show a separate summary.
         let rows = recipe.body.prefix { Self.infoRows.contains($0.name) }.count
         ForEach(Array(recipe.body.enumerated().prefix(rows)), id: \.offset) { index, entry in
           bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
         }
-        if card.kind != .photo { SummaryOverview(card: card) }
+        if ![.photo, .event, .reminder].contains(card.kind) { SummaryOverview(card: card) }
         ForEach(Array(recipe.body.enumerated().dropFirst(rows)), id: \.offset) { index, entry in
           bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
         }
@@ -129,11 +129,11 @@ struct ReaderContent: View {
       let start = card.start ?? 0
       let relative = Format.eventRelative(
         start: start, end: card.end ?? start, now: Format.milliseconds())
-      MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
-        Text(Format.dateLabel(start))
-          + Text(relative.isEmpty ? "" : " · ")
-          + Text(relative).foregroundColor(AppleColors.secondary).fontWeight(.medium)
-      }
+      (Text(Format.dateLabel(start))
+        + Text(relative.isEmpty ? "" : " · ")
+        + Text(relative).foregroundColor(AppleColors.secondary).fontWeight(.medium))
+        .textStyle(AppleMetrics.font13)
+        .foregroundStyle(AppleColors.secondary)
       .padding(.trailing, discRoom)
       .firstRow()
       .frame(minHeight: AppleMetrics.space36, alignment: .leading)
@@ -151,20 +151,26 @@ struct ReaderContent: View {
     case "schedule": CardScheduleLine(card: card, state: state)
     case "reminderRow":
       HStack(alignment: .top, spacing: AppleMetrics.space12) {
+        title
         ReminderCheck(card: card, state: state, large: true)
           .padding(
             .top,
             (LineHeight.height(size: type.title * workspace.preferences.readerTextSize.scale)
               - AppleMetrics.space24) / 2)
-        title
       }
     default: EmptyView()
     }
   }
 
   private func source(_ entry: RecipeEntry) -> some View {
-    MetaRow(icon: AnyView(SourceIcon(card: card, size: sourceIconSize(entry)))) {
-      card.metaText(sourceLine(entry))
+    Group {
+      if card.kind == .reminder {
+        card.metaText(sourceLine(entry))
+      } else {
+        MetaRow(icon: AnyView(SourceIcon(card: card, size: sourceIconSize(entry)))) {
+          card.metaText(sourceLine(entry))
+        }
+      }
     }
     .padding(.trailing, discRoom)
     .firstRow()
@@ -257,6 +263,8 @@ struct ReaderContent: View {
       if !card.markdown.blocks.isEmpty {
         if entry.string("section") == "agenda" {
           section(Copy.text("web.card.agenda")) { detailText(entry) }
+            .padding(.top, previous?.name == "participants" && !infoRows.isEmpty
+              ? rhythm.rowLift : 0)
         } else {
           detailText(entry).padding(.top, previous?.name == "checklist" ? rhythm.rowLift : 0)
         }
@@ -319,7 +327,18 @@ struct ReaderContent: View {
         if !rows.isEmpty {
           VStack(spacing: 0) {
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-              if row.icon == "video" {
+              if card.kind == .event {
+                VStack(alignment: .leading, spacing: 0) {
+                  Text(row.title).fixedSize(horizontal: false, vertical: true)
+                  if !row.trailing.isEmpty {
+                    Text(row.trailing).textStyle(AppleMetrics.font12)
+                      .foregroundStyle(AppleColors.secondary)
+                  }
+                }
+                .textStyle(AppleMetrics.font14)
+                .frame(
+                  maxWidth: .infinity, minHeight: AppleMetrics.detailRowHeight, alignment: .leading)
+              } else if row.icon == "video" {
                 DetailRow(
                   icon: row.icon, title: row.title, detail: row.trailing, divider: index > 0,
                   wrapping: true)

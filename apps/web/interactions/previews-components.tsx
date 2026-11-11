@@ -159,7 +159,7 @@ const detailLines: Record<string, DetailBlock> = {
 			]),
 		),
 	task: (c) => previewMeta(c, copy("web.task"), 15),
-	reminder: (c) => previewMeta(c, copy("web.reminder"), 15),
+	reminder: () => <div className="preview-meta"><span>{copy("web.reminder")}</span></div>,
 };
 
 const detailBlocks: Record<string, DetailBlock> = {
@@ -169,7 +169,6 @@ const detailBlocks: Record<string, DetailBlock> = {
 	sender: (c) => <MailSender card={c} detail />,
 	eventDate: (c) => (
 		<div className={"preview-meta"}>
-			<SourceMark card={c} size={15} />
 			<span>
 				{metaLine([
 					dateLabel(c.start),
@@ -267,7 +266,11 @@ const detailBlocks: Record<string, DetailBlock> = {
 				</div>
 			) : null,
 		].filter(Boolean);
-		return rows.length ? <div className={"detail-rows"}>{keyed(rows)}</div> : null;
+		return rows.length ? (
+			<div className={`detail-rows${c.type === "event" ? " event-info" : ""}`}>
+				{keyed(rows)}
+			</div>
+		) : null;
 	},
 };
 
@@ -286,7 +289,12 @@ function renderDetail(
 			return (
 				// biome-ignore lint/suspicious/noArrayIndexKey: Recipe entries are fixed per card type.
 				<div className={detailGroups[entry.group]} key={key}>
-					{renderDetail.call(this, entry.blocks, c, scope)}
+					{renderDetail.call(
+						this,
+						entry.group === "reminderRow" ? [...entry.blocks].reverse() : entry.blocks,
+						c,
+						scope,
+					)}
 				</div>
 			);
 		const block = detailBlocks[entryName(entry)];
@@ -326,8 +334,8 @@ function detailContent(
 				{renderDetail.call(this, recipe.head, c, scope)}
 			</header>
 			{renderDetail.call(this, body.slice(0, rows), c, scope)}
-			{/* Photos speak for themselves: no summary block in their detail. */}
-			{c.type !== "photo" && <DetailSummary card={c} />}
+			{/* Schedule details show their body without a separate summary. */}
+			{!["photo", "event", "reminder"].includes(c.type) && <DetailSummary card={c} />}
 			{renderDetail.call(this, body.slice(rows), c, scope)}
 		</>
 	);

@@ -595,6 +595,21 @@
 	display: none;
 }
 
+/* Schedule text shares the title edge; reminder completion remains available at the end. */
+.event-info .row-icon {
+	display: none;
+}
+:is(.preview-body, .reader-body) > .event-info + .detail-section {
+	margin-top: calc((var(--rhythm-label) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+.preview-title-row:has(.reminder-check) {
+	justify-content: space-between;
+}
+.preview-title-row:has(.reminder-check) h1 {
+	flex: 1;
+	min-width: 0;
+}
+
 /* Event date line sits close to its time; the time is one item above the title. */
 .detail-header > .preview-meta:has(+ .event-hero) {
 	min-height: 0;
