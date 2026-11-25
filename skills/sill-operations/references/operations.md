@@ -133,6 +133,7 @@
 | `dismissed` | boolean | 隐藏提醒或时效提示 |
 | `reminderDone` | boolean | 提醒完成 |
 | `lastReminderKey` | string，最多 200 字符 | 上次提醒标识 |
+| `lastNotifiedAt` | number，0–8.64e15 | 上次设备通知时间，毫秒时间戳。保留设备写入值 |
 | `readAt` | 同上 | 阅读时间 |
 | `restoredAt` | 同上 | 恢复时间 |
 | `done` | boolean | 兼容完成状态；任务卡与 `taskDone` 同步，提醒卡与 `reminderDone` 同步 |
