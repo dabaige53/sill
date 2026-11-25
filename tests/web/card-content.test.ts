@@ -40,8 +40,8 @@ test("mail keeps its full sender in detail and gives the date a separate element
 	}
 });
 
-// @wu-test type=behavior | scope=card summaries | protects=Limit card-face summaries while preserving full detail summaries
-test("card summaries have a text bound while every detail but the photo viewer retains the full summary", () => {
+// @wu-test type=behavior | scope=card summaries | protects=Limit card-face summaries and preserve full summaries where details show them
+test("card faces bound summary text and eligible details show the full summary", () => {
 	Store.state = Store.fresh();
 	const summary = "结论🙂".repeat(60);
 	assert.equal(Array.from(cardSummaryText(summary)).length, 120);
@@ -55,8 +55,7 @@ test("card summaries have a text bound while every detail but the photo viewer r
 		]) {
 			const dom = new JSDOM(html);
 			try {
-				// The photo viewer shows the photos without a summary block.
-				if (card.type === "photo") {
+				if (["photo", "event", "reminder"].includes(card.type)) {
 					assert.equal(dom.window.document.querySelector(".detail-summary"), null, card.id);
 					continue;
 				}

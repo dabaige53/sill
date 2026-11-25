@@ -159,7 +159,11 @@ const detailLines: Record<string, DetailBlock> = {
 			]),
 		),
 	task: (c) => previewMeta(c, copy("web.task"), 15),
-	reminder: () => <div className="preview-meta"><span>{copy("web.reminder")}</span></div>,
+	reminder: () => (
+		<div className="preview-meta">
+			<span>{copy("web.reminder")}</span>
+		</div>
+	),
 };
 
 const detailBlocks: Record<string, DetailBlock> = {
@@ -267,9 +271,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 			) : null,
 		].filter(Boolean);
 		return rows.length ? (
-			<div className={`detail-rows${c.type === "event" ? " event-info" : ""}`}>
-				{keyed(rows)}
-			</div>
+			<div className={`detail-rows${c.type === "event" ? " event-info" : ""}`}>{keyed(rows)}</div>
 		) : null;
 	},
 };

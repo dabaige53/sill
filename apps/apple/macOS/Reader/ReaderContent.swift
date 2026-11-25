@@ -134,9 +134,9 @@ struct ReaderContent: View {
         + Text(relative).foregroundColor(AppleColors.secondary).fontWeight(.medium))
         .textStyle(AppleMetrics.font13)
         .foregroundStyle(AppleColors.secondary)
-      .padding(.trailing, discRoom)
-      .firstRow()
-      .frame(minHeight: AppleMetrics.space36, alignment: .leading)
+        .padding(.trailing, discRoom)
+        .firstRow()
+        .frame(minHeight: AppleMetrics.space36, alignment: .leading)
     case "timeSpan": timeSpan
     case "title":
       if entry.flag("bare") == true {
@@ -263,8 +263,10 @@ struct ReaderContent: View {
       if !card.markdown.blocks.isEmpty {
         if entry.string("section") == "agenda" {
           section(Copy.text("web.card.agenda")) { detailText(entry) }
-            .padding(.top, previous?.name == "participants" && !infoRows.isEmpty
-              ? rhythm.rowLift : 0)
+            .padding(
+              .top,
+              previous?.name == "participants" && !infoRows.isEmpty
+                ? rhythm.rowLift : 0)
         } else {
           detailText(entry).padding(.top, previous?.name == "checklist" ? rhythm.rowLift : 0)
         }

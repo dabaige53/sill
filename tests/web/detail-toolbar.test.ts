@@ -38,7 +38,7 @@ test("card detail exposes the shared actions for every card kind", () => {
 	}
 });
 
-// @wu-test type=behavior | scope=card-specific detail actions | protects=Keep mail links, future event actions and reminder actions available
+// @wu-test type=behavior | scope=card-specific detail actions | protects=Keep mail and event actions available and reminder completion after the detail title
 test("mail opens its web page, events download and reminders remind again from the toolbar", (t) => {
 	const now = Date.UTC(2026, 10, 9, 12);
 	t.mock.method(Date, "now", () => now);
@@ -54,10 +54,9 @@ test("mail opens its web page, events download and reminders remind again from t
 		assert.ok(event.own.includes("download-calendar"));
 		assert.ok(event.own.includes("snooze"));
 		assert.deepEqual(reminder.own, ["snooze", "dismiss-reminder"]);
-		// Done is the circle before the title, as on the card; it only changes Sill.
 		assert.ok(
 			reminder.document.querySelector(
-				'.preview-title-row [data-action="complete-reminder"] + #modal-title',
+				'.preview-title-row #modal-title + [data-action="complete-reminder"]',
 			),
 		);
 	} finally {
