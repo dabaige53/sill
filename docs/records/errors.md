@@ -4,6 +4,8 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-25 | 1.2.40 发布检查 | Biome、Swift 格式、日程与提醒概要、complete-reminder | [首轮发布检查](2026-11-21-release-1.2.40/README.md#首轮发布检查) |
+| 2026-11-25 | 1.2.41 发布检查 | lastNotifiedAt、aiLocal、references/fields.md、插件打包 | [第二轮发布检查](2026-11-21-release-1.2.40/README.md#第二轮发布检查) |
 | 2026-11-09 | 发布后健康探测 | Cloudflare 1010、Python urllib 403、Node fetch 200、ready | [健康探测请求方式差异](2026-11-09-release-1.2.39/README.md#发布后复查与未验证范围) |
 | 2026-11-09 | 1.2.39 候选 CI | agentAction、readFileSync、theme-color、completed task must return focus to its title、SelectionTests、Biome | [候选格式、类型与旧行为断言](2026-11-09-release-1.2.39/diagnosis.md) |
 | 2026-11-09 | PostgreSQL 测试类型 | Promise.withResolvers、PromiseConstructor、ES2023、supabase-postgres.ts、LSP | [测试事务辅助函数类型库不兼容](2026-11-08-local-task-consolidation/README.md#2026-11-09-lsp-诊断) |

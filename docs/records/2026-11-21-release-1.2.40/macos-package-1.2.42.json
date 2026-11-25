@@ -1,0 +1,15 @@
+{
+  "version": "1.2.42",
+  "architecture": "arm64",
+  "commit": "56652e85250f01b68078a8a4e0c863057fb8b124",
+  "file": "Sill-1.2.42-macOS-arm64-internal.dmg",
+  "signing": "self-signed",
+  "notarized": false,
+  "checks": [
+    "disk-image-integrity",
+    "app-signature",
+    "applications-link",
+    "finder-layout-present"
+  ],
+  "visualAcceptance": "not-performed"
+}
