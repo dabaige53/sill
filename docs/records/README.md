@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [Mac 信息流宽封面撑大卡片外框](2026-11-25-macos-feed-cover-overlap/README.md)
 - [1.2.40–1.2.42 发布记录](2026-11-21-release-1.2.40/README.md)
 - [本地任务整合与清理](2026-11-08-local-task-consolidation/README.md)
 - [1.2.39 发布](2026-11-09-release-1.2.39/README.md)

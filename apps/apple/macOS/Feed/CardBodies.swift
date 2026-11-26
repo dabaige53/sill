@@ -50,9 +50,11 @@ struct CardCover<Overlay: View>: View {
   var faded = false
   @ViewBuilder var overlay: Overlay
   var body: some View {
-    CoverImage(name: card.cover, faded: faded)
+    Color.clear
       .aspectRatio(16 / 9, contentMode: .fit)
       .frame(maxWidth: .infinity)
+      // Keep the image's fill size out of the feed's layout.
+      .overlay { CoverImage(name: card.cover, faded: faded) }
       .overlay(alignment: .bottomTrailing) { overlay }
       .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius, style: .continuous))
       .padding([.horizontal, .top], AppleMetrics.coverInset)

@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-11-25 | Mac 信息流 | 卡片重叠、横向越界、宽封面、列宽 | [宽封面撑大卡片外框](2026-11-25-macos-feed-cover-overlap/README.md) |
 | 2026-11-25 | 1.2.40 发布检查 | Biome、Swift 格式、日程与提醒概要、complete-reminder | [首轮发布检查](2026-11-21-release-1.2.40/README.md#首轮发布检查) |
 | 2026-11-25 | 1.2.41 发布检查 | lastNotifiedAt、aiLocal、references/fields.md、插件打包 | [第二轮发布检查](2026-11-21-release-1.2.40/README.md#第二轮发布检查) |
 | 2026-11-09 | 发布后健康探测 | Cloudflare 1010、Python urllib 403、Node fetch 200、ready | [健康探测请求方式差异](2026-11-09-release-1.2.39/README.md#发布后复查与未验证范围) |
