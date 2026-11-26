@@ -26,7 +26,7 @@ Mac 的结构相同，同样叠加；Mac 的小节标题与内容使用容器间
 ## 影响
 
 - 变量：`tokens/spacing.json`、`tokens/apple.json`、`apps/web/styles/tokens.css`。
-- 手册：`content-layout.md` 新增「纵向间距」与信息行对齐规则，资讯阅读的间距说明随之修改；`web-reading.md` 写明 PR 详情的状态行与按数据显示的信息行。
+- 更新 `content-layout.md` 的「纵向间距」、信息行对齐和资讯阅读间距。更新 `web-reading.md` 的 PR 详情状态行及按数据可用性显示的信息行。
 - 现行画板：`CardTypeDetails`、`CardTypeReading`、`CardTypeMobile` 的详情样式。
 - 实现：Web `detail-content.css`、`card-types.css`、`appearance.css`、`reader-layout.css`、PR 详情与相关卡片行；Mac `ReaderContent`、`PullRequestContent`、`CardDetailFields`。
 - 界面对账表登记本次对齐；真实窗口未查看的部分保持「未验证」。
