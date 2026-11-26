@@ -151,7 +151,7 @@
 | apps/apple/Tests/CardTests.swift:101 | explicitFieldsRejectRemovedAndInvalidSemantics | KEEP | — | boundary | Reject invalid dates and removed field semantics | 检查日期及已移除字段的输入边界。 |
 | apps/apple/Tests/CardTests.swift:141 | cloudCardsLoadWithoutServerFields | KEEP | — | integration | Remove server metadata before loading a card | 防止服务端元数据阻碍卡片读取。 |
 | apps/apple/Tests/CloudWorkspaceTests.swift:80 | loginUsesPasswordEndpointAndRestoresFromVault | KEEP | — | integration | Restore the saved account | 防止登录后无法恢复账号会话。 |
-| apps/apple/Tests/CloudWorkspaceTests.swift:97 | conflictIsReturnedWithoutRetry | REWRITE | D7 | integration | Return conflict without retry | 检查了冲突结果但未统计 POST 次数，无法证明没有重试。 |
+| apps/apple/Tests/CloudWorkspaceTests.swift:97 | conflictIsReturnedWithoutRetry | REWRITE | D7 | integration | Return conflict without retry | 测试检查冲突结果，缺少 POST 次数断言。 |
 | apps/apple/Tests/CloudWorkspaceTests.swift:115 | timeoutRetainsPendingKeyAndBlocksAnotherWrite | KEEP | — | integration | Block duplicate timeout writes | 防止未知结果后产生另一笔写入。 |
 | apps/apple/Tests/CloudWorkspaceTests.swift:134 | redirectResponseIsRejectedAndLogoutClearsVault | KEEP | — | boundary | Clear session on logout; reject redirects | 防止接受不可信跳转及退出后继续读取。 |
 | apps/apple/Tests/CloudWorkspaceTests.swift:156 | accountChangeNeverReusesPreviousOwnerOrPendingWrite | KEEP | — | integration | Block unresolved account change | 防止待确认写入跨账号复用。 |
@@ -787,7 +787,7 @@
 | tests/web/gestures.test.ts:134 | a delayed gesture close cannot close a later panel or alter its return motion | REWRITE | D6 | behavior | prevents a delayed close from closing a replacement panel | 148–156 行检查旧关闭不影响当前面板且当前面板仍可关闭；139–145 行直接操纵内部状态。 |
 | tests/web/gestures.test.ts:162 | text selection and field scrolling do not dismiss a reader or finish its card | KEEP | — | boundary | prevents text field gestures from dismissing the reader or changing reading state | 170–184 行检查文本框触摸和滚轮后未关闭、没有拖动状态且数据未变。 |
 | tests/web/gestures.test.ts:191 | phone navigation pages are not draggable sheets | KEEP | — | boundary | prevents a navigation page from being dismissed by a sheet gesture | 195–201 行检查触摸后页面未关闭且没有拖动位移。 |
-| tests/web/gestures.test.ts:207 | a canceled phone opening cannot revive the exiting sheet or its toolbar | DELETE | D6 | — | — | 212–219 行直接调用内部动画方法，检查手动添加的类、内部映射和工具栏 transform，无法证明界面未复活。 |
+| tests/web/gestures.test.ts:207 | a canceled phone opening cannot revive the exiting sheet or its toolbar | DELETE | D6 | — | — | 212–219 行直接调用内部动画方法，断言手动类名、内部映射和工具栏 transform。界面复活应通过用户交互和可见状态检查。 |
 | tests/web/gestures.test.ts:225 | a toast swipe completion cannot hide a newer result | KEEP | — | behavior | prevents an old toast dismissal from hiding a newer result | 231–239 行在旧退出完成前替换结果，检查新文字仍显示。 |
 | tests/web/gestures.test.ts:245 | read-end touch progress coalesces frames and commits once before release | REWRITE | D4,D6 | behavior | Delay closing and feed refresh until read completion is confirmed | 删除第 254 至 259 行与 gesture-release.test.ts:80 重复的阈值及帧队列断言；保留第 260 至 266 行确认前后刷新和关闭检查，以及触发这些状态所需的手势。 已移除 D4 对应断言；剩余 debt=D6。 |
 | tests/web/gestures.test.ts:272 | read-end wheel threshold completes without waiting for the stream to stop | KEEP | — | behavior | prevents continuous wheel input from delaying or duplicating read completion | 281–290 行检查连续滚轮后已读、只写入一次、先显示确认再关闭。 |

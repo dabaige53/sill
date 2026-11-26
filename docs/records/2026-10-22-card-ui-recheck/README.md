@@ -11,7 +11,7 @@
 - [Web 卡面](../../../apps/web/cards/components.tsx)、[Web 详情](../../../apps/web/interactions/previews-components.tsx)、[Web 阅读数据](../../../apps/web/interactions/panel-card.tsx)。
 - [Mac 卡面](../../../apps/apple/macOS/Feed/CardBodies.swift)、[Mac 详情](../../../apps/apple/macOS/Reader/ReaderContent.swift)、[Mac 详情字段](../../../apps/apple/macOS/Reader/CardDetailFields.swift)。
 
-保留两项已确认的内容规则：详情不重复插入卡面摘要；待办先展示全部子任务，再显示正文。缺少音源、时长、章节或链接时，保留相应展示区域，按实际数据显示空状态或禁用操作。
+详情省略已在卡面显示的摘要。待办先显示完整子任务列表，再显示正文。缺少音源、时长、章节或链接时，保留区域并显示空状态或禁用操作。
 
 ## 逐模块源码检查
 
